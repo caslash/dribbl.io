@@ -1,9 +1,9 @@
-import { createServer } from "node:http";
-import next from "next";
-import { Server } from "socket.io";
+import { createServer } from 'node:http';
+import next from 'next';
+import { Server } from 'socket.io';
 
-const dev = process.env.NODE_ENV !== "production";
-const hostname = "localhost";
+const dev = process.env.NODE_ENV !== 'production';
+const hostname = 'localhost';
 const port = 3000;
 
 const app = next({ dev, hostname, port });
@@ -14,12 +14,12 @@ app.prepare().then(() => {
 
   const io = new Server(httpServer);
 
-  io.on("connection", (socket) => {
+  io.on('connection', (socket) => {
     console.log(`Client connected on socket: ${socket}`);
   });
 
   httpServer
-    .once("error", (err) => {
+    .once('error', (err) => {
       console.error(err);
       process.exit(1);
     })
