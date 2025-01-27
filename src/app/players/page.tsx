@@ -30,7 +30,7 @@ export default function Players() {
       <PlayerTable
         players={players}
         totalPlayers={totalPlayers}
-        page={page ?? 1}
+        page={page}
         totalPages={pages}
         loadingState={loadingState}
         setPage={setPage}

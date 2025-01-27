@@ -105,6 +105,8 @@ export default function PlayerTable({
               isCompact
               showControls
               showShadow
+              dotsJump={10}
+              initialPage={1}
               color="secondary"
               page={page}
               total={totalPages}
