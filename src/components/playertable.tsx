@@ -1,6 +1,6 @@
 'use client';
 
-import { Player } from '@prisma/client';
+import fetcher from '@/utils/fetcher';
 import {
   Table,
   TableBody,
@@ -12,8 +12,9 @@ import {
   Pagination,
   Spinner,
 } from '@heroui/react';
-import { LoadingState } from '@react-types/shared';
+import { Player } from '@prisma/client';
 import React from 'react';
+import useSwr from 'swr';
 
 const columns: { key: string; label: string }[] = [
   {
@@ -47,22 +48,28 @@ const columns: { key: string; label: string }[] = [
 ];
 
 export default function PlayerTable({
-  players,
-  totalPlayers,
-  page,
-  totalPages,
-  loadingState,
-  setPage,
-  setRowsPerPage,
-}: Readonly<{
-  players: Player[];
-  totalPlayers: number;
-  page: number;
-  totalPages: number;
-  loadingState: LoadingState;
-  setPage: (page: number) => void;
-  setRowsPerPage: (rows: number) => void;
-}>) {
+  className,
+}: Readonly<React.ComponentPropsWithoutRef<'div'>>) {
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [page, setPage] = React.useState(1);
+
+  const { data, isLoading } = useSwr(
+    `http://localhost:3000/api/players?page=${page}&rowsPerPage=${rowsPerPage}`,
+    fetcher,
+    { keepPreviousData: true },
+  );
+
+  const { players, total: totalPlayers }: { players: Player[]; total: number } = data ?? {
+    players: [],
+    total: 0,
+  };
+
+  const totalPages = React.useMemo(() => {
+    return totalPlayers ? Math.ceil(totalPlayers / rowsPerPage) : 0;
+  }, [totalPlayers, rowsPerPage]);
+
+  const loadingState = isLoading || data?.players.length === 0 ? 'loading' : 'idle';
+
   const onRowsPerPageChange = React.useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       setRowsPerPage(Number(e.target.value));
@@ -73,29 +80,25 @@ export default function PlayerTable({
 
   const topContent = React.useMemo(() => {
     return (
-      <div className="flex flex-col gap-4">
-        <div className="flex justify-between items-center">
-          <span className="text-default-400 text-small">Total: {totalPlayers} players</span>
-          <label className="flex items-center text-default-400 text-small">
-            Rows per page:
-            <select
-              className="bg-transparent outline-none text-default-400 text-small"
-              onChange={onRowsPerPageChange}
-            >
-              <option value="10">10</option>
-              <option value="25">25</option>
-              <option value="50">50</option>
-            </select>
-          </label>
-        </div>
+      <div className="flex flex-col gap-4 items-end">
+        <label className="flex items-center text-default-400 text-small">
+          Rows per page:
+          <select
+            className="bg-transparent outline-none text-default-400 text-small"
+            onChange={onRowsPerPageChange}
+          >
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+          </select>
+        </label>
       </div>
     );
   }, [totalPlayers, onRowsPerPageChange]);
 
   return (
-    <div className="flex flex-col items-center">
+    <div className={className}>
       <Table
-        className="w-2/3"
         aria-label="Players"
         isStriped
         topContent={topContent}
