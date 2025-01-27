@@ -10,7 +10,9 @@ import {
   TableRow,
   getKeyValue,
   Pagination,
+  Spinner,
 } from '@heroui/react';
+import { LoadingState } from '@react-types/shared';
 import React from 'react';
 
 const columns: { key: string; label: string }[] = [
@@ -36,11 +38,7 @@ const columns: { key: string; label: string }[] = [
   },
   {
     key: 'season_exp',
-    label: 'XP',
-  },
-  {
-    key: 'jersey',
-    label: 'Jersey #',
+    label: 'Exp',
   },
   {
     key: 'position',
@@ -48,18 +46,51 @@ const columns: { key: string; label: string }[] = [
   },
 ];
 
-export default function PlayerTable({ players }: Readonly<{ players: Player[] }>) {
-  const [page, setPage] = React.useState(1);
-  const rowsPerPage = 10;
+export default function PlayerTable({
+  players,
+  totalPlayers,
+  page,
+  totalPages,
+  loadingState,
+  setPage,
+  setRowsPerPage,
+}: Readonly<{
+  players: Player[];
+  totalPlayers: number;
+  page: number;
+  totalPages: number;
+  loadingState: LoadingState;
+  setPage: (page: number) => void;
+  setRowsPerPage: (rows: number) => void;
+}>) {
+  const onRowsPerPageChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setRowsPerPage(Number(e.target.value));
+      setPage(1);
+    },
+    [setPage, setRowsPerPage],
+  );
 
-  const pages = Math.ceil(players.length / rowsPerPage);
-
-  const items = React.useMemo(() => {
-    const start = (page - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
-
-    return players.slice(start, end);
-  }, [page, players]);
+  const topContent = React.useMemo(() => {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="flex justify-between items-center">
+          <span className="text-default-400 text-small">Total: {totalPlayers} players</span>
+          <label className="flex items-center text-default-400 text-small">
+            Rows per page:
+            <select
+              className="bg-transparent outline-none text-default-400 text-small"
+              onChange={onRowsPerPageChange}
+            >
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+            </select>
+          </label>
+        </div>
+      </div>
+    );
+  }, [totalPlayers, onRowsPerPageChange]);
 
   return (
     <div className="flex flex-col items-center">
@@ -67,6 +98,7 @@ export default function PlayerTable({ players }: Readonly<{ players: Player[] }>
         className="w-2/3"
         aria-label="Players"
         isStriped
+        topContent={topContent}
         bottomContent={
           <div className="flex w-full justify-center">
             <Pagination
@@ -75,8 +107,8 @@ export default function PlayerTable({ players }: Readonly<{ players: Player[] }>
               showShadow
               color="secondary"
               page={page}
-              total={pages}
-              onChange={(page) => setPage(page)}
+              total={totalPages}
+              onChange={setPage}
             />
           </div>
         }
@@ -84,7 +116,7 @@ export default function PlayerTable({ players }: Readonly<{ players: Player[] }>
         <TableHeader columns={columns}>
           {(column) => <TableColumn key={column.key}>{column.label}</TableColumn>}
         </TableHeader>
-        <TableBody items={items}>
+        <TableBody items={players} loadingContent={<Spinner />} loadingState={loadingState}>
           {(player) => (
             <TableRow key={player.id}>
               {(columnKey) => <TableCell>{getKeyValue(player, columnKey)}</TableCell>}

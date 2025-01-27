@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "tsx src/server.ts",
+    "dev": "ts-node src/server.ts",
     "build": "next build",
     "start": "NODE_ENV=production node src/server.ts",
     "lint": "jest --config=jest.lint.config.ts"
@@ -19,7 +19,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "socket.io": "^4.8.1",
-    "socket.io-client": "^4.8.1"
+    "socket.io-client": "^4.8.1",
+    "swr": "^2.3.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
