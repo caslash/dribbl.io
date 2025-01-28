@@ -29,7 +29,7 @@ export default function PlayerSearchBar({
   });
 
   return (
-    <Form className={`flex flex-row items-center ${className}`}>
+    <div className={`flex flex-row items-center ${className}`}>
       <Autocomplete
         isClearable
         inputValue={list.filterText}
@@ -44,6 +44,6 @@ export default function PlayerSearchBar({
         )}
       </Autocomplete>
       <Button type="submit">Submit</Button>
-    </Form>
+    </div>
   );
 }
