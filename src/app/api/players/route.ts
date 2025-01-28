@@ -1,4 +1,4 @@
-import prisma from '@/database/prismaClient';
+import { getPlayers, getPlayerCount } from '@/app/actions';
 import { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
 
   const startingPos = (page - 1) * rowsPerPage;
 
-  const players = await prisma.player.findMany({
+  const players = await getPlayers({
     orderBy: {
       last_name: 'asc',
     },
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     take: rowsPerPage,
   });
 
-  const total = await prisma.player.count();
+  const total = await getPlayerCount();
 
   return Response.json({
     players,

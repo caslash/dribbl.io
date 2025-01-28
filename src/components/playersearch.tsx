@@ -39,9 +39,7 @@ export default function PlayerSearch({
         onInputChange={list.setFilterText}
       >
         {(player: Player) => (
-          <AutocompleteItem key={player.id} href={`/players/${player.id}`}>
-            {player.display_first_last}
-          </AutocompleteItem>
+          <AutocompleteItem key={player.id}>{player.display_first_last}</AutocompleteItem>
         )}
       </Autocomplete>
     </div>

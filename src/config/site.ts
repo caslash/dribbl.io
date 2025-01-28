@@ -12,6 +12,10 @@ export const siteConfig = {
       href: '/game',
     },
     {
+      label: 'Single Player',
+      href: '/singleplayer',
+    },
+    {
       label: 'Players',
       href: '/players',
     },
