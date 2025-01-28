@@ -43,7 +43,6 @@ export default function PlayerSearchBar({
           <AutocompleteItem key={player.id}>{player.display_first_last}</AutocompleteItem>
         )}
       </Autocomplete>
-      <Button type="submit">Submit</Button>
     </div>
   );
 }
