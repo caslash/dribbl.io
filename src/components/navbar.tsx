@@ -1,21 +1,23 @@
 'use client';
 
 import React from 'react';
-import { Navbar, NavbarContent, NavbarItem } from '@heroui/react';
+import { Navbar, NavbarBrand, NavbarContent, NavbarItem } from '@heroui/react';
 import { link as linkStyles } from '@heroui/theme';
 import NextLink from 'next/link';
 import clsx from 'clsx';
 import { usePathname } from 'next/navigation';
 
 import { siteConfig } from '@/config/site';
+import ThemeSwitcher from './themeswitcher';
 
 export default function NBANavbar() {
   const pathName = usePathname();
 
   return (
     <Navbar maxWidth="full" position="static">
-      <NavbarContent className="basis-1/5 sm:basis-full" justify="center">
-        <ul className="hidden lg:flex gap-4 justify-start ml-2">
+      <NavbarBrand />
+      <NavbarContent justify="center">
+        <ul className="flex gap-4 justify-start ml-2">
           {siteConfig.navItems.map((item) => (
             <NavbarItem key={item.href} isActive={pathName === item.href}>
               <NextLink
@@ -31,6 +33,9 @@ export default function NBANavbar() {
             </NavbarItem>
           ))}
         </ul>
+      </NavbarContent>
+      <NavbarContent justify="end">
+        <ThemeSwitcher />
       </NavbarContent>
     </Navbar>
   );

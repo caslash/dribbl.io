@@ -1,12 +1,12 @@
 'use client';
 
 import { getPlayerCount } from '@/app/actions';
-import { Autocomplete, AutocompleteItem } from '@heroui/react';
+import { Autocomplete, AutocompleteItem, Button, Form } from '@heroui/react';
 import { Player } from '@prisma/client';
 import { useAsyncList } from '@react-stately/data';
 import React, { useEffect } from 'react';
 
-export default function PlayerSearch({
+export default function PlayerSearchBar({
   className,
 }: Readonly<React.ComponentPropsWithoutRef<'div'>>) {
   const [playerCount, setPlayerCount] = React.useState<number>(0);
@@ -29,8 +29,9 @@ export default function PlayerSearch({
   });
 
   return (
-    <div className={className}>
+    <Form className={`flex flex-row items-center ${className}`}>
       <Autocomplete
+        isClearable
         inputValue={list.filterText}
         isLoading={list.isLoading}
         items={list.items}
@@ -42,6 +43,7 @@ export default function PlayerSearch({
           <AutocompleteItem key={player.id}>{player.display_first_last}</AutocompleteItem>
         )}
       </Autocomplete>
-    </div>
+      <Button type="submit">Submit</Button>
+    </Form>
   );
 }

@@ -8,16 +8,12 @@ export const siteConfig = {
       href: '/',
     },
     {
-      label: 'Play',
+      label: 'Multiplayer',
       href: '/game',
     },
     {
       label: 'Single Player',
       href: '/singleplayer',
-    },
-    {
-      label: 'Players',
-      href: '/players',
     },
   ],
 };

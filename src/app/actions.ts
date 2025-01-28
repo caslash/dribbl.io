@@ -15,6 +15,16 @@ export async function getPlayer<T extends Prisma.PlayerFindFirstArgs>(
   return await prisma.player.findFirst(args);
 }
 
+export async function getRandomPlayer(where?: Prisma.PlayerWhereInput) {
+  const playerIds = (await getPlayers({ where: where, select: { id: true } })).map(
+    (player) => player.id,
+  );
+  const randomId = playerIds[Math.floor(Math.random() * playerIds.length)];
+  const randomPlayer = await getPlayer({ where: { id: { equals: randomId } } });
+
+  return randomPlayer;
+}
+
 export async function getPlayerCount() {
   return await prisma.player.count();
 }
