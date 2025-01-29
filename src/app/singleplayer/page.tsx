@@ -38,13 +38,6 @@ export default function SinglePlayer() {
         <div className="flex flex-col items-center">
           <p className={`font-black text-xl`}>Streak:</p>
           <p className={`font-semibold text-6xl`}>{streak}</p>
-          <Image
-            alt={`player-${player.id}`}
-            as={NextImage}
-            src={`https://cdn.nba.com/headshots/nba/latest/1040x760/${player.id}.png`}
-            width={260}
-            height={190}
-          />
         </div>
       )}
       {player?.team_history && (
