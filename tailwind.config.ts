@@ -8,7 +8,11 @@ export default {
     './node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sf: ['var(--font-sf)'],
+      },
+    },
   },
   darkMode: 'class',
   plugins: [heroui()],
