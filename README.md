@@ -18,7 +18,7 @@ To generate Prisma types from the database:
 1. Initialize the Prisma CLI:
 
 ```bash
-    npx prisma init --datasource-provider sqlite
+npx prisma init --datasource-provider sqlite
 ```
 
 2. Move the SQLite database file into the `/prisma` folder and set the `DATABASE_URL` environment variable in the generated `.env`
@@ -26,13 +26,13 @@ To generate Prisma types from the database:
 3. Pull the database schema into Prisma:
 
 ```bash
-    npx prisma db pull
+npx prisma db pull
 ```
 
 4. Generate the Prisma Client types:
 
 ```bash
-    npx prisma generate
+npx prisma generate
 ```
 
 ### Building and Running
@@ -40,13 +40,13 @@ To generate Prisma types from the database:
 To install libraries:
 
 ```bash
-    npm i
+npm i
 ```
 
 To run the app:
 
 ```bash
-    npm run dev
+npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
