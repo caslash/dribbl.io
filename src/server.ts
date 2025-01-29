@@ -11,13 +11,10 @@ const handler = app.getRequestHandler();
 
 app.prepare().then(() => {
   const httpServer = createServer(handler);
-
-  const io = new Server(httpServer);
-
-  io.on('connection', (socket) => {
-    console.log(`Client connected on socket: ${socket}`);
-  });
-
+  // const io = new Server(httpServer);
+  // io.on('connection', (socket) => {
+  //   console.log(`Client connected on socket: ${socket}`);
+  // });
   httpServer
     .once('error', (err) => {
       console.error(err);

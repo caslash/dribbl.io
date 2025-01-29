@@ -4,12 +4,18 @@ import PlayerSearchBar from '@/components/playersearchbar';
 import { getRandomPlayer } from '../actions';
 import { Player } from '@prisma/client';
 import React, { useState } from 'react';
-import { Button, Image } from '@heroui/react';
-import NextImage from 'next/image';
+import { Button } from '@heroui/react';
 import { v4 } from 'uuid';
+import TeamLogo from '@/components/teamlogo';
 
 export default function SinglePlayer() {
   const [player, setPlayer] = useState<Player | null>();
+
+  const checkGuessedPlayer = (key: React.Key | null) => {
+    if (key) {
+      console.log(`USER GUESSED: ${key}`);
+    }
+  };
 
   const fetchRandomPlayer = () => {
     getRandomPlayer({ rosterstatus: { equals: 'Active' }, total_games_played: { gte: 700 } }).then(
@@ -24,18 +30,11 @@ export default function SinglePlayer() {
       {player?.team_history && (
         <div className="flex flex-row">
           {player.team_history.split(',').map((id: string) => (
-            <Image
-              key={v4()}
-              alt={`logo-${id}`}
-              as={NextImage}
-              src={`/logos/${id}.svg`}
-              width={100}
-              height={100}
-            />
+            <TeamLogo key={v4()} teamId={id} />
           ))}
         </div>
       )}
-      <PlayerSearchBar className="w-1/2" />
+      <PlayerSearchBar className="w-1/2" onSelectionChange={(key) => checkGuessedPlayer(key)} />
     </div>
   );
 }
