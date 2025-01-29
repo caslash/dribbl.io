@@ -8,7 +8,8 @@ import React, { useEffect } from 'react';
 
 export default function PlayerSearchBar({
   className,
-}: Readonly<React.ComponentPropsWithoutRef<'div'>>) {
+  onSelectionChange,
+}: Readonly<{ className: string; onSelectionChange?: (key: React.Key | null) => void }>) {
   const [playerCount, setPlayerCount] = React.useState<number>(0);
 
   useEffect(() => {
@@ -38,6 +39,7 @@ export default function PlayerSearchBar({
         label={`Search ${playerCount} players`}
         labelPlacement="inside"
         onInputChange={list.setFilterText}
+        onSelectionChange={onSelectionChange}
       >
         {(player: Player) => (
           <AutocompleteItem key={player.id}>{player.display_first_last}</AutocompleteItem>
