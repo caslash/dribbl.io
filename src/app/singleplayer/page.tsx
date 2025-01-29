@@ -7,13 +7,22 @@ import React, { useState } from 'react';
 import { Button } from '@heroui/react';
 import { v4 } from 'uuid';
 import TeamLogo from '@/components/teamlogo';
+import toast from 'react-hot-toast';
 
 export default function SinglePlayer() {
   const [player, setPlayer] = useState<Player | null>();
+  const [streak, setStreak] = useState<number>(0);
 
   const checkGuessedPlayer = (key: React.Key | null) => {
     if (key) {
-      console.log(`USER GUESSED: ${key}`);
+      if (key == player?.id) {
+        toast.success(`${player?.display_first_last} is correct!`);
+        setStreak(streak + 1);
+      } else {
+        toast.error(`Wrong! ${player?.display_first_last} was the correct answer.`);
+        setStreak(0);
+      }
+      fetchRandomPlayer();
     }
   };
 
@@ -25,8 +34,13 @@ export default function SinglePlayer() {
 
   return (
     <div className="flex flex-col items-center m-16 space-y-8">
-      <Button onPressEnd={() => fetchRandomPlayer()}>Get Random Player</Button>
-      <h1>{player?.display_first_last}</h1>
+      {!player && <Button onPressEnd={() => fetchRandomPlayer()}>Start Game</Button>}
+      {player && (
+        <div>
+          <p>Streak:</p>
+          <p>{streak}</p>
+        </div>
+      )}
       {player?.team_history && (
         <div className="flex flex-row">
           {player.team_history.split(',').map((id: string) => (

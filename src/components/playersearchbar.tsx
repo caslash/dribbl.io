@@ -1,7 +1,7 @@
 'use client';
 
 import { getPlayerCount } from '@/app/actions';
-import { Autocomplete, AutocompleteItem, Button, Form } from '@heroui/react';
+import { Autocomplete, AutocompleteItem } from '@heroui/react';
 import { Player } from '@prisma/client';
 import { useAsyncList } from '@react-stately/data';
 import React, { useEffect } from 'react';
@@ -16,12 +16,12 @@ export default function PlayerSearchBar({
     getPlayerCount().then(setPlayerCount);
   }, [setPlayerCount]);
 
-  let list = useAsyncList<Player>({
+  const list = useAsyncList<Player>({
     async load({ signal, filterText }) {
-      let res = await fetch(`http://localhost:3000/api/players/search?searchTerm=${filterText}`, {
+      const res = await fetch(`http://localhost:3000/api/players/search?searchTerm=${filterText}`, {
         signal,
       });
-      let json = await res.json();
+      const json = await res.json();
 
       return {
         items: json.results,

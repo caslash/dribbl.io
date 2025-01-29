@@ -94,7 +94,7 @@ export default function PlayerTable({
         </label>
       </div>
     );
-  }, [totalPlayers, onRowsPerPageChange]);
+  }, [onRowsPerPageChange]);
 
   return (
     <div className={className}>
