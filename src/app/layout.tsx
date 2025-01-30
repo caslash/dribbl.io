@@ -5,7 +5,7 @@ import NBANavbar from '@/components/navbar';
 import { sfFont } from '@/styles/sfFont';
 import { Bounce, ToastContainer } from 'react-toastify';
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${sfFont.variable}`} suppressHydrationWarning>
       <body>
