@@ -1,5 +1,5 @@
-import { NextRequest } from 'next/server';
 import { getPlayers } from '@/app/actions';
+import { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
   const params = request?.nextUrl?.searchParams;

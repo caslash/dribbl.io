@@ -2,15 +2,15 @@
 
 import fetcher from '@/utils/fetcher';
 import {
-  Table,
-  TableBody,
-  TableColumn,
-  TableCell,
-  TableHeader,
-  TableRow,
   getKeyValue,
   Pagination,
   Spinner,
+  Table,
+  TableBody,
+  TableCell,
+  TableColumn,
+  TableHeader,
+  TableRow,
 } from '@heroui/react';
 import { Player } from '@prisma/client';
 import React from 'react';

@@ -1,4 +1,4 @@
-import { getPlayers, getPlayerCount } from '@/app/actions';
+import { getPlayerCount, getPlayers } from '@/app/actions';
 import { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {

@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { socket } from "@/socket";
+import { socket } from '@/socket';
+import { useEffect, useState } from 'react';
 
 export default function Game() {
   const [isConnected, setIsConnected] = useState(false);
-  const [transport, setTransport] = useState("N/A");
+  const [transport, setTransport] = useState('N/A');
 
   useEffect(() => {
     if (socket.connected) {
@@ -16,28 +16,28 @@ export default function Game() {
       setIsConnected(true);
       setTransport(socket.io.engine.transport.name);
 
-      socket.io.engine.on("upgrade", (transport) => {
+      socket.io.engine.on('upgrade', (transport) => {
         setTransport(transport.name);
       });
     }
 
     function onDisconnect() {
       setIsConnected(false);
-      setTransport("N/A");
+      setTransport('N/A');
     }
 
-    socket.on("connect", onConnect);
-    socket.on("disconnect", onDisconnect);
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
 
     return () => {
-      socket.off("connect", onConnect);
-      socket.off("disconnect", onDisconnect);
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
     };
   }, []);
 
   return (
     <div>
-      <p>Status: {isConnected ? "connected" : "disconnected"}</p>
+      <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
       <p>Transport: {transport}</p>
     </div>
   );

@@ -1,4 +1,3 @@
-import React from 'react';
 import PlayerSearchBar from '@/components/playersearchbar';
 
 export default function Players() {

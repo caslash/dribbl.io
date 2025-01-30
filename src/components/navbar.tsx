@@ -1,10 +1,9 @@
 'use client';
 
-import React from 'react';
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem } from '@heroui/react';
 import { link as linkStyles } from '@heroui/theme';
-import NextLink from 'next/link';
 import clsx from 'clsx';
+import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { siteConfig } from '@/config/site';

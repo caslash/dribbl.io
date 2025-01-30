@@ -1,21 +1,25 @@
 'use client';
 
-import PlayerSearchBar from '@/components/playersearchbar';
-import { getRandomPlayer } from '../actions';
-import { Player } from '@prisma/client';
-import React, { useState } from 'react';
-import { Button } from '@heroui/react';
-import { v4 } from 'uuid';
-import TeamLogo from '@/components/teamlogo';
 import CorrectAnswerView from '@/components/correctanswerview';
-import { toast } from 'react-toastify';
-import { useTheme } from 'next-themes';
+import PlayerSearchBar from '@/components/playersearchbar';
+import TeamLogo from '@/components/teamlogo';
+import { Button } from '@heroui/react';
+import { Player } from '@prisma/client';
 import confetti from 'canvas-confetti';
+import { useTheme } from 'next-themes';
+import React, { useState } from 'react';
+import { toast } from 'react-toastify';
+import { v4 } from 'uuid';
+import { getRandomPlayer } from '../actions';
 
 export default function SinglePlayer() {
   const { theme } = useTheme();
   const [player, setPlayer] = useState<Player | null>();
   const [streak, setStreak] = useState<number>(0);
+
+  const fetchRandomPlayer = () => {
+    getRandomPlayer({ total_games_played: { gte: 800 } }).then(setPlayer);
+  };
 
   const onConfetti = () => {
     const end = Date.now() + 1 * 1000;
@@ -62,10 +66,6 @@ export default function SinglePlayer() {
       }
       fetchRandomPlayer();
     }
-  };
-
-  const fetchRandomPlayer = () => {
-    getRandomPlayer({ total_games_played: { gte: 800 } }).then(setPlayer);
   };
 
   return (
