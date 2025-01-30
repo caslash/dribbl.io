@@ -1,38 +1,44 @@
 'use client';
 
-import { getRandomPlayer } from '@/app/actions';
+import { getPlayers, getRandomPlayer } from '@/app/actions';
 import { Player, Prisma } from '@prisma/client';
 import { useState } from 'react';
 
 const useCareerPath = () => {
   const [streak, setStreak] = useState<number>(0);
-  const [player, setPlayer] = useState<Player | null>();
-
+  const [currentPlayer, setCurrentPlayer] = useState<Player | null>();
+  const [possibleAnswers, setPossibleAnswers] = useState<Player[] | null>([]);
   const [playerPoolFilter, setPlayerPoolFilter] = useState<Prisma.PlayerWhereInput>();
 
   const onStart = () => {
-    getRandomPlayer(playerPoolFilter).then(setPlayer);
+    getRandomPlayer(playerPoolFilter).then((player) => {
+      setCurrentPlayer(player);
+      getPlayers({ where: { team_history: { equals: player?.team_history } } }).then(
+        setPossibleAnswers,
+      );
+    });
   };
 
   const checkGuess = (
     key: React.Key | null,
     onCorrect: (correctPlayer: Player) => void,
-    onIncorrect: (correctPlayer: Player) => void,
+    onIncorrect: (possibleAnswers: Player[]) => void,
   ) => {
     if (key) {
-      const previousPlayer = player!;
-      if (key == player?.id) {
-        onCorrect(previousPlayer);
+      const previousPossibleAnswers = possibleAnswers;
+      const guessedPlayer = possibleAnswers?.find((player) => player.id == key);
+      if (guessedPlayer) {
+        onCorrect(guessedPlayer);
         setStreak(streak + 1);
       } else {
-        onIncorrect(previousPlayer);
+        onIncorrect(previousPossibleAnswers!);
         setStreak(0);
       }
       onStart();
     }
   };
 
-  return { player, setPlayerPoolFilter, onStart, checkGuess, streak };
+  return { currentPlayer, setPlayerPoolFilter, onStart, checkGuess, streak };
 };
 
 export default useCareerPath;
