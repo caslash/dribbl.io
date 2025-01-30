@@ -1,16 +1,21 @@
 'use client';
 
-import usePlayerSearch from '@/hooks/usePlayerSearch';
 import { Autocomplete, AutocompleteItem } from '@heroui/react';
 import { Player } from '@prisma/client';
+import { AsyncListData } from '@react-stately/data';
 import React from 'react';
 
 export default function PlayerSearchBar({
+  playerCount,
+  list,
   className,
   onSelectionChange,
-}: Readonly<{ className: string; onSelectionChange?: (key: React.Key | null) => void }>) {
-  const { playerCount, list } = usePlayerSearch();
-
+}: Readonly<{
+  playerCount: number;
+  list: AsyncListData<Player>;
+  className: string;
+  onSelectionChange?: (key: React.Key | null) => void;
+}>) {
   return (
     <div className={`flex flex-row items-center ${className}`}>
       <Autocomplete

@@ -1,11 +1,12 @@
 'use client';
 
 import { Image } from '@heroui/react';
-import { useTheme } from 'next-themes';
 import NextImage from 'next/image';
 
-export default function TeamLogo({ teamId }: Readonly<{ teamId: string }>) {
-  const { theme } = useTheme();
+export default function TeamLogo({
+  teamId,
+  theme,
+}: Readonly<{ teamId: string; theme: string | undefined }>) {
   return (
     <Image
       alt={`logo-${teamId}`}
