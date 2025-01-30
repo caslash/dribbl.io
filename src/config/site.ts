@@ -7,10 +7,10 @@ export const siteConfig = {
       label: 'Home',
       href: '/',
     },
-    // {
-    //   label: 'Multiplayer',
-    //   href: '/multiplayer',
-    // },
+    {
+      label: 'Multiplayer',
+      href: '/multiplayer',
+    },
     {
       label: 'Single Player',
       href: '/singleplayer',
