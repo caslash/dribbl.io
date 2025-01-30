@@ -1,8 +1,8 @@
 'use client';
 
-import NextImage from 'next/image';
 import { Image } from '@heroui/react';
 import { Player } from '@prisma/client';
+import NextImage from 'next/image';
 
 export default function CorrectAnswerView({
   isCorrect,
