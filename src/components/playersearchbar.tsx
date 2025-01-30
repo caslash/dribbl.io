@@ -1,33 +1,15 @@
 'use client';
 
-import { getPlayerCount } from '@/app/actions';
+import usePlayerSearch from '@/hooks/usePlayerSearch';
 import { Autocomplete, AutocompleteItem } from '@heroui/react';
 import { Player } from '@prisma/client';
-import { useAsyncList } from '@react-stately/data';
-import React, { useEffect } from 'react';
+import React from 'react';
 
 export default function PlayerSearchBar({
   className,
   onSelectionChange,
 }: Readonly<{ className: string; onSelectionChange?: (key: React.Key | null) => void }>) {
-  const [playerCount, setPlayerCount] = React.useState<number>(0);
-
-  useEffect(() => {
-    getPlayerCount().then(setPlayerCount);
-  }, [setPlayerCount]);
-
-  const list = useAsyncList<Player>({
-    async load({ signal, filterText }) {
-      const res = await fetch(`http://localhost:3000/api/players/search?searchTerm=${filterText}`, {
-        signal,
-      });
-      const json = await res.json();
-
-      return {
-        items: json.results,
-      };
-    },
-  });
+  const { playerCount, list } = usePlayerSearch();
 
   return (
     <div className={`flex flex-row items-center ${className}`}>
