@@ -5,6 +5,7 @@ import { CareerPathView } from '@/components/careerpathview';
 import PlayerSearchBar from '@/components/playersearchbar';
 import useCareerPath from '@/hooks/useCareerPath';
 import useConfetti from '@/hooks/useConfetti';
+import usePlayerSearch from '@/hooks/usePlayerSearch';
 import { Button } from '@heroui/react';
 import { Player } from '@prisma/client';
 import { useTheme } from 'next-themes';
@@ -15,10 +16,14 @@ export default function SinglePlayer() {
   const { theme } = useTheme();
   const { currentPlayer, onStart, checkGuess, streak, setPlayerPoolFilter } = useCareerPath();
   const { onConfetti } = useConfetti();
+  const { playerCount, list } = usePlayerSearch();
 
   useEffect(
     () =>
-      setPlayerPoolFilter({ team_history: { contains: ',' }, total_games_played: { gte: 800 } }),
+      setPlayerPoolFilter({
+        team_history: { contains: ',' },
+        total_games_played: { gte: 800 },
+      }),
     [setPlayerPoolFilter],
   );
 
@@ -33,15 +38,17 @@ export default function SinglePlayer() {
 
   return (
     <div className="flex flex-col h-full items-center m-16 space-y-8">
-      <Button onPress={onStart}>Start Game</Button>
+      {!currentPlayer && <Button onPress={onStart}>Start Game</Button>}
       {currentPlayer && (
         <div className="flex flex-col items-center">
           <p className={`font-black text-xl`}>Streak:</p>
           <p className={`font-semibold text-6xl`}>{streak}</p>
         </div>
       )}
-      <CareerPathView player={currentPlayer} />
+      <CareerPathView player={currentPlayer} theme={theme} />
       <PlayerSearchBar
+        playerCount={playerCount}
+        list={list}
         className="w-1/2"
         onSelectionChange={(key) => checkGuess(key, correctAction, incorrectAction)}
       />

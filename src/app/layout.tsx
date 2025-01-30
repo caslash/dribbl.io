@@ -1,7 +1,7 @@
 import '@/styles/globals.css';
 
 import { Providers } from '@/app/providers';
-import NBANavbar from '@/components/navbar';
+import NBANavbar from '@/components/navbar/navbar';
 import { sfFont } from '@/styles/sfFont';
 import { Bounce, ToastContainer } from 'react-toastify';
 
