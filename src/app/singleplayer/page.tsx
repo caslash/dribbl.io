@@ -1,7 +1,7 @@
 'use client';
 
-import { CorrectAnswerView, IncorrectAnswerView } from '@/components/answerview';
-import { CareerPathView } from '@/components/careerpathview';
+import { CorrectAnswerView, IncorrectAnswerView } from '@/components/careerpath/answerview';
+import { CareerPathView } from '@/components/careerpath/careerpathview';
 import PlayerSearchBar from '@/components/playersearchbar';
 import useCareerPath from '@/hooks/useCareerPath';
 import useConfetti from '@/hooks/useConfetti';

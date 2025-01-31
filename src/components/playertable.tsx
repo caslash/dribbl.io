@@ -13,7 +13,7 @@ import {
 } from '@heroui/react';
 import { Player } from '@prisma/client';
 import { LoadingState } from '@react-types/shared';
-import React, { ChangeEvent, Dispatch, SetStateAction } from 'react';
+import { ChangeEvent, Dispatch, SetStateAction, useMemo } from 'react';
 
 const columns: { key: string; label: string }[] = [
   {
@@ -63,7 +63,7 @@ export default function PlayerTable({
   onRowsPerPageChange: (e: ChangeEvent<HTMLSelectElement>) => void;
   loadingState: LoadingState;
 }>) {
-  const topContent = React.useMemo(() => {
+  const topContent = useMemo(() => {
     return (
       <div className="flex flex-col gap-4 items-end">
         <label className="flex items-center text-default-400 text-small">
