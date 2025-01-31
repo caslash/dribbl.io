@@ -2,7 +2,7 @@
 
 import { getPlayers, getRandomPlayer } from '@/app/actions';
 import { Player, Prisma } from '@prisma/client';
-import { useState } from 'react';
+import { Key, useState } from 'react';
 
 const useCareerPath = () => {
   const [streak, setStreak] = useState<number>(0);
@@ -20,7 +20,7 @@ const useCareerPath = () => {
   };
 
   const checkGuess = (
-    key: React.Key | null,
+    key: Key | null,
     onCorrect: (correctPlayer: Player) => void,
     onIncorrect: (possibleAnswers: Player[]) => void,
   ) => {
