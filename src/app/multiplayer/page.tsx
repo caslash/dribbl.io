@@ -1,6 +1,6 @@
 'use client';
 
-import { socket } from '@/socket';
+import { socket } from '@/lib/socket';
 import { Button } from '@heroui/react';
 import { useEffect, useState } from 'react';
 
@@ -33,6 +33,7 @@ export default function Game() {
     <div>
       <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
       <Button onPress={() => socket.connect()}>Connect</Button>
+      <Button onPress={() => socket.disconnect()}>Disconnect</Button>
     </div>
   );
 }
