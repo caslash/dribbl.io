@@ -11,6 +11,7 @@ const useCareerPath = () => {
   const [playerPoolFilter, setPlayerPoolFilter] = useState<Prisma.PlayerWhereInput>();
 
   const onStart = () => {
+    setCurrentPlayer(null);
     getRandomPlayer(playerPoolFilter).then((player) => {
       setCurrentPlayer(player);
       getPlayers({ where: { team_history: { equals: player?.team_history } } }).then(
