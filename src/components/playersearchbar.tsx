@@ -1,5 +1,3 @@
-'use client';
-
 import { Autocomplete, AutocompleteItem } from '@heroui/react';
 import { Player } from '@prisma/client';
 import { AsyncListData } from '@react-stately/data';
