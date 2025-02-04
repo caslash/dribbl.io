@@ -1,6 +1,6 @@
 'use client';
 
-import { getPlayers, getRandomPlayer } from '@/app/actions';
+import { getPlayers, getRandomPlayer } from '@/server/actions';
 import { Player, Prisma } from '@prisma/client';
 import { Key, useState } from 'react';
 

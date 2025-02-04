@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { v4 } from 'uuid';
 import TeamLogo from '../teamlogo';
 
-export function TestCareerPathView({
+export function UnveilingCareerPathView({
   teamHistory,
   theme,
 }: Readonly<{
@@ -17,7 +17,7 @@ export function TestCareerPathView({
   useEffect(() => {
     let unveilInterval = setInterval(() => {
       unveilRandomLogoIndex(unveilInterval);
-    }, 5000);
+    }, 3000);
 
     return () => {
       clearInterval(unveilInterval);
@@ -30,7 +30,7 @@ export function TestCareerPathView({
         {teamHistory.map((id: string, index: number) => (
           <TeamLogo
             key={v4()}
-            className=" max-h-[100] p-1 mx-2 rounded-xl shadow-xl bg-neutral-200 dark:bg-neutral-800"
+            className="max-h-[100] p-1 mx-2 rounded-xl shadow-xl bg-neutral-200 dark:bg-neutral-800"
             isHidden={!visibleIndexes.includes(index)}
             teamId={id}
             theme={theme}
