@@ -1,4 +1,4 @@
-import { gameActor } from '@/lib/statemachine';
+import { gameActor } from '@/server/lib/statemachine';
 import next from 'next';
 import { createServer } from 'node:http';
 import { Server } from 'socket.io';
