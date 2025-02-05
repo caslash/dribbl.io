@@ -2,7 +2,7 @@
 
 import { CorrectAnswer, IncorrectAnswer } from '@/components/careerpath/answer';
 import { UnveilingCareerPath } from '@/components/careerpath/unveilingcareerpath';
-import PlayerSearchBar from '@/components/playersearchbar';
+import PlayerSearchBar from '@/components/search/playersearchbar';
 import useCareerPath from '@/hooks/useCareerPath';
 import useConfetti from '@/hooks/useConfetti';
 import usePlayerSearch from '@/hooks/usePlayerSearch';
@@ -25,7 +25,7 @@ export default function SinglePlayer() {
         team_history: { contains: ',' },
         total_games_played: { gte: 800 },
       }),
-    [currentPlayer],
+    [setPlayerPoolFilter],
   );
 
   const correctAction = (correctPlayer: Player) => {
@@ -46,7 +46,7 @@ export default function SinglePlayer() {
             <p className={`font-black text-xl`}>Streak:</p>
             <p className={`font-semibold text-6xl`}>{streak}</p>
           </div>
-          <UnveilingCareerPath teamHistory={currentPlayer.team_history!.split(',')} theme={theme} />
+          <UnveilingCareerPath teamHistory={currentPlayer.team_history!.split(',')} />
         </div>
       )}
       <PlayerSearchBar
