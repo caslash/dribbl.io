@@ -16,13 +16,5 @@ export const siteConfig: { name: string; navItems: NavItem[] } = {
       label: 'Players',
       href: '/players',
     },
-    {
-      label: 'Multiplayer',
-      href: '/multiplayer',
-    },
-    {
-      label: 'Single Player',
-      href: '/singleplayer',
-    },
   ],
 };
