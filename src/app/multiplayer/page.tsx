@@ -4,6 +4,10 @@ import { socket } from '@/server/lib/socket';
 import { Button } from '@heroui/react';
 import { useEffect, useState } from 'react';
 
+function onWaitingForPlayers() {
+  socket.emit('start_game');
+}
+
 export default function Game() {
   const [isConnected, setIsConnected] = useState(false);
 
@@ -17,6 +21,7 @@ export default function Game() {
 
     function onConnect() {
       setIsConnected(true);
+      socket.on('waiting_for_players', onWaitingForPlayers);
     }
 
     function onDisconnect() {
