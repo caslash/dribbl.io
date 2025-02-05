@@ -7,22 +7,20 @@ import TeamLogo from '../teamlogo';
 
 export function UnveilingCareerPath({
   teamHistory,
-  theme,
 }: Readonly<{
   teamHistory: string[];
-  theme: string | undefined;
 }>) {
   const { visibleIndexes, unveilRandomLogoIndex } = useUnveilLogos(teamHistory);
 
   useEffect(() => {
-    let unveilInterval = setInterval(() => {
+    const unveilInterval = setInterval(() => {
       unveilRandomLogoIndex(unveilInterval);
-    }, 3000);
+    }, 2000);
 
     return () => {
       clearInterval(unveilInterval);
     };
-  }, []);
+  }, [unveilRandomLogoIndex]);
 
   return (
     <div>
@@ -33,7 +31,6 @@ export function UnveilingCareerPath({
             className="max-h-[100] p-1 mx-2 rounded-xl shadow-xl bg-neutral-200 dark:bg-neutral-800"
             isHidden={!visibleIndexes.includes(index)}
             teamId={id}
-            theme={theme}
           />
         ))}
       </div>
