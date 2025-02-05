@@ -2,7 +2,7 @@
 
 import { getPlayers, getRandomPlayer } from '@/server/actions';
 import { Player, Prisma } from '@prisma/client';
-import { Key, useState } from 'react';
+import { useState } from 'react';
 
 const useCareerPath = () => {
   const [streak, setStreak] = useState<number>(0);
@@ -21,22 +21,20 @@ const useCareerPath = () => {
   };
 
   const checkGuess = (
-    key: Key | null,
+    id: number,
     onCorrect: (correctPlayer: Player) => void,
     onIncorrect: (possibleAnswers: Player[]) => void,
   ) => {
-    if (key) {
-      const previousPossibleAnswers = possibleAnswers;
-      const guessedPlayer = possibleAnswers?.find((player) => player.id == key);
-      if (guessedPlayer) {
-        onCorrect(guessedPlayer);
-        setStreak(streak + 1);
-      } else {
-        onIncorrect(previousPossibleAnswers!);
-        setStreak(0);
-      }
-      onStart();
+    const previousPossibleAnswers = possibleAnswers;
+    const guessedPlayer = possibleAnswers?.find((player) => player.id == id);
+    if (guessedPlayer) {
+      onCorrect(guessedPlayer);
+      setStreak(streak + 1);
+    } else {
+      onIncorrect(previousPossibleAnswers!);
+      setStreak(0);
     }
+    onStart();
   };
 
   return { currentPlayer, setPlayerPoolFilter, onStart, checkGuess, streak };
