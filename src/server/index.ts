@@ -16,8 +16,11 @@ app.prepare().then(() => {
 
   const io = new Server(httpServer);
   io.on('connection', (socket) => {
-    gameActor.send({ type: 'CONNECT' });
-    console.log(`Client connected on socket: ${socket}`);
+    gameActor.send({ type: 'CONNECT', socket: socket });
+
+    socket.on('start_game', () => gameActor.send({ type: 'START' }));
+
+    console.log(`Client connected on socket`);
   });
 
   httpServer

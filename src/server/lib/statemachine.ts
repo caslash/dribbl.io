@@ -1,13 +1,18 @@
-import { createActor, fromPromise, setup } from 'xstate';
+import { createActor, enqueueActions, fromPromise, setup } from 'xstate';
 
 export const gameMachine = setup({
   actions: {
-    waitForPlayers: () => {
+    waitForPlayers: ({ context }) => {
       console.log('WAITING FOR PLAYERS');
+      const { socket } = context;
+
+      socket.emit('waiting_for_players');
     },
   },
   actors: {
-    startGame: fromPromise(async ({ input }) => {}),
+    startGame: fromPromise(async ({ input }) => {
+      console.log('STARTING GAME');
+    }),
     generateRound: fromPromise(async ({ input }) => {}),
     processGuess: fromPromise(async ({ input }) => {}),
     notifyIncorrectGuess: fromPromise(async ({ input }) => {}),
@@ -33,7 +38,10 @@ export const gameMachine = setup({
       initial: 'waitForPlayers',
       states: {
         waitForPlayers: {
-          entry: [{ type: 'waitForPlayers' }],
+          entry: enqueueActions(({ event, enqueue }) => {
+            enqueue.assign({ socket: event.socket });
+            enqueue('waitForPlayers');
+          }),
           on: {
             START: 'startingGame',
           },
