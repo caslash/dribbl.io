@@ -21,7 +21,7 @@ export default function SinglePlayer() {
   useEffect(
     () =>
       setPlayerPoolFilter({
-        isActive: { equals: true },
+        is_active: { equals: true },
         team_history: { contains: ',' },
         total_games_played: { gte: 800 },
       }),
