@@ -27,6 +27,7 @@ export default function Game() {
     setCurrentState(gameActive ?? 'idle');
   }
   function onStartGame() {
+    setCanStartGame(false);
     clientSocket.emit('start_game');
   }
 
@@ -52,9 +53,7 @@ export default function Game() {
       {!isConnected && <Button onPress={() => clientSocket.connect()}>Connect</Button>}
       {isConnected && (
         <div>
-          <Button onPress={onStartGame} isDisabled={!canStartGame}>
-            Start Game
-          </Button>
+          {canStartGame && <Button onPress={onStartGame}>Start Game</Button>}
 
           <Button onPress={() => clientSocket.disconnect()}>Disconnect</Button>
         </div>
