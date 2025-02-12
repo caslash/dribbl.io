@@ -11,7 +11,7 @@ This project uses a modified version of the NBA database found on [Kaggle](https
 - Added primary key to the players table
 - Added players' team history
 - Added players' career games played
-- Added players' accolades (Coming Soon!)
+- Added players' accolades
 
 To generate Prisma types from the database:
 
