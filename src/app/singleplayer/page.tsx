@@ -41,20 +41,22 @@ export default function SinglePlayer() {
     <div className="flex flex-col h-full items-center m-16 space-y-8">
       {!currentPlayer && <Button onPress={onStart}>Start Game</Button>}
       {currentPlayer && (
-        <div className="flex flex-col items-center space-y-8">
+        <div className="flex flex-col w-full items-center space-y-8">
           <div className="flex flex-col items-center">
             <p className={`font-black text-xl`}>Streak:</p>
             <p className={`font-semibold text-6xl`}>{streak}</p>
           </div>
+
           <CareerPath player={currentPlayer} />
+
+          <PlayerSearchBar
+            playerCount={playerCount}
+            list={list}
+            className="w-1/2"
+            onSelect={(id: number) => checkGuess(id, correctAction, incorrectAction)}
+          />
         </div>
       )}
-      <PlayerSearchBar
-        playerCount={playerCount}
-        list={list}
-        className="w-1/2"
-        onSelect={(id: number) => checkGuess(id, correctAction, incorrectAction)}
-      />
     </div>
   );
 }

@@ -36,6 +36,9 @@ export const gameMachine = setup({
 
     gameActive: {
       initial: 'waitForPlayers',
+      on: {
+        DISCONNECT: 'idle',
+      },
       states: {
         waitForPlayers: {
           entry: enqueueActions(({ event, enqueue }) => {
