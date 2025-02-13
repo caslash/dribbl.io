@@ -4,9 +4,7 @@ import { getRandomPlayer } from '../actions';
 export const gameMachine = setup({
   actions: {
     waitForPlayers: ({ context }) => {
-      console.log('WAITING FOR PLAYERS');
       const { socket } = context;
-
       socket.emit('waiting_for_players');
     },
     sendPlayerToClient: ({ context }) => {
@@ -20,7 +18,10 @@ export const gameMachine = setup({
   },
   actors: {
     generateRound: fromPromise(async ({ input }) => {
-      return await getRandomPlayer();
+      return await getRandomPlayer({
+        is_active: { equals: true },
+        team_history: { contains: ',' },
+      });
     }),
     processGuess: fromPromise(async ({ input }) => {}),
     notifyCorrectGuess: fromPromise(async ({ input }) => {}),

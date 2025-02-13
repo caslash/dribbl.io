@@ -11,8 +11,8 @@ export default function PlayerSearchBar({
 }: Readonly<{
   playerCount: number;
   list: AsyncListData<Player>;
-  className: string;
-  onSelect: (id: number) => void;
+  className?: string;
+  onSelect?: (id: number) => void;
 }>) {
   return (
     <div className={`flex flex-row items-center ${className}`}>
@@ -31,9 +31,12 @@ export default function PlayerSearchBar({
           <AutocompleteItem
             key={player.id}
             textValue={player.display_first_last ?? ''}
-            onPress={() => onSelect(player.id)}
+            onPress={() => (onSelect ? onSelect(player.id) : {})}
           >
-            <PlayerSearchResult player={player} onSelect={onSelect} />
+            <PlayerSearchResult
+              player={player}
+              onSelect={() => (onSelect ? onSelect(player.id) : {})}
+            />
           </AutocompleteItem>
         )}
       </Autocomplete>

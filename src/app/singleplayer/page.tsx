@@ -47,7 +47,7 @@ export default function SinglePlayer() {
             <p className={`font-semibold text-6xl`}>{streak}</p>
           </div>
 
-          <CareerPath player={currentPlayer} />
+          <CareerPath teams={currentPlayer?.team_history?.split(',')} />
 
           <PlayerSearchBar
             playerCount={playerCount}
