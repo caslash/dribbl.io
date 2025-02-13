@@ -1,4 +1,5 @@
 import { createActor, enqueueActions, fromPromise, setup } from 'xstate';
+import { getRandomPlayer } from '../actions';
 
 export const gameMachine = setup({
   actions: {
@@ -8,23 +9,31 @@ export const gameMachine = setup({
 
       socket.emit('waiting_for_players');
     },
+    sendPlayerToClient: ({ context }) => {
+      const { socket, gameState } = context;
+      const { round, score, currentPlayer } = gameState;
+
+      const team_history = currentPlayer.team_history.split(',');
+
+      socket.emit('next_round', { round, score, team_history });
+    },
   },
   actors: {
-    startGame: fromPromise(async ({ input }) => {
-      console.log('STARTING GAME');
+    generateRound: fromPromise(async ({ input }) => {
+      return await getRandomPlayer();
     }),
-    generateRound: fromPromise(async ({ input }) => {}),
     processGuess: fromPromise(async ({ input }) => {}),
+    notifyCorrectGuess: fromPromise(async ({ input }) => {}),
     notifyIncorrectGuess: fromPromise(async ({ input }) => {}),
   },
   guards: {
-    isCorrect: ({ context }) => {
+    isCorrect: ({ context, event }) => {
       //Do something
       return true;
     },
   },
 }).createMachine({
-  /** @xstate-layout N4IgpgJg5mDOIC5QHECGBbMACAsqgxgBYCWAdmAHTEQA2YAxAMIDyAcqwKKMAqA2gAwBdRKAAOAe1jEALsXGkRIAB6IAjACYArBQCcenQA4AbOoAsAZnWWA7NYA0IAJ6IDqipv6fVGowfMH1a1MAX2CHNExcAhJyCigMMABBfFkAN0oAd1QZADFxACcABRpURzB82HoAZW5EgCU+IUUJKVl5RRUEc351ClV+HXMjU1Vzcx1TfiNzB2cEI2sjCj8x-wtTTXVjUPCEqKIySnjMZLTKWGlUfNlSKAiGCHlKMlTxAGtKe-2Yo4TT4nSFAuVxudwSCBe4nwqDapAEgnhzUkMjkCiQykQRlUBgo1lc6l8mgMBh0Jk0s0xeIoq3MpiM-DptiJOxAXzwB1ixySKQBRzA5HyMLIUDq4gArqQIPRHrFIR8KGzooc4n8eYCYAKhbdRRKIBDSK9obD4Yj0S0Ue10Z1+h5caZ9Js9PbzOSnJjphQtF4PIsXRsWYqOb8TmrMtlpHl8sgxXBKowADIASQ4rG4AH1kABVDhVKqmsTI2EdNTeXo6KZmHpjZ32N0IEa9DyeLbWbrmVRGBYBvbsn4qkNnCiifJQ2PC6Ox+j5kDmotWzHY3H4wnE0laCnzfjWXREsb8Jsd0bdyK95Vc-6A4ej2BSW4Tm9T1TCM2F1HF+aLvE+AxEklkjeaES7ieD0Bj8K4qzWMe2CnpyqqDmQ+AFPkYApPelQys8BrvJ8PZKnBA68lQpBIfkKFoTGN76oaQryCaTQvq0b7zggNr8HaDrqE6gyunMgHbtYTZcVo-iBCELKkOIEBwIogY-EiTGWqAnQALQ6BuKlGNB3zKtQdAKRaaLKYgpjqBuAQUCB-Clr4olBNpsHBtyZwGXOxldOpdaWNoVmqEEWKDOMWlhKyeFBv2zlEVkuQFMUpTlPAjGGe+Bi1nMRiaOYyyrOB1g6N4PSqA5+FORe5yXNc44JK5zHuSMWWqJoJhYj0zU6JlG4ZVlKzdKl+X9OoRUhXJZ7wURGrlFqIripKNVKRiCBgW46hWKSOhWFMP6mJ1-i4geiz2gFmjFeF56hhQ0URgU6FzUZC0aKllmDIJpmLIEDIAZoOiekJHYjESDInX2Z2Dle+BjnelGJQWil3Z0pnaIYFjWP0HaaBYnl8e11KrAEWjo1sQOjYRgKIchqHSDdSVuQteVuMjmiqOtX3tZjiCZVlXr8O2ATWAMZihKEQA */
+  /** @xstate-layout N4IgpgJg5mDOIC5QHECGBbMACAsqgxgBYCWAdmAHTEQA2YAxAMIDyAcqwKKMAqA2gAwBdRKAAOAe1jEALsXGkRIAB6IAnAFYKADgAsO9eq0B2AMwAmM6p2mANCACeiEztUUTARneqj7swDYzFwCTAF8QuzRMXAIScgooDDAAQXxZADcGABEASQBlFnYuPiFFCSlZeUUVBHcTfgpVRsbDM3U-I35+PztHBEDNfi0TOq11DVU-drCIxOiiMkoEzBT0ygB3VBkAMXEAJwAFGlR7MF3YelzuJIAlYuEkEDKZOQUH6vUvCn91Ixc2j8CRh6iHUOhMDUao18ugMemmIEi2Dw8ziS2SqWIGQosGkqF2slIUER9AE9zEkmelTeiF0fgo-CMWjMphMqkG7n0wIQoM0LlUWgZfh0Wm8GnhiLmsUWiRWmMWYHIu1QBKg13EAFdSBB6BB5JQyGlxABrSgS5FS+IyjFYmCK5VkVUarUIA3ifD2+Sk0mlCkVV6gaq1VkUfTmLSjYaMkxcsFmNxtIxmdyGRNJ9x+cWzc0LS3La3rTbSHa7ZDquDnRgAGWyHFY3AA+sgAKocXK5b0PJ5+qqIWp+Vz8nR+fjWLxM-jqLnJ9z0zqdIZ+LymEeZqLZ1FW1YUUS7N3lh2l8skkqd30vHvcz7fX4aPwA6wxnT1G8aLyGMZg9SrpExHNo2VYjue6wFIhKHiBJLuGSjxnlSAYgled43v8vgPg4iCWEYs6dLUvgAhY36Sn+m5yhQ+B7LsYCpOB5wduS5TntSCC0vSjLMsMbJaByk7oQgYIDk0lj8mY-AmKChHrtKeZbmQ5G7JR1FlhBupxK6JoUGav4btJpGyRRVHSDRLqkIa7p+l6J70ZS-rKL27hdF8XE6Om3iWPZWhcpYdKtJ0jKmImbRhOEICkOIEBwIomkomAPoMXBtkIAAtN0vGJWY4JNPyvzuFofgmL8WgSVp+q0DFp5xTZ1Q6GYnkfBQ6aTGJdRWOY7hFdFuboqssXWRezKaGyeWMr4nRgh5vF5RQ6hzs4Bi+AEE46O1Fr-vmFAbNseyHMcpzwOVvVMc4cY+OGvxDfwnigly6giRC-KqK0qgcoyS3BVFK0kViOJ4iqiI9d2TF+Ey9X8BoE5WM5Jj9tdt1NCKj3Pboy3ETpNoKqc9qEmqmoQP9jHwTUngzmYTkuYmT2DDGdRTUM-hWEYd4BKoyPaV1pEbUWew0Xj8WBqC4L5R8UaTKCzKed4FAvqOGh6B8LNSWzgG7vg+5gUpe1WQDBPmBlXT5VxIkjiY429MmrjGH8Q764Cr0zGuxWdQBlByQphnqzzlWIEDcb2WDH6Q9DvHOZo004S4-RHfLjtrXp8kGdz+1awlLEMkyLKcdxnk+JLfLhtN6X9mYQUhEAA */
   id: 'Game Machine',
   initial: 'idle',
   states: {
@@ -50,15 +59,29 @@ export const gameMachine = setup({
           },
         },
         startingGame: {
-          invoke: {
-            src: 'startGame',
-            onDone: { target: 'generatingRound' },
-          },
+          entry: enqueueActions(({ enqueue }) => {
+            enqueue.assign({ gameState: { round: 0, score: 0, currentPlayer: undefined } });
+          }),
+          always: { target: 'generatingRound' },
         },
         generatingRound: {
           invoke: {
             src: 'generateRound',
-            onDone: { target: 'waitForGuess' },
+            onDone: {
+              target: 'waitForGuess',
+              actions: enqueueActions(({ event, enqueue }) => {
+                enqueue.assign(({ context, event }) => {
+                  return {
+                    gameState: {
+                      round: context.gameState.round + 1,
+                      score: context.gameState.score,
+                      currentPlayer: event.output,
+                    },
+                  };
+                });
+                enqueue('sendPlayerToClient');
+              }),
+            },
           },
         },
         waitForGuess: {
@@ -70,10 +93,14 @@ export const gameMachine = setup({
           always: [
             {
               guard: 'isCorrect',
-              target: 'generatingRound',
+              target: 'correctGuess',
             },
             { target: 'incorrectGuess' },
           ],
+        },
+        correctGuess: {
+          entry: enqueueActions(({ enqueue }) => {}),
+          always: { target: 'generatingRound' },
         },
         incorrectGuess: {
           invoke: {

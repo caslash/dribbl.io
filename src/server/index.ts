@@ -23,9 +23,12 @@ app.prepare().then(() => {
       socket.emit('state_change', s.value);
     });
 
-    gameActor.send({ type: 'CONNECT', socket: socket });
+    gameActor.send({ type: 'CONNECT', socket });
 
     socket.on('start_game', () => gameActor.send({ type: 'START' }));
+
+    socket.on('client_guess', (guess: string) => gameActor.send({ type: 'PLAYER_GUESS', guess }));
+
     socket.on('disconnect', () => {
       console.log(`Client disconnected from socket ${socket.id}`);
       gameActor.send({ type: 'DISCONNECT' });
