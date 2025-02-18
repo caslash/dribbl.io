@@ -6,6 +6,7 @@ export async function POST(request: Request) {
   const players = await getPlayers(body);
 
   return Response.json({
+    count: players.length,
     players,
   });
 }
