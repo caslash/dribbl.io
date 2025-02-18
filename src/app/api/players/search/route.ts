@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     where: {
       display_first_last: {
         contains: searchTerm,
+        mode: 'insensitive',
       },
     },
   });

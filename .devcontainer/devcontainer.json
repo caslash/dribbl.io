@@ -1,0 +1,27 @@
+{
+  "name": "NBA Web Game",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "web",
+  "workspaceFolder": "/workspace",
+  "settings": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.ts": "explicit",
+      "source.organizeImports": "explicit"
+    },
+    "terminal.integrated.shell.linux": "/bin/bash",
+    "terminal.integrated-detectLocale": "off"
+  },
+  "extensions": [
+    "editorconfig.editorconfig",
+    "dbaeumer.vscode-eslint",
+    "ms-azuretools.vscode-docker",
+    "github.github-vscode-theme",
+    "esbenp.prettier-vscode",
+    "statelyai.stately-vscode",
+    "ms-vscode.vscode-typescript-next",
+    "oderwat.indent-rainbow"
+  ],
+  "postCreateCommand": "npm install"
+}
