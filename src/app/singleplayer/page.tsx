@@ -21,9 +21,21 @@ export default function SinglePlayer() {
   useEffect(
     () =>
       setPlayerPoolFilter({
-        is_active: { equals: true },
-        team_history: { contains: ',' },
-        total_games_played: { gte: 800 },
+        AND: {
+          team_history: {
+            contains: ',',
+          },
+          player_accolades: {
+            accolades: {
+              path: ['PlayerAwards'],
+              array_contains: [
+                {
+                  SUBTYPE2: 'KIMVP',
+                },
+              ],
+            },
+          },
+        },
       }),
     [setPlayerPoolFilter],
   );
