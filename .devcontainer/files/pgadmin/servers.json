@@ -1,7 +1,7 @@
 {
   "Servers": {
     "1": {
-      "Name": "server_db",
+      "Name": "nba_db",
       "Group": "Servers",
       "Username": "admin",
       "Host": "db",
