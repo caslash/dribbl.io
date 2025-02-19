@@ -22,12 +22,20 @@ const useClientSocket = () => {
   const [score, setScore] = useState<number>(0);
   const [teams, setTeams] = useState<string[] | null>(null);
 
-  function connectSocket() {
-    clientSocket.connect();
+  // From Server
+  function onStateChange({ gameActive }: StateProps) {
+    setMachineState(gameActive ?? 'idle');
   }
-  function disconnectSocket() {
-    clientSocket.disconnect();
+  function onWaitingForPlayers() {
+    setCanStartGame(true);
   }
+  function onNextRound({ round, score, team_history }: RoundProps) {
+    setRound(round);
+    setScore(score);
+    setTeams(team_history);
+  }
+
+  // To Server
   function onConnect() {
     setIsConnected(true);
   }
@@ -38,20 +46,12 @@ const useClientSocket = () => {
     setScore(0);
     setTeams(null);
   }
-  function onWaitingForPlayers() {
-    setCanStartGame(true);
-  }
-  function onStateChange({ gameActive }: StateProps) {
-    setMachineState(gameActive ?? 'idle');
-  }
   function onStartGame() {
     setCanStartGame(false);
     clientSocket.emit('start_game');
   }
-  function onNextRound({ round, score, team_history }: RoundProps) {
-    setRound(round);
-    setScore(score);
-    setTeams(team_history);
+  function onGuess(playerId: number) {
+    clientSocket.emit('client_guess', playerId);
   }
 
   useEffect(() => {
@@ -63,6 +63,8 @@ const useClientSocket = () => {
     clientSocket.on('state_change', onStateChange);
     clientSocket.on('next_round', onNextRound);
 
+    clientSocket.connect();
+
     return () => {
       clientSocket.off('connect', onConnect);
       clientSocket.off('disconnect', onDisconnect);
@@ -71,8 +73,6 @@ const useClientSocket = () => {
   }, []);
 
   return {
-    connectSocket,
-    disconnectSocket,
     isConnected,
     canStartGame,
     onStartGame,
@@ -80,6 +80,7 @@ const useClientSocket = () => {
     round,
     score,
     teams,
+    onGuess,
   };
 };
 

@@ -1,19 +1,30 @@
-import { Player } from '@prisma/client';
 import { fromPromise } from 'xstate';
 
-import { getRandomPlayer } from '@/server/actions';
+import { getPlayers, getRandomPlayer } from '@/server/actions';
+import { Player } from '@prisma/client';
+import { GameModes } from '../gamemodes';
 
-export const generateRound = fromPromise(
-  async ({ input }: { input: any }): Promise<Player | undefined> => {
-    return await getRandomPlayer({
-      is_active: { equals: true },
-      team_history: { contains: ',' },
-    });
-  },
-);
+type RoundProps = {
+  player: Player | undefined;
+  validAnswers: Player[];
+};
 
-export const processGuess = fromPromise(async ({ input }) => {});
+export const generateRound = fromPromise(async ({ input }: { input: any }): Promise<RoundProps> => {
+  const player = await getRandomPlayer(GameModes.easy.filter);
+  const validAnswers = await getPlayers({
+    where: { team_history: { equals: player?.team_history } },
+  });
 
-export const notifyCorrectGuess = fromPromise(async ({ input }) => {});
+  return {
+    player,
+    validAnswers,
+  };
+});
 
-export const notifyIncorrectGuess = fromPromise(async ({ input }) => {});
+export const notifyCorrectGuess = fromPromise(async ({ input }: { input: any }) => {
+  console.log('CORRECT');
+});
+
+export const notifyIncorrectGuess = fromPromise(async ({ input }: { input: any }) => {
+  console.log('INCORRECT');
+});
