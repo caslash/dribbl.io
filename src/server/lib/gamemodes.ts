@@ -3,6 +3,11 @@ import { Prisma } from '@prisma/client';
 const easyGameMode: Prisma.PlayerWhereInput = {
   AND: [
     {
+      team_history: {
+        contains: ',',
+      },
+    },
+    {
       from_year: {
         gte: 1980,
       },
