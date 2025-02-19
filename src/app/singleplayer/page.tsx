@@ -6,6 +6,7 @@ import PlayerSearchBar from '@/components/search/playersearchbar';
 import useCareerPath from '@/hooks/useCareerPath';
 import useConfetti from '@/hooks/useConfetti';
 import usePlayerSearch from '@/hooks/usePlayerSearch';
+import { GameModes } from '@/server/lib/gamemodes';
 import { Button } from '@heroui/react';
 import { Player } from '@prisma/client';
 import { useTheme } from 'next-themes';
@@ -18,27 +19,7 @@ export default function SinglePlayer() {
   const { onConfetti } = useConfetti();
   const { playerCount, list } = usePlayerSearch();
 
-  useEffect(
-    () =>
-      setPlayerPoolFilter({
-        AND: {
-          team_history: {
-            contains: ',',
-          },
-          player_accolades: {
-            accolades: {
-              path: ['PlayerAwards'],
-              array_contains: [
-                {
-                  SUBTYPE2: 'KIMVP',
-                },
-              ],
-            },
-          },
-        },
-      }),
-    [setPlayerPoolFilter],
-  );
+  useEffect(() => setPlayerPoolFilter(GameModes.easy.filter), [setPlayerPoolFilter]);
 
   const correctAction = (correctPlayer: Player) => {
     toast(<CorrectAnswer correctPlayer={correctPlayer} />, { theme });
