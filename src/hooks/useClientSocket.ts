@@ -83,6 +83,11 @@ const useClientSocket = ({ correctAction, incorrectAction }: ClientSocketProps) 
     return () => {
       clientSocket.off('connect', onConnect);
       clientSocket.off('disconnect', onDisconnect);
+      clientSocket.off('waiting_for_players', onWaitingForPlayers);
+      clientSocket.off('state_change', onStateChange);
+      clientSocket.off('correct_guess', onCorrectGuess);
+      clientSocket.off('incorrect_guess', incorrectAction);
+      clientSocket.off('next_round', onNextRound);
       clientSocket.disconnect();
     };
   }, []);
