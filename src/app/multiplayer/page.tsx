@@ -1,14 +1,29 @@
 'use client';
 
+import { CorrectAnswer } from '@/components/careerpath/answer';
 import { CareerPath } from '@/components/careerpath/careerpathview';
 import PlayerSearchBar from '@/components/search/playersearchbar';
 import useClientSocket from '@/hooks/useClientSocket';
+import useConfetti from '@/hooks/useConfetti';
 import usePlayerSearch from '@/hooks/usePlayerSearch';
 import { Button } from '@heroui/react';
+import { Player } from '@prisma/client';
+import { useTheme } from 'next-themes';
+import { toast } from 'react-toastify';
 
 export default function Game() {
+  const { theme } = useTheme();
+  const { onConfetti } = useConfetti();
+  const correctAction = (validAnswers: Player[]) => {
+    toast(<CorrectAnswer validAnswers={validAnswers} />, { theme });
+    onConfetti();
+  };
+  const incorrectAction = () => {
+    toast.error('Incorrect', { theme });
+  };
+
   const { isConnected, canStartGame, onStartGame, machineState, round, score, teams, onGuess } =
-    useClientSocket();
+    useClientSocket({ correctAction, incorrectAction });
   const { playerCount, list } = usePlayerSearch();
 
   return (

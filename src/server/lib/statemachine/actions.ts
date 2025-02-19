@@ -28,3 +28,15 @@ export const sendPlayerToClient = ({ context }: ActionProps) => {
     ? socket.emit('next_round', { round, score, team_history })
     : Error('Socket could not be found');
 };
+
+export const notifyCorrectGuess = ({ context }: ActionProps) => {
+  const { socket, gameState } = context;
+  const { validAnswers } = gameState;
+
+  socket ? socket.emit('correct_guess', { validAnswers }) : Error('Socket could not be found');
+};
+
+export const notifyIncorrectGuess = ({ context }: ActionProps) => {
+  const { socket } = context;
+  socket ? socket.emit('incorrect_guess') : Error('Socket could not be found');
+};

@@ -1,19 +1,29 @@
 'use client';
 
 import { clientSocket } from '@/app/clientSocket';
+import { Player } from '@prisma/client';
 import { useEffect, useState } from 'react';
 
-interface StateProps {
-  gameActive?: string;
-}
+type ClientSocketProps = {
+  correctAction: (validAnswers: Player[]) => void;
+  incorrectAction: () => void;
+};
 
-interface RoundProps {
+type StateProps = {
+  gameActive?: string;
+};
+
+type RoundProps = {
   round: number;
   score: number;
   team_history: string[];
-}
+};
 
-const useClientSocket = () => {
+type CorrectGuessProps = {
+  validAnswers: Player[];
+};
+
+const useClientSocket = ({ correctAction, incorrectAction }: ClientSocketProps) => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [canStartGame, setCanStartGame] = useState<boolean>(false);
   const [machineState, setMachineState] = useState<string>('idle');
@@ -33,6 +43,9 @@ const useClientSocket = () => {
     setRound(round);
     setScore(score);
     setTeams(team_history);
+  }
+  function onCorrectGuess({ validAnswers }: CorrectGuessProps) {
+    correctAction(validAnswers);
   }
 
   // To Server
@@ -61,6 +74,8 @@ const useClientSocket = () => {
     clientSocket.on('disconnect', onDisconnect);
     clientSocket.on('waiting_for_players', onWaitingForPlayers);
     clientSocket.on('state_change', onStateChange);
+    clientSocket.on('correct_guess', onCorrectGuess);
+    clientSocket.on('incorrect_guess', incorrectAction);
     clientSocket.on('next_round', onNextRound);
 
     clientSocket.connect();
