@@ -20,11 +20,3 @@ export const generateRound = fromPromise(async ({ input }: { input: any }): Prom
     validAnswers,
   };
 });
-
-export const notifyCorrectGuess = fromPromise(async ({ input }: { input: any }) => {
-  console.log('CORRECT');
-});
-
-export const notifyIncorrectGuess = fromPromise(async ({ input }: { input: any }) => {
-  console.log('INCORRECT');
-});

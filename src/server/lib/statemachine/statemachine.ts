@@ -2,12 +2,13 @@ import { Player } from '@prisma/client';
 import { DefaultEventsMap, Socket } from 'socket.io';
 import { Actor, AnyStateMachine, assign, createActor, enqueueActions, setup } from 'xstate';
 
-import { sendPlayerToClient, waitForPlayers } from '@/server/lib/statemachine/actions';
 import {
-  generateRound,
   notifyCorrectGuess,
   notifyIncorrectGuess,
-} from '@/server/lib/statemachine/actors';
+  sendPlayerToClient,
+  waitForPlayers,
+} from '@/server/lib/statemachine/actions';
+import { generateRound } from '@/server/lib/statemachine/actors';
 import { isCorrect } from '@/server/lib/statemachine/guards';
 
 export function createGameMachine(): Actor<AnyStateMachine> {
@@ -26,17 +27,17 @@ export function createGameMachine(): Actor<AnyStateMachine> {
     actions: {
       waitForPlayers,
       sendPlayerToClient,
+      notifyCorrectGuess,
+      notifyIncorrectGuess,
     },
     actors: {
       generateRound,
-      notifyCorrectGuess,
-      notifyIncorrectGuess,
     },
     guards: {
       isCorrect,
     },
   }).createMachine({
-    /** @xstate-layout N4IgpgJg5mDOIC5QHECGBbMACAsqgxgBYCWAdmAHTEQA2YAxAMIDyAcqwKKMAqA2gAwBdRKAAOAe1jEALsXGkRIAB6IATPwCsFAJwBmVaoDs21QA4NpwwEYAbDYA0IAJ6IruqxTcaALFbPbDDX5+U10AXzDHNExcAhJyCigMMABBfFkANwYAEQBJAGUWdi4+IUUJKVl5RRUEdS09A2MzC2s7RxcEUw99VW03b21zK293CKjk2KIySiTMNMzKAHdUGQAxcQAnAAUaVCcwTdh6fO4UgCVS4SQQCpk5BRvavtUKfQ0NNyshwxsgww6iFM3kMFFMqn+I0Mpn4qls4xA0WweGmCTmqXSxCyFFg0lQm1kpCgSPoAmuYkk92qT0Q1n4FF+fV+4KC7gBziBgze-kMvP4visvIRSKm8VmyQWWNmYHIm1QhKg53EAFdSBB6BB5JQyBlxABrSgilFixISzHYmCy+VkRUqtUIHXifDW+RksnlSlVR6gWp+fi6N56QVmXmGXR6QEIQLaBk2XT8Kz8GxGbyWYWTY0zU3zc3LVbSDabZDKuDHRgAGVyHFY3AA+sgAKocfL5d03O5emquVS6AP9bzBJPhmzabyqSMg0wUOOJmzQz5jpMadMxTNos2LCiiTZO0s24ul0lldueh5duombkfL4-P78dmdZmeX5xmyhXTeDR-FfIuJZ9GSti267rAUhEgeoGklY5K3Ke1I+mol7vJ87i3v8kbJt4FAaKob7aP0+EWOCP6iv+G5ShQ+BbJsYDpBBxyagkjoGhQRp-uuOablRmw0XRJagQ6pC6s6XpuseFKVGeNJRomsZMm+EL+oKka-KCozeBpeifhCH4kWu4qcRRZDcbx0j0RqWpUEJ+qGhm7EGRim7GdRtFmfxsCCcJLqkGJMEdlJCEIAE9KND2lg+NY3gOByCDJgG0IglYgpJbo5gRJEICkOIEBwIobGomAHqSfByiIAAtNFnQVXp9lULQhUnsV3qlQgY6RpewSmHO2ghJ8I6GKoNUFdmjlSkVVLNbUgyRuGPQhFYPi6DhPVxt4Q0mgBuYUCs6xbLs+yHPAjUTeeSVaN0nwhNoGipW0uiRuCWEWAtoSLTYUU2OtZGGdiuL4gqSLjZ20lBCF3y4bCA6mMCpgPSCOhdTd-I4Z80NfRxo0WjKhzWkSSqqhAQMBS1AQNL0t0RSMlW0hooJhiOc4DaOmjow5gF5rtRbuUTJW+gONjTvwQb3iYIxJhhqhYaOBjvZ+ARdVYrMjezW47vge7gdzx3A4FAQTpYnjvSYcLQ74FifRl+UbeR2Ima59E85NiCflh6nQzYCajoY-IqWO06WJoqOTnCSubU5pB23xpaO+edJyQECmsspMUaPhFD+mGgofELbjaOlYRAA */
+    /** @xstate-layout N4IgpgJg5mDOIC5QHECGBbMACAsqgxgBYCWAdmAHTEQA2YAxAMIDyAcqwKKMAqA2gAwBdRKAAOAe1jEALsXGkRIAB6IATPwCsFAJwBmVau0AOAGwAWbRpO7dZgDQgAnogCMulxTcaz+l+ZdmGsYAvsEOaJi4BCTkFFAYYACC+LIAbgwAIgCSAMos7Fx8QooSUrLyiioI6lp6Bsbmlta2Ds4IRh76hqoaRj3WAOzaqqHhCVFEZJTxmMlplADuqDIAYuIATgAKNKiOYOuw9DnciQBKRcJIIKUycgpXVap9FPreRkbaZgMBwwOtiB1+BR+IEXKoTFYTPwjPwRmEQBFsHhJrEZkkUsR0hRYNJUOtZKQoIj6AJLmJJLcKg9EP4KKZtAMTE8mQZdP92i4PN5tLCzCYXB8rHCxpFkTFpgk5pjpmByOtUASoKdxABXUgQegQeSUMipcQAa0oiIm4rikoxWJgcoVZCVqvVCF14nwNvkpNJJQp5XuoCqLn4uiMFFZRkC-IZ2hM7IGA10FBjAxhfJj-BM2lGCPGYqmZtmFsWy2ka3WyBVcEOjAAMlkOKxuAB9ZAAVQ4ORyHquN29lVcqaDAzMX10Gk5JnMPXZXyD1k5nO0fnH6fhxuzqPN8woonWzvLttL5ZJxU7XruPeqz1eZnen2+FlUfyciG+2mDfTBlj0Y4zK+iObRUqxLcd1gKRCX3ECSRcMlrhPKlfTUC8eivD4vh+e92SCF8A1jCFoV6SMlxFJFfzXPMN3wDZ1jAFJwMODtyTKU9qQQWl6UZZkDFUNlHwQAcPHBMEBkMaw72-LMSIlMjpSoUgKPWKiaLLCD6Jgxi4OUAEwWDbQbz6D56nZJkPH4PwNGhQINCE+dQnhUhxAgOBFB-FEwE9NSfQ0hAAFoox4rzah0wKgsC0wxNFCSqFoVzj3cs8zFUdlhmBaETCMQMBRcHkQTC4iXNzdF5jcykPKqCx2V0ecXmhAUoXnfhNByk0-3XaSllWDZtl2fZ4Bi4qz05LQOjMoZbAjUMNGjUw6RMqFNDMTl710RrV0kgrpJxPFFURIru2Yq84xHEF6u8GcjAGCaeMBYNU35DQDHO75hUzcK8v-fM4llfYbUJZU1QgHamPgjlVG03SnmGQxo2+eMRwHD5rCMKxCOe3LTTejc2qLDZaIB9S-R6DxB3q4TvnfB82kTLQNFsVRUMymFGWWiL0ekoD8F3MClJ6hi+uYhlDJcAZPAHfgdNTHxBxcJnXparE5IU6Qcd63agf2ihDrMY6+XcM6LopiqdAFUxhyE-0BmltHZZ1WTKOoxWudxkqaXmuk03Y0xOO4tpwwoEwRbF8xbHmmzgiAA */
     id: 'Game Machine',
     initial: 'idle',
     context: {
@@ -106,21 +107,26 @@ export function createGameMachine(): Actor<AnyStateMachine> {
               {
                 guard: 'isCorrect',
                 target: 'correctGuess',
+                actions: enqueueActions(({ context, enqueue }) => {
+                  enqueue.assign({
+                    gameState: {
+                      round: context.gameState.round,
+                      score: context.gameState.score + 1,
+                      currentPlayer: context.gameState.currentPlayer,
+                      validAnswers: context.gameState.validAnswers,
+                    },
+                  });
+                  enqueue('notifyCorrectGuess');
+                }),
               },
-              { target: 'incorrectGuess' },
+              { target: 'incorrectGuess', actions: 'notifyIncorrectGuess' },
             ],
           },
           correctGuess: {
-            invoke: {
-              src: 'notifyCorrectGuess',
-              onDone: { target: 'generatingRound' },
-            },
+            always: { target: 'generatingRound' },
           },
           incorrectGuess: {
-            invoke: {
-              src: 'notifyIncorrectGuess',
-              onDone: { target: 'waitForGuess' },
-            },
+            always: { target: 'waitForGuess' },
           },
         },
       },
