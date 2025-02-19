@@ -19,7 +19,9 @@ export const createServerSocket = (
 
     socket.on('start_game', () => gameActor.send({ type: 'START' }));
 
-    socket.on('client_guess', (guess: string) => gameActor.send({ type: 'PLAYER_GUESS', guess }));
+    socket.on('client_guess', (guessId: number) =>
+      gameActor.send({ type: 'CLIENT_GUESS', guessId }),
+    );
 
     socket.on('disconnect', () => {
       console.log(`Client disconnected from socket ${socket.id}`);

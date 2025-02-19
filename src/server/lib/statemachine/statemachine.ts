@@ -7,15 +7,20 @@ import {
   generateRound,
   notifyCorrectGuess,
   notifyIncorrectGuess,
-  processGuess,
 } from '@/server/lib/statemachine/actors';
+import { isCorrect } from '@/server/lib/statemachine/guards';
 
 export function createGameMachine(): Actor<AnyStateMachine> {
   const gameMachine = setup({
     types: {} as {
       context: {
         socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any> | undefined;
-        gameState: { round: number; score: number; currentPlayer: Player | undefined };
+        gameState: {
+          round: number;
+          score: number;
+          currentPlayer: Player | undefined;
+          validAnswers: Player[];
+        };
       };
     },
     actions: {
@@ -24,18 +29,14 @@ export function createGameMachine(): Actor<AnyStateMachine> {
     },
     actors: {
       generateRound,
-      processGuess,
       notifyCorrectGuess,
       notifyIncorrectGuess,
     },
     guards: {
-      isCorrect: ({ context, event }) => {
-        //Do something
-        return true;
-      },
+      isCorrect,
     },
   }).createMachine({
-    /** @xstate-layout N4IgpgJg5mDOIC5QHECGBbMACAsqgxgBYCWAdmAHTEQA2YAxAMIDyAcqwKKMAqA2gAwBdRKAAOAe1jEALsXGkRIAB6IAjAGZ+FAJy7tADlUAmAOyrtANlMAaEAE9ER-SYomArP35v1RgCz9fC35tXwBfUNs0TFwCEnIKKAwwAEF8WQA3BgARAEkAZRZ2Lj4hRQkpWXlFFQQNLT0DYzNLG3tHdRcjD351NyD9Zwt9C3DIpJiiMkpEzFSMygB3VBkAMXEAJwAFGlQ7MHXYejzuZIAlEuEkEHKZOQUrmrdzCiMLPt99AKNXjtsHBDcRi03S8-CGJjBwVGICi2Dwk3iMxSaWImQosGkqHWslIUFh9AElzEkluVQeiG06n0FECzn8RlU3lM2j+iEBRgonk8vnU6gsJhMXSM0NhEzi0ySc1R0zA5HWqBxUFO4gArqQIPQIPJKGR0uIANaUUXw8UJSUotEwOUKshK1XqhC68T4G3yQmEsokyr3UA1VQ81QUfQ8wWWEw+NwC1kID6+Cjmfj+wxuNzaPxdEXjE1TM2zC2LZbSNbrZAquCHRgAGRyHFY3AA+sgAKocPJ5D1XG7e6pqQIcjq+XQMty+V6WaOMwNczxmPo+Ew8zPRbOI83zCiidbO8u20vlgmlTteu49gHPV7vT6jn4maO+fyubq+DQdAbaExLuGxHNIqVozfbrAUi4nuQEEqoRLXMeZK+my55vBYHxfDe0ZGO+nJck8Jj6L0-rChEMJZt+q55uu+AbOsYBpKBhxavETqGhQxrERKpHShQ5HrJR1FlkBjqkHqLreu6h7EhUJ7kgglLUrSC78MO84sm0MYPtOqjmGYbzyZ+Yo-mu7FkJx3HSDRmralQAkGkaREIqxyLroZFFUSZvGwPxgmuqQImQV2EmwbU5jUvyqhvvSQJuKhlgvN0vKjqmqgBOo4QEaQ4gQHAijMbZnriTByiIAAtBY0YFX4GHThVnj+jpK46rQYA5aSPr5TGRioTyFC8ryZgDPwnzuElBFZaav75o13aSaYbg6GCrxoT03y9NGFjqBQILBH1fiGBYqg1Sxub2exSyrBs2y7Ps8BHrlzU1Ooo6uCFC73u+vipsVymDi461UpYFhWG4e22Qdf6UBiWKKrC41+S1grUqmHR9AKzKvNGgJTtOf2Alh+iAyN+mWrK+w2riypqhAUN5X6QKrcFoXyeFd76Byz7BfwckIe4uN6WxaLHUWGw0RTN1qCt00mBzOHvOYviRS47jcmzr1+FYXMkYd-5bvgO4ga5Qunj4q3aLNVhGz4RhLR9Tjxl0nhUk9I7VUNNl4zzlBGc5gtXU1p5DByCUhJ4VgMndt4fYya1clNIZ-SMTvLvto0OaQ7s8eWeuSdJNLgvSjKKahZiPlVqaCupITJaEQA */
+    /** @xstate-layout N4IgpgJg5mDOIC5QHECGBbMACAsqgxgBYCWAdmAHTEQA2YAxAMIDyAcqwKKMAqA2gAwBdRKAAOAe1jEALsXGkRIAB6IATPwCsFAJwBmVaoDs21QA4NpwwEYAbDYA0IAJ6IruqxTcaALFbPbDDX5+U10AXzDHNExcAhJyCigMMABBfFkANwYAEQBJAGUWdi4+IUUJKVl5RRUEdS09A2MzC2s7RxcEUw99VW03b21zK293CKjk2KIySiTMNMzKAHdUGQAxcQAnAAUaVCcwTdh6fO4UgCVS4SQQCpk5BRvavtUKfQ0NNyshwxsgww6iFM3kMFFMqn+I0Mpn4qls4xA0WweGmCTmqXSxCyFFg0lQm1kpCgSPoAmuYkk92qT0Q1n4FF+fV+4KC7gBziBgze-kMvP4visvIRSKm8VmyQWWNmYHIm1QhKg53EAFdSBB6BB5JQyBlxABrSgilFixISzHYmCy+VkRUqtUIHXifDW+RksnlSlVR6gWp+fi6N56QVmXmGXR6QEIQLaBk2XT8Kz8GxGbyWYWTY0zU3zc3LVbSDabZDKuDHRgAGVyHFY3AA+sgAKocfL5d03O5emquVS6AP9bzBJPhmzabyqSMg0wUOOJmzQz5jpMadMxTNos2LCiiTZO0s24ul0lldueh5duombkfL4-P78dmdZmeX5xmyhXTeDR-FfIuJZ9GSti267rAUhEgeoGklY5K3Ke1I+mol7vJ87i3v8kbJt4FAaKob7aP0+EWOCP6iv+G5ShQ+BbJsYDpBBxyagkjoGhQRp-uuOablRmw0XRJagQ6pC6s6XpuseFKVGeNJRomsZMm+EL+oKka-KCozeBpeifhCH4kWu4qcRRZDcbx0j0RqWpUEJ+qGhm7EGRim7GdRtFmfxsCCcJLqkGJMEdlJCEIAE9KND2lg+NY3gOByCDJgG0IglYgpJbo5gRJEICkOIEBwIobGomAHqSfByiIAAtNFnQVXp9lULQhUnsV3qlQgY6RpewSmHO2ghJ8I6GKoNUFdmjlSkVVLNbUgyRuGPQhFYPi6DhPVxt4Q0mgBuYUCs6xbLs+yHPAjUTeeSVaN0nwhNoGipW0uiRuCWEWAtoSLTYUU2OtZGGdiuL4gqSLjZ20lBCF3y4bCA6mMCpgPSCOhdTd-I4Z80NfRxo0WjKhzWkSSqqhAQMBS1AQNL0t0RSMlW0hooJhiOc4DaOmjow5gF5rtRbuUTJW+gONjTvwQb3iYIxJhhqhYaOBjvZ+ARdVYrMjezW47vge7gdzx3A4FAQTpYnjvSYcLQ74FifRl+UbeR2Ima59E85NiCflh6nQzYCajoY-IqWO06WJoqOTnCSubU5pB23xpaO+edJyQECmsspMUaPhFD+mGgofELbjaOlYRAA */
     id: 'Game Machine',
     initial: 'idle',
     context: {
@@ -44,6 +45,7 @@ export function createGameMachine(): Actor<AnyStateMachine> {
         round: 0,
         score: 0,
         currentPlayer: undefined,
+        validAnswers: [],
       },
     },
     states: {
@@ -53,7 +55,7 @@ export function createGameMachine(): Actor<AnyStateMachine> {
         },
         entry: assign({
           socket: undefined,
-          gameState: { round: 0, score: 0, currentPlayer: undefined },
+          gameState: { round: 0, score: 0, currentPlayer: undefined, validAnswers: [] },
         }),
       },
 
@@ -85,7 +87,8 @@ export function createGameMachine(): Actor<AnyStateMachine> {
                     gameState: {
                       round: context.gameState.round + 1,
                       score: context.gameState.score,
-                      currentPlayer: event.output,
+                      currentPlayer: event.output.player,
+                      validAnswers: event.output.validAnswers,
                     },
                   });
                   enqueue('sendPlayerToClient');

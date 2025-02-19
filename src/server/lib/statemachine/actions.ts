@@ -8,6 +8,7 @@ type ActionProps = {
       round: number;
       score: number;
       currentPlayer: Player | undefined;
+      validAnswers: Player[];
     };
   };
 };
