@@ -9,6 +9,7 @@ type ActionProps = {
       score: number;
       currentPlayer: Player | undefined;
       validAnswers: Player[];
+      lives: number;
     };
   };
 };
@@ -20,12 +21,12 @@ export const waitForPlayers = ({ context }: ActionProps) => {
 
 export const sendPlayerToClient = ({ context }: ActionProps) => {
   const { socket, gameState } = context;
-  const { round, score, currentPlayer } = gameState;
+  const { round, score, currentPlayer, lives } = gameState;
 
   const team_history = currentPlayer?.team_history?.split(',');
 
   socket
-    ? socket.emit('next_round', { round, score, team_history })
+    ? socket.emit('next_round', { round, score, team_history, lives: lives + 1 })
     : Error('Socket could not be found');
 };
 
@@ -39,4 +40,9 @@ export const notifyCorrectGuess = ({ context }: ActionProps) => {
 export const notifyIncorrectGuess = ({ context }: ActionProps) => {
   const { socket } = context;
   socket ? socket.emit('incorrect_guess') : Error('Socket could not be found');
+};
+
+export const notifyGameOver = ({ context }: ActionProps) => {
+  const { socket } = context;
+  socket ? socket.emit('game_over') : Error('Socket could not be found');
 };

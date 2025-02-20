@@ -22,8 +22,18 @@ export default function Game() {
     toast.error('Incorrect', { theme });
   };
 
-  const { isConnected, canStartGame, onStartGame, machineState, round, score, teams, onGuess } =
-    useClientSocket({ correctAction, incorrectAction });
+  const {
+    isConnected,
+    canStartGame,
+    onStartGame,
+    machineState,
+    round,
+    score,
+    teams,
+    lives,
+    onGuess,
+    onSkip,
+  } = useClientSocket({ correctAction, incorrectAction });
   const { playerCount, list } = usePlayerSearch();
 
   return (
@@ -39,6 +49,7 @@ export default function Game() {
       {teams && (
         <div className="flex flex-col items-center space-y-8">
           <div className="flex flex-col items-center">
+            <p className="font-black text-2xl">Lives: {lives}</p>
             <p className="font-extrabold text-xl">Round: {round}</p>
             <p className="font-black text-2xl">Score: {score}</p>
           </div>
@@ -49,6 +60,7 @@ export default function Game() {
             list={list}
             onSelect={onGuess}
           />
+          <Button onPress={onSkip}>Skip</Button>
         </div>
       )}
     </div>
