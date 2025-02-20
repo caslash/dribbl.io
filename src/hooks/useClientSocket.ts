@@ -17,6 +17,7 @@ type RoundProps = {
   round: number;
   score: number;
   team_history: string[];
+  lives: number;
 };
 
 type CorrectGuessProps = {
@@ -31,6 +32,7 @@ const useClientSocket = ({ correctAction, incorrectAction }: ClientSocketProps) 
   const [round, setRound] = useState<number>(0);
   const [score, setScore] = useState<number>(0);
   const [teams, setTeams] = useState<string[] | null>(null);
+  const [lives, setLives] = useState<number>(0);
 
   // From Server
   function onStateChange({ gameActive }: StateProps) {
@@ -39,13 +41,19 @@ const useClientSocket = ({ correctAction, incorrectAction }: ClientSocketProps) 
   function onWaitingForPlayers() {
     setCanStartGame(true);
   }
-  function onNextRound({ round, score, team_history }: RoundProps) {
+  function onNextRound({ round, score, team_history, lives }: RoundProps) {
     setRound(round);
     setScore(score);
     setTeams(team_history);
+    setLives(lives);
   }
   function onCorrectGuess({ validAnswers }: CorrectGuessProps) {
     correctAction(validAnswers);
+  }
+  function onGameOver() {
+    setRound(0);
+    setScore(0);
+    setTeams(null);
   }
 
   // To Server
@@ -66,6 +74,9 @@ const useClientSocket = ({ correctAction, incorrectAction }: ClientSocketProps) 
   function onGuess(playerId: number) {
     clientSocket.emit('client_guess', playerId);
   }
+  function onSkip() {
+    clientSocket.emit('skip_round');
+  }
 
   useEffect(() => {
     setCanStartGame(false);
@@ -77,6 +88,7 @@ const useClientSocket = ({ correctAction, incorrectAction }: ClientSocketProps) 
     clientSocket.on('correct_guess', onCorrectGuess);
     clientSocket.on('incorrect_guess', incorrectAction);
     clientSocket.on('next_round', onNextRound);
+    clientSocket.on('game_over', onGameOver);
 
     clientSocket.connect();
 
@@ -88,6 +100,7 @@ const useClientSocket = ({ correctAction, incorrectAction }: ClientSocketProps) 
       clientSocket.off('correct_guess', onCorrectGuess);
       clientSocket.off('incorrect_guess', incorrectAction);
       clientSocket.off('next_round', onNextRound);
+      clientSocket.off('game_over', onGameOver);
       clientSocket.disconnect();
     };
   }, []);
@@ -100,7 +113,9 @@ const useClientSocket = ({ correctAction, incorrectAction }: ClientSocketProps) 
     round,
     score,
     teams,
+    lives,
     onGuess,
+    onSkip,
   };
 };
 
