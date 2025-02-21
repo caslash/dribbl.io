@@ -41,7 +41,7 @@ export function createGameMachine(): Actor<AnyStateMachine> {
       hasLives,
     },
   }).createMachine({
-    /** @xstate-layout N4IgpgJg5mDOIC5QHECGBbMACAsqgxgBYCWAdmAHTEQA2YAxAMIDyAcqwKKMAqA2gAwBdRKAAOAe1jEALsXGkRIAB6IATPwCsFAJwBmVau0AOAGwAWbRpO7dZgDQgAnogCMulxTcaz+l+ZdmGsYAvsEOaJi4BCTkFFAYYACC+LIAbgwAIgCSAMos7Fx8QooSUrLyiioI6lp6Bsbmlta2Ds4IRh76hqoaRj3WAOzaqqHhCVFEZJTxmMlplADuqDIAYuIATgAKNKiOYOuw9DnciQBKRcJIIKUycgpXVap9FPreRkbaZgMBwwOtiB1+BR+IEXKoTFYTPwjPwRmEQBFsHhJrEZkkUsR0hRYNJUOtZKQoIj6AJLmJJLcKg9EP4KKZtAMTE8mQZdP92i4PN5tLCzCYXB8rHCxpFkTFpgk5pjpmByOtUASoKdxABXUgQegQeSUMipcQAa0oiIm4rikoxWJgcoVZCVqvVCF14nwNvkpNJJQp5XuoCqLn4uiMFFZRkC-IZ2hM7IGA10FBjAxhfJj-BM2lGCPGYqmZtmFsWy2ka3WyBVcEOjAAMlkOKxuAB9ZAAVQ4ORyHquN29lVcqaDAzMX10Gk5JnMPXZXyD1k5nO0fnH6fhxuzqPN8woonWzvLttL5ZJxU7XruPeqz1eZnen2+FlUfyciG+2mDfTBlj0Y4zK+iObRUqxLcd1gKRCX3ECSRcMlrhPKlfTUC8eivD4vh+e92SCF8A1jCFoV6SMlxFJFfzXPMN3wDZ1jAFJwMODtyTKU9qQQWl6UZZkDFUNlHwQAcPHBMEBkMaw72-LMSIlMjpSoUgKPWKiaLLCD6Jgxi4OUAEwWDbQbz6D56nZJkPH4PwNGhQINCE+dQnhUhxAgOBFB-FEwE9NSfQ0hAAFoox4rzah0wKgsC0wxNFCSqFoVzj3cs8zFUdlhmBaETCMQMBRcHkQTC4iXNzdF5jcykPKqCx2V0ecXmhAUoXnfhNByk0-3XaSllWDZtl2fZ4Bi4qz05LQOjMoZbAjUMNGjUw6RMqFNDMTl710RrV0kgrpJxPFFURIru2Yq84xHEF6u8GcjAGCaeMBYNU35DQDHO75hUzcK8v-fM4llfYbUJZU1QgHamPgjlVG03SnmGQxo2+eMRwHD5rCMKxCOe3LTTejc2qLDZaIB9S-R6DxB3q4TvnfB82kTLQNFsVRUMymFGWWiL0ekoD8F3MClJ6hi+uYhlDJcAZPAHfgdNTHxBxcJnXparE5IU6Qcd63agf2ihDrMY6+XcM6LopiqdAFUxhyE-0BmltHZZ1WTKOoxWudxkqaXmuk03Y0xOO4tpwwoEwRbF8xbHmmzgiAA */
+    /** @xstate-layout N4IgpgJg5mDOIC5QHECGBbMACAsqgxgBYCWAdmAHTEQA2YAxAMIDyAcqwKKMAqA2gAwBdRKAAOAe1jEALsXGkRIAB6IATPwCsFAJyqAjABZVAdlXbtGg-wMaANCACeiPQGZ+FAy9WqAHBu0AbAbG2j7GPgC+EfZomLgEJOQUUBhgAIL4sgBuDAAiAJIAyizsXHxCihJSsvKKKgjqWrqGJmYWVjb2Tgg+ehR6vX69eoEmkdEgsdh4RGSUKZgZ2ZQA7qgyAGLiAE4ACjSoDmDbsPSF3GkASuXCSCBVMnIKd-XaxgEUxsYGHQbarvxVF1EN9jP1zC4fKovEZLOMYql4rMkgt0pliDkKLBpKhtrJSFApvQBLcxJJHrUXs5VAYPqogqp-C4XNp+NojMCEN8fBQAoF3sYXBoNDTtFEEXEZol5qklhj5mByNtUPioJdxABXUgQegQeSUMhZcQAa0oUyR0uSsvRmJgSpVZDVmu1CEN4nwDvkJJJlXJNWeoHqehpdIZTJZbI5jkQwTBNh8bJcIR8Lh+enFk0RUrmVsWNtW62kW22yA1cFOjAAMvkOKxuAB9ZAAVQ4hUKPruD39dUQQRc-XjQvaNhMnL+TQCGn4SYGIrhAQz5uzKOtywoa02O1L5bOAGl8rsO2Tqk8ewg3h8vj9rH8AUDowgGRRrC49AFob4vhpF1mEjnUXKmKwMaxCiOqWo6ke9x+qeVIIMGtIUPSsLaMyrLsve3R9hQliaMEQ7vLoP6Sn+K55muojbO65aOtusCnFBXawYGai6BQr6svwAyuDS04uJyPh8jhIz0iEwp8gE6YTEupEyuR8oUJR1H0bRZb0cSeiktBJ6UixDRsRx-Bcb0MJ8ZyQR9OEugaEmGg+D4oSqMR0yybmaIUVR+A0QSdEMaoWlMbpyisao7EjEZ3GmcynLfNoHg2PhxiWEmITORa-6rgp+A7NsYCZL5xIVJ2MFBfUvRaCY1gjIKeiuCmAn-Eh3Lvuopj8GEaXLnJ7kKWQ2XbLl+VqQxRXHhSAbBY+Bg8oYdlDpYI7GOZBh9NYeGCv4hFOdJv7It1gHdcwOTbIVAUlRN9RBDNg7+AtIpLQ+3K8vyAQbSKfxRBMpDiBAcCKDJe2+jpF2IAAtAEnLg8+Rkw7DMP6J1rnUHQQPjWeUbdI1wYRa+dmoeYUkSi5e1uQdqPdnBfychGTXvp4jJvvwQSIyTAH5uuhbFvshzHPAxXA2e5VNVVbyvnV-GPdCny0lOrjsvZmgs5abNrtiuKqlM5PMZNejtWCqZmICxgjIJegxVL3yTlxLLTQm347SRrOZbairHA6BLgdqWulc4tI8rojIMpJIoQw+PhWE1hHtXyb7hErGXyZiG5Fluw3eyDPRvjhbj6FC7KvdC5nMhQ4eplOK0DFd8dkT1QEgWBzoQOnZ662E7FGKyJgm5J5kDDhncaLV-DhFY9tE+lNcHYpnneYSaf82jcFvDFK1IV4wb8poXzGNX+3s-1g3SL5zdwVbOE0jCDkBJC00CQ5vJ4-yIx6OE23j11pPs31OV5Uf89jRTPSsZPg0gTP8CuGhwgSywlnNkgJB66xHorB2xNlbO0OsdE+QDwgeG+HZMI04AjBwMObfsltZY2wVvbKIQA */
     id: 'Game Machine',
     initial: 'idle',
     context: {
@@ -133,7 +133,6 @@ export function createGameMachine(): Actor<AnyStateMachine> {
               {
                 guard: 'hasLives',
                 target: 'incorrectGuess',
-                actions: 'notifyIncorrectGuess',
               },
               { target: 'gameOver' },
             ],
@@ -142,9 +141,12 @@ export function createGameMachine(): Actor<AnyStateMachine> {
             always: { target: 'generatingRound' },
           },
           incorrectGuess: {
-            entry: assign(({ context }) => ({
-              gameState: { ...context.gameState, lives: context.gameState.lives - 1 },
-            })),
+            entry: enqueueActions(({ context, enqueue }) => {
+              enqueue.assign({
+                gameState: { ...context.gameState, lives: context.gameState.lives - 1 },
+              });
+              enqueue('notifyIncorrectGuess');
+            }),
             always: { target: 'waitForGuess' },
           },
           gameOver: {

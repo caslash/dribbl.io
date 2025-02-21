@@ -24,6 +24,10 @@ type CorrectGuessProps = {
   validAnswers: Player[];
 };
 
+type IncorrectGuessProps = {
+  lives: number;
+};
+
 const useClientSocket = ({ correctAction, incorrectAction }: ClientSocketProps) => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [canStartGame, setCanStartGame] = useState<boolean>(false);
@@ -50,7 +54,12 @@ const useClientSocket = ({ correctAction, incorrectAction }: ClientSocketProps) 
   function onCorrectGuess({ validAnswers }: CorrectGuessProps) {
     correctAction(validAnswers);
   }
+  function onIncorrectGuess({ lives }: IncorrectGuessProps) {
+    setLives(lives);
+    incorrectAction();
+  }
   function onGameOver() {
+    setCanStartGame(true);
     setRound(0);
     setScore(0);
     setTeams(null);
@@ -86,7 +95,7 @@ const useClientSocket = ({ correctAction, incorrectAction }: ClientSocketProps) 
     clientSocket.on('waiting_for_players', onWaitingForPlayers);
     clientSocket.on('state_change', onStateChange);
     clientSocket.on('correct_guess', onCorrectGuess);
-    clientSocket.on('incorrect_guess', incorrectAction);
+    clientSocket.on('incorrect_guess', onIncorrectGuess);
     clientSocket.on('next_round', onNextRound);
     clientSocket.on('game_over', onGameOver);
 
@@ -98,9 +107,10 @@ const useClientSocket = ({ correctAction, incorrectAction }: ClientSocketProps) 
       clientSocket.off('waiting_for_players', onWaitingForPlayers);
       clientSocket.off('state_change', onStateChange);
       clientSocket.off('correct_guess', onCorrectGuess);
-      clientSocket.off('incorrect_guess', incorrectAction);
+      clientSocket.off('incorrect_guess', onIncorrectGuess);
       clientSocket.off('next_round', onNextRound);
       clientSocket.off('game_over', onGameOver);
+
       clientSocket.disconnect();
     };
   }, []);
