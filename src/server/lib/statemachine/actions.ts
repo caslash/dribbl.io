@@ -38,8 +38,11 @@ export const notifyCorrectGuess = ({ context }: ActionProps) => {
 };
 
 export const notifyIncorrectGuess = ({ context }: ActionProps) => {
-  const { socket } = context;
-  socket ? socket.emit('incorrect_guess') : Error('Socket could not be found');
+  const { socket, gameState } = context;
+  const { lives } = gameState;
+  socket
+    ? socket.emit('incorrect_guess', { lives: lives + 1 })
+    : Error('Socket could not be found');
 };
 
 export const notifyGameOver = ({ context }: ActionProps) => {
