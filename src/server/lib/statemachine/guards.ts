@@ -6,7 +6,6 @@ type GuardProps = {
   context: {
     socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any> | undefined;
     gameState: {
-      round: number;
       score: number;
       currentPlayer: Player | undefined;
       validAnswers: Player[];

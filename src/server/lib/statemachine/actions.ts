@@ -5,7 +5,6 @@ type ActionProps = {
   context: {
     socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any> | undefined;
     gameState: {
-      round: number;
       score: number;
       currentPlayer: Player | undefined;
       validAnswers: Player[];
@@ -14,38 +13,68 @@ type ActionProps = {
   };
 };
 
-export const waitForPlayers = ({ context }: ActionProps) => {
-  const { socket } = context;
-  socket ? socket.emit('waiting_for_players') : Error('Socket could not be found.');
+export const waitForUser = ({ context }: ActionProps) => {
+  try {
+    const { socket } = context;
+
+    socket?.emit('waiting_for_user');
+  } catch (err) {
+    throw Error(`Socket could not be found: ${err}`);
+  }
 };
 
 export const sendPlayerToClient = ({ context }: ActionProps) => {
-  const { socket, gameState } = context;
-  const { round, score, currentPlayer, lives } = gameState;
+  try {
+    const { socket, gameState } = context;
+    const { score, currentPlayer, lives } = gameState;
 
-  const team_history = currentPlayer?.team_history?.split(',');
+    const team_history = currentPlayer?.team_history?.split(',');
 
-  socket
-    ? socket.emit('next_round', { round, score, team_history, lives: lives + 1 })
-    : Error('Socket could not be found');
+    socket?.emit('next_round', { score, team_history, lives: lives + 1 });
+  } catch (err) {
+    throw Error(`Socket could not be found: ${err}`);
+  }
 };
 
 export const notifyCorrectGuess = ({ context }: ActionProps) => {
-  const { socket, gameState } = context;
-  const { validAnswers } = gameState;
+  try {
+    const { socket, gameState } = context;
+    const { validAnswers } = gameState;
 
-  socket ? socket.emit('correct_guess', { validAnswers }) : Error('Socket could not be found');
+    socket?.emit('correct_guess', { validAnswers });
+  } catch (err) {
+    throw Error(`Socket could not be found: ${err}`);
+  }
 };
 
 export const notifyIncorrectGuess = ({ context }: ActionProps) => {
-  const { socket, gameState } = context;
-  const { lives } = gameState;
-  socket
-    ? socket.emit('incorrect_guess', { lives: lives + 1 })
-    : Error('Socket could not be found');
+  try {
+    const { socket, gameState } = context;
+    const { lives } = gameState;
+
+    socket?.emit('incorrect_guess', { lives: lives + 1 });
+  } catch (err) {
+    throw Error(`Socket could not be found: ${err}`);
+  }
+};
+
+export const notifySkipRound = ({ context }: ActionProps) => {
+  try {
+    const { socket, gameState } = context;
+    const { lives } = gameState;
+
+    socket?.emit('round_skipped', { lives: lives + 1 });
+  } catch (err) {
+    throw Error(`Socket could not be found: ${err}`);
+  }
 };
 
 export const notifyGameOver = ({ context }: ActionProps) => {
-  const { socket } = context;
-  socket ? socket.emit('game_over') : Error('Socket could not be found');
+  try {
+    const { socket } = context;
+
+    socket?.emit('game_over');
+  } catch (err) {
+    throw Error(`Socket could not be found: ${err}`);
+  }
 };

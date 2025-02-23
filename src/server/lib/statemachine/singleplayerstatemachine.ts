@@ -6,19 +6,19 @@ import {
   notifyCorrectGuess,
   notifyGameOver,
   notifyIncorrectGuess,
+  notifySkipRound,
   sendPlayerToClient,
-  waitForPlayers,
+  waitForUser,
 } from '@/server/lib/statemachine/actions';
 import { generateRound } from '@/server/lib/statemachine/actors';
 import { hasLives, isCorrect } from '@/server/lib/statemachine/guards';
 
-export function createGameMachine(): Actor<AnyStateMachine> {
+export function createSinglePlayerMachine(): Actor<AnyStateMachine> {
   const gameMachine = setup({
     types: {} as {
       context: {
         socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any> | undefined;
         gameState: {
-          round: number;
           score: number;
           currentPlayer: Player | undefined;
           validAnswers: Player[];
@@ -27,10 +27,11 @@ export function createGameMachine(): Actor<AnyStateMachine> {
       };
     },
     actions: {
-      waitForPlayers,
+      waitForUser,
       sendPlayerToClient,
       notifyCorrectGuess,
       notifyIncorrectGuess,
+      notifySkipRound,
       notifyGameOver,
     },
     actors: {
@@ -47,7 +48,6 @@ export function createGameMachine(): Actor<AnyStateMachine> {
     context: {
       socket: undefined,
       gameState: {
-        round: 0,
         score: 0,
         currentPlayer: undefined,
         validAnswers: [],
@@ -61,39 +61,49 @@ export function createGameMachine(): Actor<AnyStateMachine> {
         },
         entry: assign({
           socket: undefined,
-          gameState: { round: 0, score: 0, currentPlayer: undefined, validAnswers: [], lives: 0 },
+          gameState: { score: 0, currentPlayer: undefined, validAnswers: [], lives: 0 },
         }),
       },
 
       gameActive: {
-        initial: 'waitForPlayers',
+        initial: 'waitingForUser',
         on: {
           DISCONNECT: 'idle',
         },
         states: {
-          waitForPlayers: {
+          waitingForUser: {
             entry: enqueueActions(({ event, enqueue }) => {
-              enqueue.assign({ socket: event.socket });
-              enqueue('waitForPlayers');
+              enqueue.assign({
+                socket: event.socket,
+                gameState: {
+                  score: 0,
+                  currentPlayer: undefined,
+                  validAnswers: [],
+                  lives: 0,
+                },
+              });
+              enqueue('waitForUser');
             }),
             on: {
               START: 'startingGame',
             },
           },
           startingGame: {
-            entry: assign(({ context }) => ({ gameState: { ...context.gameState, lives: 2 } })),
+            entry: assign(({ context, event }) => ({
+              socket: event.socket,
+              gameState: { ...context.gameState, lives: 2 },
+            })),
             always: { target: 'generatingRound' },
           },
           generatingRound: {
             invoke: {
               src: 'generateRound',
               onDone: {
-                target: 'waitForGuess',
+                target: 'waitingForGuess',
                 actions: enqueueActions(({ context, event, enqueue }) => {
                   enqueue.assign({
                     gameState: {
                       ...context.gameState,
-                      round: context.gameState.round + 1,
                       currentPlayer: event.output.player,
                       validAnswers: event.output.validAnswers,
                     },
@@ -103,23 +113,32 @@ export function createGameMachine(): Actor<AnyStateMachine> {
               },
             },
           },
-          waitForGuess: {
+          waitingForGuess: {
             on: {
               CLIENT_GUESS: 'processingGuess',
-              SKIP: 'skipRound',
+              SKIP: 'skippingRound',
             },
           },
-          skipRound: {
-            entry: assign(({ context }) => ({
-              gameState: { ...context.gameState, lives: context.gameState.lives - 1 },
-            })),
-            always: { target: 'generatingRound' },
+          skippingRound: {
+            always: [
+              {
+                guard: 'hasLives',
+                target: 'generatingRound',
+                actions: enqueueActions(({ context, enqueue }) => {
+                  enqueue.assign({
+                    gameState: { ...context.gameState, lives: context.gameState.lives - 1 },
+                  });
+                  enqueue('notifySkipRound');
+                }),
+              },
+              { target: 'gameOver' },
+            ],
           },
           processingGuess: {
             always: [
               {
                 guard: 'isCorrect',
-                target: 'correctGuess',
+                target: 'generatingRound',
                 actions: enqueueActions(({ context, enqueue }) => {
                   enqueue.assign({
                     gameState: {
@@ -132,28 +151,19 @@ export function createGameMachine(): Actor<AnyStateMachine> {
               },
               {
                 guard: 'hasLives',
-                target: 'incorrectGuess',
+                target: 'waitingForGuess',
+                actions: enqueueActions(({ context, enqueue }) => {
+                  enqueue.assign({
+                    gameState: { ...context.gameState, lives: context.gameState.lives - 1 },
+                  });
+                  enqueue('notifyIncorrectGuess');
+                }),
               },
               { target: 'gameOver' },
             ],
           },
-          correctGuess: {
-            always: { target: 'generatingRound' },
-          },
-          incorrectGuess: {
-            entry: enqueueActions(({ context, enqueue }) => {
-              enqueue.assign({
-                gameState: { ...context.gameState, lives: context.gameState.lives - 1 },
-              });
-              enqueue('notifyIncorrectGuess');
-            }),
-            always: { target: 'waitForGuess' },
-          },
           gameOver: {
-            entry: enqueueActions(({ enqueue }) => {
-              enqueue('notifyGameOver');
-            }),
-            always: { target: 'waitForPlayers' },
+            always: { target: 'waitingForUser', actions: 'notifyGameOver' },
           },
         },
       },

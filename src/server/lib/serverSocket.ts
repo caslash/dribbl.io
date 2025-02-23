@@ -17,7 +17,7 @@ export const createServerSocket = (
 
     gameActor.send({ type: 'CONNECT', socket });
 
-    socket.on('start_game', () => gameActor.send({ type: 'START' }));
+    socket.on('start_game', () => gameActor.send({ type: 'START', socket }));
 
     socket.on('client_guess', (guessId: number) =>
       gameActor.send({ type: 'CLIENT_GUESS', guessId }),

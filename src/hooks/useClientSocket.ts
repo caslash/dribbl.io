@@ -14,7 +14,6 @@ type StateProps = {
 };
 
 type RoundProps = {
-  round: number;
   score: number;
   team_history: string[];
   lives: number;
@@ -33,7 +32,6 @@ const useClientSocket = ({ correctAction, incorrectAction }: ClientSocketProps) 
   const [canStartGame, setCanStartGame] = useState<boolean>(false);
   const [machineState, setMachineState] = useState<string>('idle');
 
-  const [round, setRound] = useState<number>(0);
   const [score, setScore] = useState<number>(0);
   const [teams, setTeams] = useState<string[] | null>(null);
   const [lives, setLives] = useState<number>(0);
@@ -42,11 +40,10 @@ const useClientSocket = ({ correctAction, incorrectAction }: ClientSocketProps) 
   function onStateChange({ gameActive }: StateProps) {
     setMachineState(gameActive ?? 'idle');
   }
-  function onWaitingForPlayers() {
+  function onWaitingForUser() {
     setCanStartGame(true);
   }
-  function onNextRound({ round, score, team_history, lives }: RoundProps) {
-    setRound(round);
+  function onNextRound({ score, team_history, lives }: RoundProps) {
     setScore(score);
     setTeams(team_history);
     setLives(lives);
@@ -58,9 +55,11 @@ const useClientSocket = ({ correctAction, incorrectAction }: ClientSocketProps) 
     setLives(lives);
     incorrectAction();
   }
+  function onSkipped({ lives }: IncorrectGuessProps) {
+    setLives(lives);
+  }
   function onGameOver() {
     setCanStartGame(true);
-    setRound(0);
     setScore(0);
     setTeams(null);
   }
@@ -72,7 +71,6 @@ const useClientSocket = ({ correctAction, incorrectAction }: ClientSocketProps) 
   function onDisconnect() {
     setIsConnected(false);
     setMachineState('idle');
-    setRound(0);
     setScore(0);
     setTeams(null);
   }
@@ -92,10 +90,11 @@ const useClientSocket = ({ correctAction, incorrectAction }: ClientSocketProps) 
 
     clientSocket.on('connect', onConnect);
     clientSocket.on('disconnect', onDisconnect);
-    clientSocket.on('waiting_for_players', onWaitingForPlayers);
+    clientSocket.on('waiting_for_user', onWaitingForUser);
     clientSocket.on('state_change', onStateChange);
     clientSocket.on('correct_guess', onCorrectGuess);
     clientSocket.on('incorrect_guess', onIncorrectGuess);
+    clientSocket.on('round_skipped', onSkipped);
     clientSocket.on('next_round', onNextRound);
     clientSocket.on('game_over', onGameOver);
 
@@ -104,10 +103,11 @@ const useClientSocket = ({ correctAction, incorrectAction }: ClientSocketProps) 
     return () => {
       clientSocket.off('connect', onConnect);
       clientSocket.off('disconnect', onDisconnect);
-      clientSocket.off('waiting_for_players', onWaitingForPlayers);
+      clientSocket.off('waiting_for_user', onWaitingForUser);
       clientSocket.off('state_change', onStateChange);
       clientSocket.off('correct_guess', onCorrectGuess);
       clientSocket.off('incorrect_guess', onIncorrectGuess);
+      clientSocket.off('round_skipped', onSkipped);
       clientSocket.off('next_round', onNextRound);
       clientSocket.off('game_over', onGameOver);
 
@@ -120,7 +120,6 @@ const useClientSocket = ({ correctAction, incorrectAction }: ClientSocketProps) 
     canStartGame,
     onStartGame,
     machineState,
-    round,
     score,
     teams,
     lives,

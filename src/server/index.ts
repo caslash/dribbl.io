@@ -2,7 +2,7 @@ import next from 'next';
 import { createServer } from 'node:http';
 
 import { createServerSocket } from '@/server/lib/serverSocket';
-import { createGameMachine } from '@/server/lib/statemachine/statemachine';
+import { createSinglePlayerMachine } from '@/server/lib/statemachine/singleplayerstatemachine';
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = 'localhost';
@@ -13,7 +13,7 @@ const handler = app.getRequestHandler();
 
 app.prepare().then(() => {
   const httpServer = createServer(handler);
-  const gameActor = createGameMachine().start();
+  const gameActor = createSinglePlayerMachine().start();
   const io = createServerSocket(httpServer, gameActor);
 
   httpServer

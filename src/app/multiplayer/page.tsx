@@ -27,7 +27,6 @@ export default function Game() {
     canStartGame,
     onStartGame,
     machineState,
-    round,
     score,
     teams,
     lives,
@@ -50,7 +49,6 @@ export default function Game() {
         <div className="flex flex-col items-center space-y-8">
           <div className="flex flex-col items-center">
             <p className="font-black text-2xl">Lives: {lives}</p>
-            <p className="font-extrabold text-xl">Round: {round}</p>
             <p className="font-black text-2xl">Score: {score}</p>
           </div>
           <CareerPath teams={teams} />
