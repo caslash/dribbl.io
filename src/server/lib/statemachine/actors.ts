@@ -2,7 +2,7 @@ import { fromPromise } from 'xstate';
 
 import { getPlayers, getRandomPlayer } from '@/server/actions';
 import { Player } from '@prisma/client';
-import { GameModes } from '../gamemodes';
+import { GameDifficulties } from '../gamedifficulties';
 
 type RoundProps = {
   player: Player | undefined;
@@ -10,7 +10,7 @@ type RoundProps = {
 };
 
 export const generateRound = fromPromise(async (): Promise<RoundProps> => {
-  const player = await getRandomPlayer(GameModes.easy.filter);
+  const player = await getRandomPlayer(GameDifficulties.easy.filter);
   const validAnswers = await getPlayers({
     where: { team_history: { equals: player?.team_history } },
   });

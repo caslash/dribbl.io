@@ -20,7 +20,8 @@ export default function PlayerSearchBar({
           onValueChange={list.setFilterText}
         />
         <CommandList>
-          <CommandEmpty>No player found</CommandEmpty>
+          {list.isLoading && <CommandEmpty>Loading players...</CommandEmpty>}
+          {!list.isLoading && <CommandEmpty>No player found</CommandEmpty>}
           {list.items.map((player) => (
             <CommandItem
               key={player.id}

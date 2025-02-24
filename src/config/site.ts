@@ -1,4 +1,4 @@
-import { Gamepad2, House, LucideProps, User } from 'lucide-react';
+import { Gamepad2, House, LucideProps, Swords, User } from 'lucide-react';
 import { ForwardRefExoticComponent, RefAttributes } from 'react';
 
 export type SiteConfig = typeof siteConfig;
@@ -18,14 +18,19 @@ export const siteConfig: { name: string; navItems: NavItem[] } = {
       href: '/',
     },
     {
-      label: 'Games',
-      icon: Gamepad2,
-      href: '/games',
+      label: 'Profile',
+      icon: User,
+      href: '/profile',
     },
     {
-      label: 'Players',
-      icon: User,
-      href: '/players',
+      label: 'Single Player',
+      icon: Gamepad2,
+      href: '/singleplayer',
+    },
+    {
+      label: 'Multiplayer',
+      icon: Swords,
+      href: '/multiplayer',
     },
   ],
 };
