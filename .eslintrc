@@ -2,25 +2,29 @@
   "env": {
     "node": true,
     "es2021": true,
-    "jest/globals": true
+    "jest/globals": true,
   },
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:prettier/recommended",
     "next/core-web-vitals",
-    "next/typescript"
+    "next/typescript",
   ],
+  "rules": {
+    "@typescript-eslint/no-namespace": "off",
+    "@typescript-eslint/no-explicit-any": "warn",
+  },
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "ecmaVersion": 2023
+    "ecmaVersion": 2023,
   },
   "plugins": ["@typescript-eslint", "jest"],
   "settings": {
     "import/resolver": {
       "alias": {
-        "map": [["#", ".src"]]
-      }
-    }
-  }
+        "map": [["#", ".src"]],
+      },
+    },
+  },
 }

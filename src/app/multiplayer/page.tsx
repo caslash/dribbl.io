@@ -1,59 +1,9 @@
 'use client';
 
-import { CorrectAnswer } from '@/components/careerpath/answer';
-import { CareerPath } from '@/components/careerpath/careerpathview';
-import PlayerSearchBar from '@/components/search/playersearchbar';
-import { Button } from '@/components/ui/button';
-import useClientSocket from '@/hooks/useClientSocket';
-import useConfetti from '@/hooks/useConfetti';
-import { Player } from '@prisma/client';
-import { useTheme } from 'next-themes';
-import { toast } from 'react-toastify';
-
 export default function Game() {
-  const { theme } = useTheme();
-  const { onConfetti } = useConfetti();
-  const correctAction = (validAnswers: Player[]) => {
-    toast(<CorrectAnswer validAnswers={validAnswers} />, { theme });
-    onConfetti();
-  };
-  const incorrectAction = () => {
-    toast.error('Incorrect', { theme });
-  };
-
-  const {
-    isConnected,
-    canStartGame,
-    onStartGame,
-    machineState,
-    score,
-    teams,
-    lives,
-    onGuess,
-    onSkip,
-  } = useClientSocket({ correctAction, incorrectAction });
-
   return (
     <div className="flex flex-col h-full m-16 space-y-8">
-      <div className="justify-start">
-        <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
-        <p>State: {machineState}</p>
-        {isConnected && (
-          <div>{canStartGame && <Button onClick={onStartGame}>Start Game</Button>}</div>
-        )}
-      </div>
-
-      {teams && (
-        <div className="flex flex-col items-center space-y-8">
-          <div className="flex flex-col items-center">
-            <p className="font-black text-2xl">Lives: {lives}</p>
-            <p className="font-black text-2xl">Score: {score}</p>
-          </div>
-          <CareerPath teams={teams} />
-          <PlayerSearchBar className="w-1/2" onSelect={onGuess} />
-          <Button onClick={onSkip}>Skip</Button>
-        </div>
-      )}
+      <p>Multiplayer</p>
     </div>
   );
 }

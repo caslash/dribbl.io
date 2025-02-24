@@ -2,16 +2,21 @@
 
 import prisma from '@/database/prismaClient';
 import { Player, Prisma } from '@prisma/client';
+import * as runtime from '@prisma/client/runtime/library.js';
 
-export async function getPlayers<T extends Prisma.PlayerFindManyArgs>(
-  args?: Prisma.SelectSubset<T, Prisma.PlayerFindManyArgs<any>>,
-) {
+import $Extensions = runtime.Types.Extensions;
+
+export async function getPlayers<
+  T extends Prisma.PlayerFindManyArgs,
+  ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+>(args?: Prisma.SelectSubset<T, Prisma.PlayerFindManyArgs<ExtArgs>>) {
   return await prisma.player.findMany(args);
 }
 
-export async function getPlayer<T extends Prisma.PlayerFindFirstArgs>(
-  args?: Prisma.SelectSubset<T, Prisma.PlayerFindFirstArgs<any>>,
-) {
+export async function getPlayer<
+  T extends Prisma.PlayerFindFirstArgs,
+  ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+>(args?: Prisma.SelectSubset<T, Prisma.PlayerFindFirstArgs<ExtArgs>>) {
   return await prisma.player.findFirst(args);
 }
 

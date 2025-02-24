@@ -1,49 +1,59 @@
 'use client';
 
-import { CorrectAnswer, IncorrectAnswer } from '@/components/careerpath/answer';
+import { CorrectAnswer } from '@/components/careerpath/answer';
 import { CareerPath } from '@/components/careerpath/careerpathview';
 import PlayerSearchBar from '@/components/search/playersearchbar';
 import { Button } from '@/components/ui/button';
-import useCareerPath from '@/hooks/useCareerPath';
 import useConfetti from '@/hooks/useConfetti';
-import { GameModes } from '@/server/lib/gamemodes';
+import useSinglePlayerSocket from '@/hooks/useSinglePlayerSocket';
 import { Player } from '@prisma/client';
 import { useTheme } from 'next-themes';
-import { useEffect } from 'react';
 import { toast } from 'react-toastify';
 
 export default function SinglePlayer() {
   const { theme } = useTheme();
-  const { currentPlayer, onStart, checkGuess, streak, setPlayerPoolFilter } = useCareerPath();
   const { onConfetti } = useConfetti();
 
-  useEffect(() => setPlayerPoolFilter(GameModes.easy.filter), [setPlayerPoolFilter]);
-
-  const correctAction = (correctPlayer: Player) => {
-    toast(<CorrectAnswer correctPlayer={correctPlayer} />, { theme });
+  const correctAction = (validAnswers: Player[]) => {
+    toast(<CorrectAnswer validAnswers={validAnswers} />, { theme });
     onConfetti();
   };
 
-  const incorrectAction = (possibleAnswers: Player[]) => {
-    toast(<IncorrectAnswer possibleAnswers={possibleAnswers} />, { theme });
+  const incorrectAction = () => {
+    toast.error('Incorrect', { theme });
   };
 
+  const {
+    isConnected,
+    canStartGame,
+    onStartGame,
+    machineState,
+    score,
+    teams,
+    lives,
+    onGuess,
+    onSkip,
+  } = useSinglePlayerSocket({ correctAction, incorrectAction });
+
   return (
-    <div className="flex flex-col h-full items-center m-16 space-y-8">
-      {!currentPlayer && <Button onClick={onStart}>Start Game</Button>}
-      {currentPlayer && (
-        <div className="flex flex-col w-full items-center space-y-8">
+    <div className="flex flex-col h-full m-16 space-y-8">
+      <div className="justify-start">
+        <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
+        <p>State: {machineState}</p>
+        {isConnected && (
+          <div>{canStartGame && <Button onClick={onStartGame}>Start Game</Button>}</div>
+        )}
+      </div>
+
+      {teams && (
+        <div className="flex flex-col items-center space-y-8">
           <div className="flex flex-col items-center">
-            <p className={`font-black text-xl`}>Streak:</p>
-            <p className={`font-semibold text-6xl`}>{streak}</p>
+            <p className="font-black text-2xl">Lives: {lives}</p>
+            <p className="font-black text-2xl">Score: {score}</p>
           </div>
-
-          <CareerPath teams={currentPlayer?.team_history?.split(',')} />
-
-          <PlayerSearchBar
-            className="w-1/2"
-            onSelect={(id: number) => checkGuess(id, correctAction, incorrectAction)}
-          />
+          <CareerPath teams={teams} />
+          <PlayerSearchBar className="w-1/2" onSelect={onGuess} />
+          <Button onClick={onSkip}>Skip</Button>
         </div>
       )}
     </div>
