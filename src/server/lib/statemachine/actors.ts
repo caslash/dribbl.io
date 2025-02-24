@@ -9,7 +9,7 @@ type RoundProps = {
   validAnswers: Player[];
 };
 
-export const generateRound = fromPromise(async ({ input }: { input: any }): Promise<RoundProps> => {
+export const generateRound = fromPromise(async (): Promise<RoundProps> => {
   const player = await getRandomPlayer(GameModes.easy.filter);
   const validAnswers = await getPlayers({
     where: { team_history: { equals: player?.team_history } },
