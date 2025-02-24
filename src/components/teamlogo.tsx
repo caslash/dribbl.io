@@ -1,6 +1,5 @@
 'use client';
 
-import { Image } from '@heroui/react';
 import NextImage from 'next/image';
 
 export default function TeamLogo({
@@ -10,10 +9,9 @@ export default function TeamLogo({
 }: Readonly<{ className?: string; isHidden: boolean; teamId: string }>) {
   return (
     <div className={`relative ${className}`}>
-      <Image
+      <NextImage
         hidden={isHidden}
         alt={`logo-${teamId}`}
-        as={NextImage}
         src={`/logos/${teamId}.svg`}
         className={`absolute inset-0 ${teamId === '1610612762' ? 'dark:invert' : ''}`}
         width={100}

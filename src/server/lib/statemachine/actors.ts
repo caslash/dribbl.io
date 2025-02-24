@@ -2,15 +2,15 @@ import { fromPromise } from 'xstate';
 
 import { getPlayers, getRandomPlayer } from '@/server/actions';
 import { Player } from '@prisma/client';
-import { GameModes } from '../gamemodes';
+import { GameDifficulties } from '../gamedifficulties';
 
 type RoundProps = {
   player: Player | undefined;
   validAnswers: Player[];
 };
 
-export const generateRound = fromPromise(async ({ input }: { input: any }): Promise<RoundProps> => {
-  const player = await getRandomPlayer(GameModes.easy.filter);
+export const generateRound = fromPromise(async (): Promise<RoundProps> => {
+  const player = await getRandomPlayer(GameDifficulties.easy.filter);
   const validAnswers = await getPlayers({
     where: { team_history: { equals: player?.team_history } },
   });

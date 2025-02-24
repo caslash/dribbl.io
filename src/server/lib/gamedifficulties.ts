@@ -32,16 +32,16 @@ const easyGameMode: Prisma.PlayerWhereInput = {
   ],
 };
 
-export class GameModes {
-  static easy: GameMode = {
+export class GameDifficulties {
+  static easy: GameDifficulty = {
     name: 'easy',
     display_name: 'Easy',
     filter: easyGameMode,
   };
-  static allModes: GameMode[] = [GameModes.easy];
+  static allModes: GameDifficulty[] = [GameDifficulties.easy];
 }
 
-interface GameMode {
+interface GameDifficulty {
   name: string;
   display_name: string;
   filter: Prisma.PlayerWhereInput;

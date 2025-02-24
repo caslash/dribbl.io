@@ -14,7 +14,7 @@ const useUnveilLogos = (teamHistory: string[]) => {
     const randomIndex = Math.floor(Math.random() * remainingTeams.length);
     const selectedTeam = remainingTeams[randomIndex];
 
-    remainingTeams.splice(randomIndex, 1);
+    remainingTeams = remainingTeams.splice(randomIndex, 1);
 
     console.log(`Unveiling team #${selectedTeam + 1}`);
     setVisibleIndexes((prev) => [...prev, selectedTeam]);

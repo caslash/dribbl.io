@@ -11,7 +11,9 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
     <html lang="en" className={`${sfFont.variable}`} suppressHydrationWarning>
       <body>
         <Providers themeProps={{ attribute: 'class', defaultTheme: 'dark' }}>
-          <NBANavbar />
+          <nav className="fixed top-0 left-0 w-full z-10 flex justify-center">
+            <NBANavbar className="w-auto top-8" />
+          </nav>
           <ToastContainer
             position="bottom-center"
             autoClose={5000}
