@@ -27,7 +27,7 @@ type IncorrectGuessProps = {
   lives: number;
 };
 
-const useClientSocket = ({ correctAction, incorrectAction }: ClientSocketProps) => {
+const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketProps) => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [canStartGame, setCanStartGame] = useState<boolean>(false);
   const [machineState, setMachineState] = useState<string>('idle');
@@ -47,13 +47,6 @@ const useClientSocket = ({ correctAction, incorrectAction }: ClientSocketProps) 
     setScore(score);
     setTeams(team_history);
     setLives(lives);
-  }
-  function onCorrectGuess({ validAnswers }: CorrectGuessProps) {
-    correctAction(validAnswers);
-  }
-  function onIncorrectGuess({ lives }: IncorrectGuessProps) {
-    setLives(lives);
-    incorrectAction();
   }
   function onSkipped({ lives }: IncorrectGuessProps) {
     setLives(lives);
@@ -86,6 +79,14 @@ const useClientSocket = ({ correctAction, incorrectAction }: ClientSocketProps) 
   }
 
   useEffect(() => {
+    function onCorrectGuess({ validAnswers }: CorrectGuessProps) {
+      correctAction(validAnswers);
+    }
+    function onIncorrectGuess({ lives }: IncorrectGuessProps) {
+      setLives(lives);
+      incorrectAction();
+    }
+
     setCanStartGame(false);
 
     clientSocket.on('connect', onConnect);
@@ -128,4 +129,4 @@ const useClientSocket = ({ correctAction, incorrectAction }: ClientSocketProps) 
   };
 };
 
-export default useClientSocket;
+export default useSinglePlayerSocket;

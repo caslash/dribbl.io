@@ -14,7 +14,7 @@ const handler = app.getRequestHandler();
 app.prepare().then(() => {
   const httpServer = createServer(handler);
   const gameActor = createSinglePlayerMachine().start();
-  const io = createServerSocket(httpServer, gameActor);
+  createServerSocket(httpServer, gameActor);
 
   httpServer
     .once('error', (err) => {
