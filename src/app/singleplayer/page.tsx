@@ -3,11 +3,10 @@
 import { CorrectAnswer, IncorrectAnswer } from '@/components/careerpath/answer';
 import { CareerPath } from '@/components/careerpath/careerpathview';
 import PlayerSearchBar from '@/components/search/playersearchbar';
+import { Button } from '@/components/ui/button';
 import useCareerPath from '@/hooks/useCareerPath';
 import useConfetti from '@/hooks/useConfetti';
-import usePlayerSearch from '@/hooks/usePlayerSearch';
 import { GameModes } from '@/server/lib/gamemodes';
-import { Button } from '@heroui/react';
 import { Player } from '@prisma/client';
 import { useTheme } from 'next-themes';
 import { useEffect } from 'react';
@@ -17,7 +16,6 @@ export default function SinglePlayer() {
   const { theme } = useTheme();
   const { currentPlayer, onStart, checkGuess, streak, setPlayerPoolFilter } = useCareerPath();
   const { onConfetti } = useConfetti();
-  const { playerCount, list } = usePlayerSearch();
 
   useEffect(() => setPlayerPoolFilter(GameModes.easy.filter), [setPlayerPoolFilter]);
 
@@ -32,7 +30,7 @@ export default function SinglePlayer() {
 
   return (
     <div className="flex flex-col h-full items-center m-16 space-y-8">
-      {!currentPlayer && <Button onPress={onStart}>Start Game</Button>}
+      {!currentPlayer && <Button onClick={onStart}>Start Game</Button>}
       {currentPlayer && (
         <div className="flex flex-col w-full items-center space-y-8">
           <div className="flex flex-col items-center">
@@ -43,8 +41,6 @@ export default function SinglePlayer() {
           <CareerPath teams={currentPlayer?.team_history?.split(',')} />
 
           <PlayerSearchBar
-            playerCount={playerCount}
-            list={list}
             className="w-1/2"
             onSelect={(id: number) => checkGuess(id, correctAction, incorrectAction)}
           />

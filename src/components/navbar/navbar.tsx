@@ -1,41 +1,43 @@
 'use client';
 
-import { Navbar, NavbarBrand, NavbarContent, NavbarItem } from '@heroui/react';
-import { link as linkStyles } from '@heroui/theme';
-import clsx from 'clsx';
-import NextLink from 'next/link';
-import { usePathname } from 'next/navigation';
-
+import { Tooltip } from '@/components/ui/tooltip';
 import { siteConfig } from '@/config/site';
+import { cn } from '@/lib/utils';
+import NextLink from 'next/link';
+import { Dock, DockIcon } from '../magicui/dock';
+import { buttonVariants } from '../ui/button';
+import { Separator } from '../ui/separator';
+import { TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import ThemeSwitcher from './themeswitcher';
 
-export default function NBANavbar() {
-  const pathName = usePathname();
-
+export default function NBANavbar({ className }: Readonly<{ className?: string }>) {
   return (
-    <Navbar maxWidth="full" position="static">
-      <NavbarBrand />
-      <NavbarContent justify="center">
-        <ul className="flex gap-4 justify-start ml-2">
+    <div className={`${className}`}>
+      <TooltipProvider>
+        <Dock className="rounded-full" iconMagnification={60} iconDistance={25}>
           {siteConfig.navItems.map((item) => (
-            <NavbarItem key={item.href} isActive={pathName === item.href}>
-              <NextLink
-                className={clsx(
-                  linkStyles({ color: 'foreground' }),
-                  'data-[active=true]:text-primary data-[active=true]:font-medium',
-                )}
-                color="foreground"
-                href={item.href}
-              >
-                {item.label}
-              </NextLink>
-            </NavbarItem>
+            <DockIcon key={item.label}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <NextLink
+                    href={item.href}
+                    className={cn(
+                      buttonVariants({ variant: 'ghost', size: 'icon', className: 'rounded-full' }),
+                    )}
+                  >
+                    <item.icon />
+                  </NextLink>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{item.label}</p>
+                </TooltipContent>
+              </Tooltip>
+            </DockIcon>
           ))}
-        </ul>
-      </NavbarContent>
-      <NavbarContent justify="end">
-        <ThemeSwitcher />
-      </NavbarContent>
-    </Navbar>
+          <Separator orientation="vertical" className="h-full py-2" />
+          <ThemeSwitcher />
+        </Dock>
+      </TooltipProvider>
+    </div>
   );
 }

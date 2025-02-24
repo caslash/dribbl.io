@@ -1,7 +1,6 @@
 import { getPlayers } from '@/server/actions';
-import { NextRequest } from 'next/server';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   const players = await getPlayers({
     include: {
       player_accolades: {

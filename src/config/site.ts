@@ -1,7 +1,11 @@
+import { Gamepad2, House, LucideProps, User } from 'lucide-react';
+import { ForwardRefExoticComponent, RefAttributes } from 'react';
+
 export type SiteConfig = typeof siteConfig;
 
 type NavItem = {
   label: string;
+  icon: ForwardRefExoticComponent<Omit<LucideProps, 'ref'> & RefAttributes<SVGSVGElement>>;
   href: string;
 };
 
@@ -10,10 +14,17 @@ export const siteConfig: { name: string; navItems: NavItem[] } = {
   navItems: [
     {
       label: 'Home',
+      icon: House,
       href: '/',
     },
     {
+      label: 'Games',
+      icon: Gamepad2,
+      href: '/games',
+    },
+    {
       label: 'Players',
+      icon: User,
       href: '/players',
     },
   ],

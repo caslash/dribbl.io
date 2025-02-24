@@ -1,45 +1,41 @@
-import PlayerSearchResult from '@/components/search/playersearchresult';
-import { Autocomplete, AutocompleteItem } from '@heroui/react';
-import { Player } from '@prisma/client';
-import { AsyncListData } from '@react-stately/data';
+import usePlayerSearch from '@/hooks/usePlayerSearch';
+import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from '../ui/command';
+import PlayerSearchResult from './playersearchresult';
 
 export default function PlayerSearchBar({
-  playerCount,
-  list,
   className,
   onSelect,
 }: Readonly<{
-  playerCount: number;
-  list: AsyncListData<Player>;
   className?: string;
   onSelect?: (id: number) => void;
 }>) {
+  const { playerCount, list } = usePlayerSearch();
+
   return (
-    <div className={`flex flex-row items-center ${className}`}>
-      <Autocomplete
-        isClearable
-        inputValue={list.filterText}
-        isLoading={list.isLoading}
-        items={list.items}
-        label={`Search ${playerCount} players`}
-        labelPlacement="inside"
-        onInputChange={list.setFilterText}
-        maxListboxHeight={380}
-        itemHeight={60}
-      >
-        {(player: Player) => (
-          <AutocompleteItem
-            key={player.id}
-            textValue={player.display_first_last ?? ''}
-            onPress={() => (onSelect ? onSelect(player.id) : {})}
-          >
-            <PlayerSearchResult
-              player={player}
-              onSelect={() => (onSelect ? onSelect(player.id) : {})}
-            />
-          </AutocompleteItem>
-        )}
-      </Autocomplete>
+    <div className={`flex justify-center ${className}`}>
+      <Command shouldFilter={false} className="rounded-lg border shadow-md md:min-w-[450px]">
+        <CommandInput
+          placeholder={`Search ${playerCount} players...`}
+          value={list.filterText}
+          onValueChange={list.setFilterText}
+        />
+        <CommandList>
+          <CommandEmpty>No player found</CommandEmpty>
+          {list.items.map((player) => (
+            <CommandItem
+              key={player.id}
+              onSelect={() => {
+                if (onSelect) {
+                  onSelect(player.id);
+                }
+                list.setFilterText('');
+              }}
+            >
+              <PlayerSearchResult player={player} />
+            </CommandItem>
+          ))}
+        </CommandList>
+      </Command>
     </div>
   );
 }
