@@ -1,16 +1,23 @@
-import { Button } from '@/components/ui/button';
-import NextLink from 'next/link';
+import GameModeCard from '@/components/gamemodecard';
 
 export default function Home() {
   return (
-    <div className="h-screen w-screen grid grid-cols-3 grid-rows-3">
-      <div className="col-start-2 row-start-2 place-self-center flex flex-row space-x-8">
-        <Button asChild color="primary">
-          <NextLink href="/singleplayer">Single Player</NextLink>
-        </Button>
-        <Button color="secondary">
-          <NextLink href="/multiplayer">Multiplayer</NextLink>
-        </Button>
+    <div className="h-dvh w-full p-16">
+      <div className="h-full flex flex-row justify-center space-x-8">
+        <GameModeCard
+          className="w-1/2"
+          title="Single Player"
+          description="Test your own knowledge, but you only have 5 lives."
+          href="/singleplayer"
+          imageHref="/images/jaylenbrown.jpg"
+        />
+        <GameModeCard
+          className="w-1/2"
+          title="Multiplayer"
+          description="Compete against friends and come out on top."
+          href="/multiplayer"
+          imageHref="/images/jaysontatum.webp"
+        />
       </div>
     </div>
   );

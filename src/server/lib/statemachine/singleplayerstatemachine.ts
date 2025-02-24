@@ -91,7 +91,7 @@ export function createSinglePlayerMachine(): Actor<AnyStateMachine> {
           startingGame: {
             entry: assign(({ context, event }) => ({
               socket: event.socket,
-              gameState: { ...context.gameState, lives: 2 },
+              gameState: { ...context.gameState, lives: 4 },
             })),
             always: { target: 'generatingRound' },
           },
