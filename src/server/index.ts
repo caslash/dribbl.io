@@ -2,7 +2,7 @@ import next from 'next';
 import { createServer } from 'node:http';
 
 import { createServerSocket } from '@/server/lib/serverSocket';
-import { createSinglePlayerMachine } from '@/server/lib/statemachine/singleplayerstatemachine';
+import { createSinglePlayerMachine } from '@/server/lib/singleplayer/statemachine';
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = 'localhost';

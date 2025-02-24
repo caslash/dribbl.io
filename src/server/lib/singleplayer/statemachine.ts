@@ -9,9 +9,9 @@ import {
   notifySkipRound,
   sendPlayerToClient,
   waitForUser,
-} from '@/server/lib/statemachine/actions';
-import { generateRound } from '@/server/lib/statemachine/actors';
-import { hasLives, isCorrect } from '@/server/lib/statemachine/guards';
+} from '@/server/lib/singleplayer/actions';
+import { generateRound } from '@/server/lib/singleplayer/actors';
+import { hasLives, isCorrect } from '@/server/lib/singleplayer/guards';
 
 export function createSinglePlayerMachine(): Actor<AnyStateMachine> {
   const gameMachine = setup({
