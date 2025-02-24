@@ -3,10 +3,9 @@
 import { CorrectAnswer } from '@/components/careerpath/answer';
 import { CareerPath } from '@/components/careerpath/careerpathview';
 import PlayerSearchBar from '@/components/search/playersearchbar';
+import { Button } from '@/components/ui/button';
 import useClientSocket from '@/hooks/useClientSocket';
 import useConfetti from '@/hooks/useConfetti';
-import usePlayerSearch from '@/hooks/usePlayerSearch';
-import { Button } from '@heroui/react';
 import { Player } from '@prisma/client';
 import { useTheme } from 'next-themes';
 import { toast } from 'react-toastify';
@@ -33,7 +32,6 @@ export default function Game() {
     onGuess,
     onSkip,
   } = useClientSocket({ correctAction, incorrectAction });
-  const { playerCount, list } = usePlayerSearch();
 
   return (
     <div className="flex flex-col h-full m-16 space-y-8">
@@ -41,7 +39,7 @@ export default function Game() {
         <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
         <p>State: {machineState}</p>
         {isConnected && (
-          <div>{canStartGame && <Button onPress={onStartGame}>Start Game</Button>}</div>
+          <div>{canStartGame && <Button onClick={onStartGame}>Start Game</Button>}</div>
         )}
       </div>
 
@@ -52,13 +50,8 @@ export default function Game() {
             <p className="font-black text-2xl">Score: {score}</p>
           </div>
           <CareerPath teams={teams} />
-          <PlayerSearchBar
-            className="w-1/2"
-            playerCount={playerCount}
-            list={list}
-            onSelect={onGuess}
-          />
-          <Button onPress={onSkip}>Skip</Button>
+          <PlayerSearchBar className="w-1/2" onSelect={onGuess} />
+          <Button onClick={onSkip}>Skip</Button>
         </div>
       )}
     </div>

@@ -1,6 +1,5 @@
 'use client';
 
-import { Image } from '@heroui/react';
 import { Player } from '@prisma/client';
 import NextImage from 'next/image';
 
@@ -16,9 +15,8 @@ const CorrectAnswer = ({
             Correct! <span className="font-black">{correctPlayer.display_first_last}</span> was a
             correct answer.
           </p>
-          <Image
+          <NextImage
             alt={`player-image-${correctPlayer.id}`}
-            as={NextImage}
             src={`https://cdn.nba.com/headshots/nba/latest/260x190/${correctPlayer.id}.png`}
             width={260}
             height={190}
@@ -32,9 +30,8 @@ const CorrectAnswer = ({
           <div className="flex flex-col items-center">
             {validAnswers.map((player) => (
               <div className="flex flex-row items-center" key={player.id}>
-                <Image
+                <NextImage
                   alt={`player-image-${player.id}`}
-                  as={NextImage}
                   src={`https://cdn.nba.com/headshots/nba/latest/260x190/${player.id}.png`}
                   width={65}
                   height={47.5}
@@ -56,9 +53,8 @@ const IncorrectAnswer = ({ possibleAnswers }: Readonly<{ possibleAnswers: Player
       <div className="flex flex-col items-center">
         {possibleAnswers.map((player) => (
           <div className="flex flex-row items-center" key={player.id}>
-            <Image
+            <NextImage
               alt={`player-image-${player.id}`}
-              as={NextImage}
               src={`https://cdn.nba.com/headshots/nba/latest/260x190/${player.id}.png`}
               width={65}
               height={47.5}
