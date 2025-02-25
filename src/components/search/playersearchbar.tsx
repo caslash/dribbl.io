@@ -1,4 +1,5 @@
 import usePlayerSearch from '@/hooks/usePlayerSearch';
+import { useState } from 'react';
 import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from '../ui/command';
 import PlayerSearchResult from './playersearchresult';
 
@@ -9,15 +10,22 @@ export default function PlayerSearchBar({
   className?: string;
   onSelect?: (id: number) => void;
 }>) {
+  const [search, setSearch] = useState<string>('');
   const { playerCount, list } = usePlayerSearch();
 
   return (
     <div className={`flex justify-center ${className}`}>
-      <Command shouldFilter={false} className="rounded-lg border shadow-md md:min-w-[450px]">
+      <Command
+        className="rounded-lg border shadow-md md:min-w-[450px]"
+        filter={(value, search) => {
+          if (value.toLowerCase().includes(search.toLowerCase())) return 1;
+          return 0;
+        }}
+      >
         <CommandInput
           placeholder={`Search ${playerCount} players...`}
-          value={list.filterText}
-          onValueChange={list.setFilterText}
+          value={search}
+          onValueChange={setSearch}
         />
         <CommandList>
           {list.isLoading && <CommandEmpty>Loading players...</CommandEmpty>}
@@ -29,7 +37,7 @@ export default function PlayerSearchBar({
                 if (onSelect) {
                   onSelect(player.id);
                 }
-                list.setFilterText('');
+                setSearch('');
               }}
             >
               <PlayerSearchResult player={player} />
