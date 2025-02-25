@@ -1,6 +1,5 @@
 'use client';
-
-import NextImage from 'next/image';
+import Image from 'next/image';
 
 export default function TeamLogo({
   className,
@@ -9,7 +8,7 @@ export default function TeamLogo({
 }: Readonly<{ className?: string; isHidden: boolean; teamId: string }>) {
   return (
     <div className={`relative ${className}`}>
-      <NextImage
+      <Image
         hidden={isHidden}
         alt={`logo-${teamId}`}
         src={`/logos/${teamId}.svg`}

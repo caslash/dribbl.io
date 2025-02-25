@@ -10,7 +10,7 @@ type RoundProps = {
 };
 
 export const generateRound = fromPromise(async (): Promise<RoundProps> => {
-  const player = await getRandomPlayer(GameDifficulties.easy.filter);
+  const player = await getRandomPlayer(GameDifficulties.firstAllNBA.filter);
   const validAnswers = await getPlayers({
     where: { team_history: { equals: player?.team_history } },
   });
