@@ -1,5 +1,6 @@
-import usePlayerSearch from '@/hooks/usePlayerSearch';
-import { useState } from 'react';
+import { getPlayers } from '@/server/actions';
+import { Player } from '@prisma/client';
+import { useEffect, useState } from 'react';
 import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from '../ui/command';
 import PlayerSearchResult from './playersearchresult';
 
@@ -11,7 +12,13 @@ export default function PlayerSearchBar({
   onSelect?: (id: number) => void;
 }>) {
   const [search, setSearch] = useState<string>('');
-  const { playerCount, list } = usePlayerSearch();
+  const [players, setPlayers] = useState<Player[]>([]);
+
+  useEffect(() => {
+    getPlayers().then((list) =>
+      setPlayers(list.sort((a, b) => a.last_name!.localeCompare(b.last_name!))),
+    );
+  }, []);
 
   return (
     <div className={`flex justify-center ${className}`}>
@@ -23,14 +30,13 @@ export default function PlayerSearchBar({
         }}
       >
         <CommandInput
-          placeholder={`Search ${playerCount} players...`}
+          placeholder={`Search ${players.length} players...`}
           value={search}
           onValueChange={setSearch}
         />
         <CommandList>
-          {list.isLoading && <CommandEmpty>Loading players...</CommandEmpty>}
-          {!list.isLoading && <CommandEmpty>No player found</CommandEmpty>}
-          {list.items.map((player) => (
+          <CommandEmpty>No player found</CommandEmpty>
+          {players.map((player) => (
             <CommandItem
               key={player.id}
               onSelect={() => {

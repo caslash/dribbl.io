@@ -29,8 +29,8 @@ type IncorrectGuessProps = {
 
 const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketProps) => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
-  const [canStartGame, setCanStartGame] = useState<boolean>(false);
-  const [machineState, setMachineState] = useState<string>('idle');
+  const [canStartGame, setCanStartGame] = useState<boolean>(true);
+  const [machineState, setMachineState] = useState<string>('waitingForGameStart');
 
   const [score, setScore] = useState<number>(0);
   const [teams, setTeams] = useState<string[] | null>(null);
@@ -38,10 +38,7 @@ const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketP
 
   // From Server
   function onStateChange({ gameActive }: StateProps) {
-    setMachineState(gameActive ?? 'idle');
-  }
-  function onWaitingForUser() {
-    setCanStartGame(true);
+    setMachineState(gameActive ?? 'waitingForGameStart');
   }
   function onNextRound({ score, team_history, lives }: RoundProps) {
     setScore(score);
@@ -60,10 +57,11 @@ const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketP
   // To Server
   function onConnect() {
     setIsConnected(true);
+    setCanStartGame(true);
   }
   function onDisconnect() {
     setIsConnected(false);
-    setMachineState('idle');
+    setMachineState('waitingForGameStart');
     setScore(0);
     setTeams(null);
   }
@@ -91,7 +89,6 @@ const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketP
 
     clientSocket.on('connect', onConnect);
     clientSocket.on('disconnect', onDisconnect);
-    clientSocket.on('waiting_for_user', onWaitingForUser);
     clientSocket.on('state_change', onStateChange);
     clientSocket.on('correct_guess', onCorrectGuess);
     clientSocket.on('incorrect_guess', onIncorrectGuess);
@@ -104,7 +101,6 @@ const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketP
     return () => {
       clientSocket.off('connect', onConnect);
       clientSocket.off('disconnect', onDisconnect);
-      clientSocket.off('waiting_for_user', onWaitingForUser);
       clientSocket.off('state_change', onStateChange);
       clientSocket.off('correct_guess', onCorrectGuess);
       clientSocket.off('incorrect_guess', onIncorrectGuess);

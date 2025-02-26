@@ -40,20 +40,22 @@ export default function SinglePlayer() {
       <div className="justify-start">
         <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
         <p>State: {machineState}</p>
-        {isConnected && (
-          <div>{canStartGame && <Button onClick={onStartGame}>Start Game</Button>}</div>
-        )}
       </div>
 
-      {teams && (
-        <div className="flex flex-col items-center space-y-8">
-          <div className="flex flex-col items-center">
-            <p className="font-black text-2xl">Lives: {lives}</p>
-            <p className="font-black text-2xl">Score: {score}</p>
-          </div>
-          <CareerPath teams={teams} />
-          <PlayerSearchBar className="w-1/2" onSelect={onGuess} />
-          <Button onClick={onSkip}>Skip</Button>
+      {isConnected && (
+        <div className="w-full flex flex-col items-center space-y-8">
+          {canStartGame && <Button onClick={onStartGame}>Start Game</Button>}
+          {teams && (
+            <div className="w-full flex flex-col items-center space-y-8">
+              <div className="flex flex-col items-center">
+                <p className="font-black text-2xl">Lives: {lives}</p>
+                <p className="font-black text-2xl">Score: {score}</p>
+              </div>
+              <CareerPath teams={teams} />
+              <PlayerSearchBar className="w-1/2" onSelect={onGuess} />
+              <Button onClick={onSkip}>Skip</Button>
+            </div>
+          )}
         </div>
       )}
     </div>

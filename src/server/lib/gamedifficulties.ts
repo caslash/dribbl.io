@@ -8,6 +8,11 @@ const firstAllNBA: Prisma.PlayerWhereInput = {
       },
     },
     {
+      from_year: {
+        gte: 1980,
+      },
+    },
+    {
       OR: [
         {
           player_accolades: {
@@ -32,6 +37,11 @@ const allNBA: Prisma.PlayerWhereInput = {
     {
       team_history: {
         contains: ',',
+      },
+    },
+    {
+      from_year: {
+        gte: 1980,
       },
     },
     {
