@@ -42,9 +42,9 @@ export function createSinglePlayerMachine(): Actor<AnyStateMachine> {
       hasLives,
     },
   }).createMachine({
-    /** @xstate-layout N4IgpgJg5mDOIC5QHECGBbMACAsqgxgBYCWAdmAHTEQA2YAxAMIDyAcqwKKMAqA2gAwBdRKAAOAe1jEALsXGkRIAB6IATPwCsFAJyqAjABZVAdlXbtGg-wMaANCACeiPQGZ+FAy9WqAHBu0AbAbG2j7GPgC+EfZomLgEJOQUUBhgAIL4sgBuDAAiAJIAyizsXHxCihJSsvKKKgjqWrqGJmYWVjb2Tgg+ehR6vX69eoEmkdEgsdh4RGSUKZgZ2ZQA7qgyAGLiAE4ACjSoDmDbsPSF3GkASuXCSCBVMnIKd-XaxgEUxsYGHQbarvxVF1EN9jP1zC4fKovEZLOMYql4rMkgt0pliDkKLBpKhtrJSFApvQBLcxJJHrUXs5VAYPqogqp-C4XNp+NojMCEN8fBQAoF3sYXBoNDTtFEEXEZol5qklhj5mByNtUPioJdxABXUgQegQeSUMhZcQAa0oUyR0uSsvRmJgSpVZDVmu1CEN4nwDvkJJJlXJNWeoHqehpdIZTJZbI5jkQwTBNh8bJcIR8Lh+enFk0RUrmVsWNtW62kW22yA1cFOjAAMvkOKxuAB9ZAAVQ4hUKPruD39dUQQRc-XjQvaNhMnL+TQCGn4SYGIrhAQz5uzKOtywoa02O1L5bOAGl8rsO2Tqk8ewg3h8vj9rH8AUDowgGRRrC49AFob4vhpF1mEjnUXKmKwMaxCiOqWo6ke9x+qeVIIMGtIUPSsLaMyrLsve3R9hQliaMEQ7vLoP6Sn+K55muojbO65aOtusCnFBXawYGai6BQr6svwAyuDS04uJyPh8jhIz0iEwp8gE6YTEupEyuR8oUJR1H0bRZb0cSeiktBJ6UixDRsRx-Bcb0MJ8ZyQR9OEugaEmGg+D4oSqMR0yybmaIUVR+A0QSdEMaoWlMbpyisao7EjEZ3GmcynLfNoHg2PhxiWEmITORa-6rgp+A7NsYCZL5xIVJ2MFBfUvRaCY1gjIKeiuCmAn-Eh3Lvuopj8GEaXLnJ7kKWQ2XbLl+VqQxRXHhSAbBY+Bg8oYdlDpYI7GOZBh9NYeGCv4hFOdJv7It1gHdcwOTbIVAUlRN9RBDNg7+AtIpLQ+3K8vyAQbSKfxRBMpDiBAcCKDJe2+jpF2IAAtAEnLg8+Rkw7DMP6J1rnUHQQPjWeUbdI1wYRa+dmoeYUkSi5e1uQdqPdnBfychGTXvp4jJvvwQSIyTAH5uuhbFvshzHPAxXA2e5VNVVbyvnV-GPdCny0lOrjsvZmgs5abNrtiuKqlM5PMZNejtWCqZmICxgjIJegxVL3yTlxLLTQm347SRrOZbairHA6BLgdqWulc4tI8rojIMpJIoQw+PhWE1hHtXyb7hErGXyZiG5Fluw3eyDPRvjhbj6FC7KvdC5nMhQ4eplOK0DFd8dkT1QEgWBzoQOnZ662E7FGKyJgm5J5kDDhncaLV-DhFY9tE+lNcHYpnneYSaf82jcFvDFK1IV4wb8poXzGNX+3s-1g3SL5zdwVbOE0jCDkBJC00CQ5vJ4-yIx6OE23j11pPs31OV5Uf89jRTPSsZPg0gTP8CuGhwgSywlnNkgJB66xHorB2xNlbO0OsdE+QDwgeG+HZMI04AjBwMObfsltZY2wVvbKIQA */
+    /** @xstate-layout N4IgpgJg5mDOIC5QHECGBbMACAsqgxgBYCWAdmAHQDuqxALmVAGID2ATmpgMp2pt0BiLgBUAggCVhAfWSicAUQDaABgC6iUAAcWsesRakNIAB6IArACYANCACeiABwBGCgGYLFgJzLXrpwDZ-TzMAFgBfMJtObDwiMkooDDBRfAYANzABWQUpAHkANXlxFXUkEG1dBgMjUwQnV08XTwB2Vwd-M08Q9xDPG3sEC38QijNQjwcQyYdlC1dmiKik3AIScgpEzBT0ylhefkZogRKjCr1qstrG5ooHXydPBzHfP37zCxGvMd6zZWG5-yLEDRFZxdabZKpYgZDZgchsVAMUhQcQsACupAgAggBkoZDSLAA1pQQbE1gkkttoQk4WAEUiUejMQh8Sx8Ij9KQSicymcqoZLohrrd7o9nvc3ghhp85g5PMFQs1-EqgaTVvENpSoTCaHpkawOGi4LABABhAAyAEl5AA5aTIACq8i4XB5Wh05wFoFqrmUZlGnnm8ycQzMvpCkoaFjczmUzU8Fh88eUgdVyzJGohVJ1tAZBuQRtgJq4AGlLQAFN3lD38mqIDqeUZmB5mByJl7Nax2RBRmNOWadBytftONOYUHkzVbbW7QnETSaRiojFYqt8zl1hDCu5+MVhiXdhDdVyjdxhiytp7y1xjmLq8FanYUWBzhdLpmrpyld2VDeCrdODcO4PE8+6vIebQOBQFghnMoRRv4vjhJEwLpveFLTk+mhsGyxqHIWJprjWf7eogXjRmevwhKEHT1CE-iSs07SjHK8a+s2HjUbeE6Zo+1IUNhuFFvhxrHF+pzERcpGDAmbgXlRNHNq49GSiEITRg8riWAmjQWEqwTcRmD6Yfxgn4HhyIFqJigWN+1a-lJJhkbJlHKNR9FKSph56coFB+om7TtNRwTzIZ6FTpCT4QrkGRsMcagSQ5XpOXUDRNK07SdN0Hx9BBTgjK4gRMb8-lmBEKGkCwEBwEYapgmAiWepuAC0uUDM1-ryl13U9TeKF1ZOup5uw0Q8HwdCNbW-5OGYgTQXc8ahHc-hOE4DiSh8J6xvpMFDnGo79Wh9URdmDW8pJyU+m1iBrdGna6ctbltMhSzjkZGGRfxezjYcSSTSRKXNK2FDeCmHxDM0yh-Kp8qjFMa1-MqemzWFx1ZjOsLwhyyLLpi-2ObUq1+H5vTzN0DgU60zSSr8-ijExyjOB0rSBhYqOTujT5DYw+YEfjl2ICETHzd4UaJn8viqVDFD+B8Ka9EEykzezvEmTCL7zouOMfvzm5A-6liTC0vizGDkayeM8E0Z2-h+irxmfTCZkWVAVlFrr-5DhtMyjPl9wzXKISzPbH2nRFMV0h70mrStMsNB0oTePlCYbUD0EzUEFhts0VOAuVQA */
     id: 'Game Machine',
-    initial: 'idle',
+    initial: 'waitingForGameStart',
     context: {
       socket: undefined,
       gameState: {
@@ -55,39 +55,19 @@ export function createSinglePlayerMachine(): Actor<AnyStateMachine> {
       },
     },
     states: {
-      idle: {
-        on: {
-          CONNECT: 'gameActive',
-        },
+      waitingForGameStart: {
         entry: assign({
           socket: undefined,
           gameState: { score: 0, currentPlayer: undefined, validAnswers: [], lives: 0 },
         }),
+        on: {
+          START_GAME: 'gameActive',
+        },
       },
 
       gameActive: {
-        initial: 'waitingForUser',
-        on: {
-          DISCONNECT: 'idle',
-        },
+        initial: 'startingGame',
         states: {
-          waitingForUser: {
-            entry: enqueueActions(({ event, enqueue }) => {
-              enqueue.assign({
-                socket: event.socket,
-                gameState: {
-                  score: 0,
-                  currentPlayer: undefined,
-                  validAnswers: [],
-                  lives: 0,
-                },
-              });
-              enqueue('waitForUser');
-            }),
-            on: {
-              START: 'startingGame',
-            },
-          },
           startingGame: {
             entry: assign(({ context, event }) => ({
               socket: event.socket,
@@ -163,7 +143,7 @@ export function createSinglePlayerMachine(): Actor<AnyStateMachine> {
             ],
           },
           gameOver: {
-            always: { target: 'waitingForUser', actions: 'notifyGameOver' },
+            always: { target: '#Game Machine.waitingForGameStart', actions: 'notifyGameOver' },
           },
         },
       },

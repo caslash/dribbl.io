@@ -1,33 +1,32 @@
 import { Server as HttpServer } from 'http';
 import { Server } from 'socket.io';
-import { Actor, AnyStateMachine } from 'xstate';
+import { createSinglePlayerMachine } from './singleplayer/statemachine';
 
-export const createServerSocket = (
-  httpServer: HttpServer,
-  gameActor: Actor<AnyStateMachine>,
-): Server => {
+export const createServerSocket = (httpServer: HttpServer): Server => {
   const io = new Server(httpServer);
 
   io.on('connection', (socket) => {
     console.log(`Client connected on socket ${socket.id}`);
 
-    gameActor.subscribe((s) => {
-      socket.emit('state_change', s.value);
-    });
+    const gameActor = createSinglePlayerMachine().start();
 
-    gameActor.send({ type: 'CONNECT', socket });
+    socket.on('start_game', () => {
+      gameActor.subscribe((s) => {
+        socket.emit('state_change', s.value);
+      });
 
-    socket.on('start_game', () => gameActor.send({ type: 'START', socket }));
+      socket.on('client_guess', (guessId: number) =>
+        gameActor.send({ type: 'CLIENT_GUESS', guessId }),
+      );
 
-    socket.on('client_guess', (guessId: number) =>
-      gameActor.send({ type: 'CLIENT_GUESS', guessId }),
-    );
+      socket.on('skip_round', () => gameActor.send({ type: 'SKIP' }));
 
-    socket.on('skip_round', () => gameActor.send({ type: 'SKIP' }));
+      socket.on('disconnect', () => {
+        console.log(`Client disconnected from socket ${socket.id}`);
+        gameActor.stop();
+      });
 
-    socket.on('disconnect', () => {
-      console.log(`Client disconnected from socket ${socket.id}`);
-      gameActor.send({ type: 'DISCONNECT' });
+      gameActor.send({ type: 'START_GAME', socket });
     });
   });
 

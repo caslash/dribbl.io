@@ -9,7 +9,7 @@ export function CareerPath({ teams }: Readonly<{ teams?: string[] }>) {
             <img
               key={id}
               alt={`logo-${id}`}
-              src={`/logos/${id}.svg`}
+              src={`/logos/${id}.svg?v=${teams.join('-')}`}
               className={`${id === '1610612762' ? 'dark:invert' : ''}`}
               width={100}
               height={100}
