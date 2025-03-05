@@ -58,6 +58,7 @@ const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketP
   function onConnect() {
     setIsConnected(true);
     setCanStartGame(true);
+    clientSocket.emit('host_room', false, '');
   }
   function onDisconnect() {
     setIsConnected(false);

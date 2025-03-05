@@ -1,34 +1,73 @@
+import {
+  createMultiplayerRoom,
+  createSinglePlayerRoom,
+} from '@/server/lib/singleplayer/roomFactory';
 import { Server as HttpServer } from 'http';
-import { Server } from 'socket.io';
-import { createSinglePlayerMachine } from './singleplayer/statemachine';
+import ShortUniqueId from 'short-unique-id';
+import { Server, Socket } from 'socket.io';
+import { Room } from './models/room';
+const uid = new ShortUniqueId({ length: 4, dictionary: 'alpha_upper' });
 
 export const createServerSocket = (httpServer: HttpServer): Server => {
+  const gameMachines: Record<string, Room> = {};
+
   const io = new Server(httpServer);
 
-  io.on('connection', (socket) => {
+  io.on('connection', async (socket) => {
     console.log(`Client connected on socket ${socket.id}`);
 
-    const gameActor = createSinglePlayerMachine().start();
+    socket.on('host_room', (isMulti: boolean, userName: string) => {
+      const roomId = generateUniqueCode();
 
-    socket.on('start_game', () => {
-      gameActor.subscribe((s) => {
-        socket.emit('state_change', s.value);
-      });
+      if (!gameMachines[roomId]) {
+        gameMachines[roomId] = {
+          id: roomId,
+          stateMachine: isMulti
+            ? createMultiplayerRoom(io, roomId)
+            : createSinglePlayerRoom(socket),
+          users: [],
+        };
+      }
 
-      socket.on('client_guess', (guessId: number) =>
-        gameActor.send({ type: 'CLIENT_GUESS', guessId }),
-      );
+      joinRoom(socket, roomId, userName);
+    });
 
-      socket.on('skip_round', () => gameActor.send({ type: 'SKIP' }));
+    socket.on('join_room', (roomId: string, userName: string) => {
+      joinRoom(socket, roomId, userName);
+    });
 
-      socket.on('disconnect', () => {
-        console.log(`Client disconnected from socket ${socket.id}`);
-        gameActor.stop();
-      });
+    socket.on('disconnecting', (roomId: string) => {
+      gameMachines[roomId] = {
+        ...gameMachines[roomId],
+        users: [...gameMachines[roomId].users.filter((user) => user.id !== socket.id)],
+      };
 
-      gameActor.send({ type: 'START_GAME', socket });
+      if (gameMachines[roomId].users.length == 0) {
+        delete gameMachines[roomId];
+      }
     });
   });
 
+  function joinRoom(socket: Socket, roomId: string, userName: string) {
+    socket.join(roomId);
+
+    gameMachines[roomId] = {
+      ...gameMachines[roomId],
+      users: [...gameMachines[roomId].users, { id: socket.id, name: userName }],
+    };
+
+    const { stateMachine, ...room } = gameMachines[roomId];
+
+    io.to(roomId).emit('room_joined', room);
+  }
+
+  function generateUniqueCode(): string {
+    const roomId = uid.randomUUID();
+    if (gameMachines.hasOwnProperty(roomId)) {
+      return generateUniqueCode();
+    }
+
+    return roomId;
+  }
   return io;
 };

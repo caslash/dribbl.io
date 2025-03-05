@@ -13,11 +13,11 @@ import {
 import { generateRound } from '@/server/lib/singleplayer/actors';
 import { hasLives, isCorrect } from '@/server/lib/singleplayer/guards';
 
-export function createSinglePlayerMachine(): Actor<AnyStateMachine> {
+export function createSinglePlayerMachine(socket: Socket): Actor<AnyStateMachine> {
   const gameMachine = setup({
     types: {} as {
       context: {
-        socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any> | undefined;
+        socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>;
         gameState: {
           score: number;
           currentPlayer: Player | undefined;
@@ -42,11 +42,11 @@ export function createSinglePlayerMachine(): Actor<AnyStateMachine> {
       hasLives,
     },
   }).createMachine({
-    /** @xstate-layout N4IgpgJg5mDOIC5QHECGBbMACAsqgxgBYCWAdmAHQDuqxALmVAGID2ATmpgMp2pt0BiLgBUAggCVhAfWSicAUQDaABgC6iUAAcWsesRakNIAB6IArACYANCACeiABwBGCgGYLFgJzLXrpwDZ-TzMAFgBfMJtObDwiMkooDDBRfAYANzABWQUpAHkANXlxFXUkEG1dBgMjUwQnV08XTwB2Vwd-M08Q9xDPG3sEC38QijNQjwcQyYdlC1dmiKik3AIScgpEzBT0ylhefkZogRKjCr1qstrG5ooHXydPBzHfP37zCxGvMd6zZWG5-yLEDRFZxdabZKpYgZDZgchsVAMUhQcQsACupAgAggBkoZDSLAA1pQQbE1gkkttoQk4WAEUiUejMQh8Sx8Ij9KQSicymcqoZLohrrd7o9nvc3ghhp85g5PMFQs1-EqgaTVvENpSoTCaHpkawOGi4LABABhAAyAEl5AA5aTIACq8i4XB5Wh05wFoFqrmUZlGnnm8ycQzMvpCkoaFjczmUzU8Fh88eUgdVyzJGohVJ1tAZBuQRtgJq4AGlLQAFN3lD38mqIDqeUZmB5mByJl7Nax2RBRmNOWadBytftONOYUHkzVbbW7QnETSaRiojFYqt8zl1hDCu5+MVhiXdhDdVyjdxhiytp7y1xjmLq8FanYUWBzhdLpmrpyld2VDeCrdODcO4PE8+6vIebQOBQFghnMoRRv4vjhJEwLpveFLTk+mhsGyxqHIWJprjWf7eogXjRmevwhKEHT1CE-iSs07SjHK8a+s2HjUbeE6Zo+1IUNhuFFvhxrHF+pzERcpGDAmbgXlRNHNq49GSiEITRg8riWAmjQWEqwTcRmD6Yfxgn4HhyIFqJigWN+1a-lJJhkbJlHKNR9FKSph56coFB+om7TtNRwTzIZ6FTpCT4QrkGRsMcagSQ5XpOXUDRNK07SdN0Hx9BBTgjK4gRMb8-lmBEKGkCwEBwEYapgmAiWepuAC0uUDM1-ryl13U9TeKF1ZOup5uw0Q8HwdCNbW-5OGYgTQXc8ahHc-hOE4DiSh8J6xvpMFDnGo79Wh9URdmDW8pJyU+m1iBrdGna6ctbltMhSzjkZGGRfxezjYcSSTSRKXNK2FDeCmHxDM0yh-Kp8qjFMa1-MqemzWFx1ZjOsLwhyyLLpi-2ObUq1+H5vTzN0DgU60zSSr8-ijExyjOB0rSBhYqOTujT5DYw+YEfjl2ICETHzd4UaJn8viqVDFD+B8Ka9EEykzezvEmTCL7zouOMfvzm5A-6liTC0vizGDkayeM8E0Z2-h+irxmfTCZkWVAVlFrr-5DhtMyjPl9wzXKISzPbH2nRFMV0h70mrStMsNB0oTePlCYbUD0EzUEFhts0VOAuVQA */
+    /** @xstate-layout N4IgpgJg5mDOIC5QHECGBbMACAsqgxgBYCWAdmAHQDuqxALmVAGID2ATmpgMp2pt0BiLgBUAggCVhAfWSicAUQDaABgC6iUAAcWsesRakNIAB6IATAFYLFAJyWA7ABZlNgGyvlAZk8BGMwBoQAE9EAA4fTwpHR09Q6LtlZQszMwBfVMDObDwiMkooDDBRfAYAN0pYXn5GLIEVdSQQbV0GAyNTBD9XUIoXT3szV3tk0OGLQJCERx8eqwjhn26zRc90zMLcAhJyCgLMYrL8sHI2VAZSKHEWAFdSCAEIA0oyUpYAa0oszdydvaKS4jlXbHMCnc6XG53BAvFj4M76Uj1epGZp6NqNDpdHp9AZDEZjCaICyxKKhVxmez2FahZRmRxrEBfHLbfKFA6Ayg0PQXVgca5wWACADCABkAJLyABy0mQAFV5FwuMjGqjWoYMYhXFYKOELC4LDZaRFXD5CQhXM5ehbPMoLRFHGYbAymVs8rs2QCgVzwbzkPzYIKuABpMUABWVWh0aPVoExiRsFHsZIdjnCNhtMzNVLMOpNoTpnhsBsWFmdG2Zbr+7KBsDexE0mkYV1u9wjTSjavaiCxvXTuOGZlGVjNrhtiYN9k80WmrhsPh8Zcw3xZ7v2noqdYbTchrZ8DUjLQRXc6g2xfcGA6H42CiAGPgoyXTynCjlnowXGUZ5ddvw9hwomhsLCAo1P6gptqqR4auaDoPhSjrdDSnhDGalg5nOdgmlqoQ4fYWqLtkP6smu-6AcBAagQKdR7iiHZQbGmqwckAxuDhXgoTe5qhAmOE2HhZKTj4yj2E6n4uj8xH-KRQH4CBFx+lRihmPu7aHuiDEwTmzEIWxyH2GaoSFhQ3RFjMU5uD4FiuARy6Vn+HKrmAADy5RsHUai0WpMYmOY2p2BYTguO4Xi+AEnHhBQngpDYqbPsShnpukn6kCwEBwEY4ksp50bHgAtK4Zq5dYNglaVZWlchNkVjs3qML6hQ8HwdDZZ20EOmadjGWS2GGdMd5VURjnVmALX0T5CCFgmMwpK+sQOvOAVmiWD5uFO85CTE0RpGJ34SUN64UJUTU1IUo3qeN84uBQPipv0lLTFF3FmoWkQ0s4qYWAtnhWPSO1LtVknDcCJzwhczZ3Gd3mYo4c6RSFSTpq++aOCOyj3rxgyJFjQmln9hF7VWB21Ty7AKQGkPHvmsxCYWdp4bdWbKI4tipn4aNONEU4DQT9k1pujZgzuFPQZd1h4UWUUuHhThZhEvSOsMpURDMuPrP9g2E9J5G6PJYHCxp0T2Nd+Z0qOcTLJZ+mcfYTNdc+sQI4Ok7cyumsOX8LmgvrF3JOj3FmLEs4WPmw7hWO33BcHuruPYSWpEAA */
     id: 'Game Machine',
     initial: 'waitingForGameStart',
     context: {
-      socket: undefined,
+      socket,
       gameState: {
         score: 0,
         currentPlayer: undefined,
@@ -57,7 +57,6 @@ export function createSinglePlayerMachine(): Actor<AnyStateMachine> {
     states: {
       waitingForGameStart: {
         entry: assign({
-          socket: undefined,
           gameState: { score: 0, currentPlayer: undefined, validAnswers: [], lives: 0 },
         }),
         on: {
@@ -69,8 +68,7 @@ export function createSinglePlayerMachine(): Actor<AnyStateMachine> {
         initial: 'startingGame',
         states: {
           startingGame: {
-            entry: assign(({ context, event }) => ({
-              socket: event.socket,
+            entry: assign(({ context }) => ({
               gameState: { ...context.gameState, lives: 4 },
             })),
             always: { target: 'generatingRound' },
