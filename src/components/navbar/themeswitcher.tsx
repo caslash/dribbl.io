@@ -1,9 +1,9 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { MoonIcon, SunIcon } from '@/icons/themes';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
-import { Button } from '../ui/button';
 
 export default function ThemeSwitcher() {
   const [mounted, setMounted] = useState(false);
