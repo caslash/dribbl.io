@@ -11,7 +11,7 @@ export const createServerSocket = (httpServer: HttpServer): Server => {
   const io = new Server(httpServer);
 
   io.on('connection', async (socket) => {
-    console.log(`Client connected on socket ${socket.id}`);
+    console.log(`Client socket ${socket.id} connected`);
 
     socket.on('host_room', (isMulti: boolean, userName: string) => {
       const roomId = generateUniqueCode();
@@ -33,15 +33,26 @@ export const createServerSocket = (httpServer: HttpServer): Server => {
       joinRoom(socket, roomId, userName);
     });
 
-    socket.on('disconnecting', (roomId: string) => {
-      gameMachines[roomId] = {
-        ...gameMachines[roomId],
-        users: [...gameMachines[roomId].users.filter((user) => user.id !== socket.id)],
-      };
+    socket.on('disconnecting', () => {
+      const roomId: string = Array.from(socket.rooms)[1];
 
-      if (gameMachines[roomId].users.length == 0) {
-        delete gameMachines[roomId];
+      if (gameMachines[roomId]) {
+        gameMachines[roomId] = {
+          ...gameMachines[roomId],
+          users: [...gameMachines[roomId].users.filter((user) => user.id !== socket.id)],
+        };
+
+        if (!gameMachines[roomId].users.some((user) => user)) {
+          delete gameMachines[roomId];
+        } else {
+          const { stateMachine, ...room } = gameMachines[roomId];
+          io.to(roomId).emit('room_updated', room);
+        }
       }
+    });
+
+    socket.on('disconnect', () => {
+      console.log(`Client socket ${socket.id} disconnected`);
     });
   });
 
@@ -55,7 +66,7 @@ export const createServerSocket = (httpServer: HttpServer): Server => {
 
     const { stateMachine, ...room } = gameMachines[roomId];
 
-    io.to(roomId).emit('room_joined', room);
+    io.to(roomId).emit('room_updated', room);
   }
 
   function generateUniqueCode(): string {
