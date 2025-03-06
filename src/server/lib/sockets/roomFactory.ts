@@ -18,7 +18,6 @@ export function createSinglePlayerRoom(socket: Socket): Actor<AnyStateMachine> {
     socket.on('skip_round', () => gameActor.send({ type: 'SKIP' }));
 
     socket.on('disconnect', () => {
-      console.log(`Client disconnected from socket ${socket.id}`);
       gameActor.stop();
     });
 

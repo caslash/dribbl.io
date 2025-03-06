@@ -17,7 +17,7 @@ export function createMultiplayerMachine(io: Server, roomId: string): Actor<AnyS
       };
     },
   }).createMachine({
-    id: 'Multi Game Machine',
+    id: `multi-game-machine-${roomId}`,
     initial: 'waitingForGameStart',
     context: {
       io,
@@ -26,6 +26,13 @@ export function createMultiplayerMachine(io: Server, roomId: string): Actor<AnyS
         users: [],
         currentPlayer: undefined,
         validAnswers: [],
+      },
+    },
+    states: {
+      waitingForGameStart: {
+        on: {
+          START_GAME: 'waitingForGameStart',
+        },
       },
     },
   });
