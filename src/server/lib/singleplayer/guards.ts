@@ -1,10 +1,10 @@
 import { Player } from '@prisma/client';
-import { DefaultEventsMap, Socket } from 'socket.io';
+import { Socket } from 'socket.io';
 import { AnyEventObject } from 'xstate';
 
 type GuardProps = {
   context: {
-    socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any> | undefined;
+    socket: Socket | undefined;
     gameState: {
       score: number;
       currentPlayer: Player | undefined;

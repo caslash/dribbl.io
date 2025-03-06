@@ -14,16 +14,12 @@ import useMultiplayerSocket from '@/hooks/useMultiplayerSocket';
 import { User } from '@/server/lib/models/room';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Star } from 'lucide-react';
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { generateUsername } from 'unique-username-generator';
 import { z } from 'zod';
 
 export default function Game() {
-  const [userName, setUserName] = useState<string>('');
-  const [roomIdInput, setRoomIdInput] = useState<string>('');
-  const { socketId, isConnected, roomId, canStartGame, users, onHostRoom, onJoinRoom } =
-    useMultiplayerSocket();
+  const { socketId, isConnected, roomId, users, onHostRoom, onJoinRoom } = useMultiplayerSocket();
 
   function RoomForm() {
     const formSchema = z.object({
@@ -33,7 +29,7 @@ export default function Game() {
           message: 'Must enter a name to display.',
         })
         .max(16),
-      roomId: z.string().max(4),
+      roomId: z.string().max(5),
     });
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -97,7 +93,7 @@ export default function Game() {
             <p>Users:</p>
             <ul>
               {users.map((user: User) => (
-                <li>
+                <li key={user.id}>
                   <div className="flex flex-row space-x-2">
                     <p>{user.name}</p>
                     {user.id === socketId && <Star />}

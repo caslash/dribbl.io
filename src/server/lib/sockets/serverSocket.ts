@@ -3,7 +3,7 @@ import { createMultiplayerRoom, createSinglePlayerRoom } from '@/server/lib/sock
 import { Server as HttpServer } from 'http';
 import ShortUniqueId from 'short-unique-id';
 import { Server, Socket } from 'socket.io';
-const uid = new ShortUniqueId({ length: 4, dictionary: 'alpha_upper' });
+const uid = new ShortUniqueId({ length: 5, dictionary: 'alpha_upper' });
 
 export const createServerSocket = (httpServer: HttpServer): Server => {
   const gameMachines: Record<string, Room> = {};
@@ -26,6 +26,8 @@ export const createServerSocket = (httpServer: HttpServer): Server => {
         };
       }
 
+      console.log(`Game machine created for room ${roomId}`);
+
       joinRoom(socket, roomId, userName);
     });
 
@@ -44,8 +46,10 @@ export const createServerSocket = (httpServer: HttpServer): Server => {
 
         if (!gameMachines[roomId].users.some((user) => user)) {
           delete gameMachines[roomId];
+          console.log(`Game machine destroyed for room ${roomId}`);
         } else {
-          const { stateMachine, ...room } = gameMachines[roomId];
+          const { ...room } = gameMachines[roomId];
+
           io.to(roomId).emit('room_updated', room);
         }
       }
@@ -57,6 +61,8 @@ export const createServerSocket = (httpServer: HttpServer): Server => {
   });
 
   function joinRoom(socket: Socket, roomId: string, userName: string) {
+    if (!gameMachines[roomId]) return;
+
     socket.join(roomId);
 
     gameMachines[roomId] = {
@@ -64,14 +70,14 @@ export const createServerSocket = (httpServer: HttpServer): Server => {
       users: [...gameMachines[roomId].users, { id: socket.id, name: userName }],
     };
 
-    const { stateMachine, ...room } = gameMachines[roomId];
+    const { ...room } = gameMachines[roomId];
 
     io.to(roomId).emit('room_updated', room);
   }
 
   function generateUniqueCode(): string {
     const roomId = uid.randomUUID();
-    if (gameMachines.hasOwnProperty(roomId)) {
+    if (roomId in gameMachines) {
       return generateUniqueCode();
     }
 
