@@ -1,5 +1,5 @@
 import { Player } from '@prisma/client';
-import { DefaultEventsMap, Socket } from 'socket.io';
+import { Socket } from 'socket.io';
 import { Actor, AnyStateMachine, assign, createActor, enqueueActions, setup } from 'xstate';
 
 import {
@@ -17,7 +17,7 @@ export function createSinglePlayerMachine(socket: Socket): Actor<AnyStateMachine
   const gameMachine = setup({
     types: {} as {
       context: {
-        socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>;
+        socket: Socket;
         gameState: {
           score: number;
           currentPlayer: Player | undefined;

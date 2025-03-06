@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 
 export function CareerPath({ teams }: Readonly<{ teams?: string[] }>) {
   return (
@@ -6,7 +7,7 @@ export function CareerPath({ teams }: Readonly<{ teams?: string[] }>) {
       <div className="flex flex-row">
         {teams &&
           teams.map((id: string) => (
-            <img
+            <Image
               key={id}
               alt={`logo-${id}`}
               src={`/logos/${id}.svg?v=${teams.join('-')}`}
