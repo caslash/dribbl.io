@@ -1,7 +1,7 @@
+import { createMultiplayerMachine } from '@/server/lib/multiplayer/statemachine';
+import { createSinglePlayerMachine } from '@/server/lib/singleplayer/statemachine';
 import { Server, Socket } from 'socket.io';
 import { Actor, AnyStateMachine } from 'xstate';
-import { createMultiplayerMachine } from '../multiplayer/statemachine';
-import { createSinglePlayerMachine } from './statemachine';
 
 export function createSinglePlayerRoom(socket: Socket): Actor<AnyStateMachine> {
   const gameActor = createSinglePlayerMachine(socket).start();

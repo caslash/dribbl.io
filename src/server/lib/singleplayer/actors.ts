@@ -1,8 +1,8 @@
 import { fromPromise } from 'xstate';
 
 import { getPlayers, getRandomPlayer } from '@/server/actions';
+import { GameDifficulties } from '@/server/lib/models/gamedifficulties';
 import { Player } from '@prisma/client';
-import { GameDifficulties } from '../gamedifficulties';
 
 type RoundProps = {
   player: Player | undefined;

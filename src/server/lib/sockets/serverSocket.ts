@@ -1,11 +1,8 @@
-import {
-  createMultiplayerRoom,
-  createSinglePlayerRoom,
-} from '@/server/lib/singleplayer/roomFactory';
+import { Room } from '@/server/lib/models/room';
+import { createMultiplayerRoom, createSinglePlayerRoom } from '@/server/lib/sockets/roomFactory';
 import { Server as HttpServer } from 'http';
 import ShortUniqueId from 'short-unique-id';
 import { Server, Socket } from 'socket.io';
-import { Room } from './models/room';
 const uid = new ShortUniqueId({ length: 4, dictionary: 'alpha_upper' });
 
 export const createServerSocket = (httpServer: HttpServer): Server => {

@@ -1,8 +1,8 @@
 'use client';
 
+import TeamLogo from '@/components/teamlogo';
 import useUnveilLogos from '@/hooks/useUnveilLogos';
 import { useEffect } from 'react';
-import TeamLogo from '../teamlogo';
 
 export function UnveilingCareerPath({
   teamHistory,

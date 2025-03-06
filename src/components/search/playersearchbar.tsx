@@ -1,7 +1,13 @@
+import {
+  Command,
+  CommandEmpty,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 import { getPlayers } from '@/server/actions';
 import { Player } from '@prisma/client';
 import { useEffect, useState } from 'react';
-import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from '../ui/command';
 import PlayerSearchResult from './playersearchresult';
 
 export default function PlayerSearchBar({

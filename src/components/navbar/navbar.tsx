@@ -1,13 +1,12 @@
 'use client';
 
-import { Tooltip } from '@/components/ui/tooltip';
+import { Dock, DockIcon } from '@/components/magicui/dock';
+import { buttonVariants } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { siteConfig } from '@/config/site';
 import { cn } from '@/lib/utils';
 import NextLink from 'next/link';
-import { Dock, DockIcon } from '../magicui/dock';
-import { buttonVariants } from '../ui/button';
-import { Separator } from '../ui/separator';
-import { TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import ThemeSwitcher from './themeswitcher';
 
 export default function NBANavbar({ className }: Readonly<{ className?: string }>) {
