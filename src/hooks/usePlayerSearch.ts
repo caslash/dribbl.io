@@ -1,8 +1,9 @@
 'use client';
 
+import { SearchResponse } from '@/app/api/players/search/route';
 import { getPlayerCount } from '@/server/actions';
 import { Player } from '@prisma/client';
-import { useAsyncList } from '@react-stately/data';
+import { AsyncListLoadOptions, useAsyncList } from '@react-stately/data';
 import { useEffect, useState } from 'react';
 
 const usePlayerSearch = () => {
@@ -13,11 +14,11 @@ const usePlayerSearch = () => {
   }, [setPlayerCount]);
 
   const list = useAsyncList<Player>({
-    async load({ signal, filterText }) {
+    async load({ signal, filterText }: AsyncListLoadOptions<Player, string>) {
       const res = await fetch(`http://localhost:3000/api/players/search?searchTerm=${filterText}`, {
         signal,
       });
-      const json = await res.json();
+      const json: SearchResponse = await res.json();
 
       return {
         items: json.results,

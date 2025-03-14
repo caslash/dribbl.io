@@ -2,8 +2,8 @@ import confetti from 'canvas-confetti';
 
 const useConfetti = () => {
   const onConfetti = () => {
-    const end = Date.now() + 1 * 1000;
-    const colors = ['#1d428a', '#c8102e', '#ffffff'];
+    const end: number = Date.now() + 1 * 1000;
+    const colors: string[] = ['#1d428a', '#c8102e', '#ffffff'];
 
     const frame = () => {
       if (Date.now() > end) return;

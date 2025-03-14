@@ -1,4 +1,5 @@
 'use client';
+import { PaginatedResponse } from '@/app/api/players/route';
 import { fetcher } from '@/server/utils/fetcher';
 import { Player } from '@prisma/client';
 import { LoadingState } from '@react-types/shared';
@@ -9,7 +10,7 @@ const usePlayerPagination = () => {
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [page, setPage] = useState<number>(1);
 
-  const { data, isLoading } = useSwr(
+  const { data, isLoading }: { data: PaginatedResponse; isLoading: boolean } = useSwr(
     `http://localhost:3000/api/players?page=${page}&rowsPerPage=${rowsPerPage}`,
     fetcher,
     { keepPreviousData: true },
@@ -20,13 +21,13 @@ const usePlayerPagination = () => {
     total: 0,
   };
 
-  const totalPages = useMemo(() => {
+  const totalPages: number = useMemo(() => {
     return totalPlayers ? Math.ceil(totalPlayers / rowsPerPage) : 0;
   }, [totalPlayers, rowsPerPage]);
 
   const loadingState: LoadingState = isLoading || data?.players.length === 0 ? 'loading' : 'idle';
 
-  const onRowsPerPageChange = useCallback(
+  const onRowsPerPageChange: (e: ChangeEvent<HTMLSelectElement>) => void = useCallback(
     (e: ChangeEvent<HTMLSelectElement>) => {
       setRowsPerPage(Number(e.target.value));
       setPage(1);

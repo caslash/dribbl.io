@@ -1,6 +1,12 @@
 import { getPlayers } from '@/server/actions';
+import { NextResponse } from 'next/server';
 
-export async function GET() {
+export type AwardsResponse = {
+  count: number;
+  awards: string[];
+};
+
+export async function GET(): Promise<NextResponse<AwardsResponse>> {
   const players = await getPlayers({
     include: {
       player_accolades: {
@@ -22,7 +28,7 @@ export async function GET() {
     ),
   ];
 
-  return Response.json({
+  return NextResponse.json({
     count: awards.length,
     awards,
   });

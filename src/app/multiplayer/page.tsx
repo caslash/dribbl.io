@@ -88,7 +88,7 @@ export default function Game() {
       <div className="justify-start">
         <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
         {roomId && <p>{`Room Code: ${roomId}`}</p>}
-        {users.some((user) => user) && (
+        {users.some((user: User) => user) && (
           <div>
             <p>Users:</p>
             <ul>
