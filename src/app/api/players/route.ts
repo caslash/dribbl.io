@@ -1,14 +1,20 @@
 import { getPlayerCount, getPlayers } from '@/server/actions';
-import { NextRequest } from 'next/server';
+import { Player } from '@prisma/client';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(request: NextRequest) {
+export type PaginatedResponse = {
+  players: Player[];
+  total: number;
+};
+
+export async function GET(request: NextRequest): Promise<NextResponse<PaginatedResponse>> {
   const params = request?.nextUrl?.searchParams;
   const page: number = +(params.get('page') ?? 0);
   const rowsPerPage: number = +(params.get('rowsPerPage') ?? 0);
 
-  const startingPos = (page - 1) * rowsPerPage;
+  const startingPos: number = (page - 1) * rowsPerPage;
 
-  const players = await getPlayers({
+  const players: Player[] = await getPlayers({
     orderBy: {
       last_name: 'asc',
     },
@@ -16,9 +22,9 @@ export async function GET(request: NextRequest) {
     take: rowsPerPage,
   });
 
-  const total = await getPlayerCount();
+  const total: number = await getPlayerCount();
 
-  return Response.json({
+  return NextResponse.json({
     players,
     total,
   });
