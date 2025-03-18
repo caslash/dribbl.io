@@ -7,6 +7,7 @@ import { Player } from '@prisma/client';
 type RoundProps = {
   player: Player | undefined;
   validAnswers: Player[];
+  players: Player[];
 };
 
 export const generateRound = fromPromise(async (): Promise<RoundProps> => {
@@ -14,9 +15,11 @@ export const generateRound = fromPromise(async (): Promise<RoundProps> => {
   const validAnswers = await getPlayers({
     where: { team_history: { equals: player?.team_history } },
   });
+  const players = (await getPlayers()).sort((a, b) => a.last_name!.localeCompare(b.last_name!));
 
   return {
     player,
     validAnswers,
+    players,
   };
 });

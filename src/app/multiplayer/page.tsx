@@ -1,6 +1,7 @@
 'use client';
 
 import { CareerPath } from '@/components/careerpath/careerpathview';
+import PlayerSearchBar from '@/components/search/playersearchbar';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -30,6 +31,7 @@ export default function Game() {
     onHostRoom,
     onJoinRoom,
     teams,
+    players,
   } = useMultiplayerSocket();
 
   function RoomForm() {
@@ -131,6 +133,7 @@ export default function Game() {
       {teams && (
         <div className="w-full flex flex-col items-center space-y-8">
           <CareerPath teams={teams} />
+          <PlayerSearchBar playerList={players} />
         </div>
       )}
     </div>
