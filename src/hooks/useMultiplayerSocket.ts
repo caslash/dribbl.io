@@ -3,6 +3,7 @@
 import { clientSocket } from '@/app/clientSocket';
 import { User } from '@/server/lib/models/room';
 import { UserGameInfo } from '@/server/lib/multiplayer/statemachine';
+import { Player } from '@prisma/client';
 import { useEffect, useState } from 'react';
 
 type RoomProps = {
@@ -13,6 +14,7 @@ type RoomProps = {
 type RoundProps = {
   users: UserGameInfo[];
   team_history: string[];
+  players: Player[];
 };
 
 const useMultiplayerSocket = () => {
@@ -23,14 +25,17 @@ const useMultiplayerSocket = () => {
 
   const [teams, setTeams] = useState<string[] | null>(null);
 
+  const [players, setPlayers] = useState<Player[]>([]);
+
   // From Server
   function onRoomUpdated({ id, users }: RoomProps) {
     setRoomId(id);
     setUsers(users);
   }
-  function onNextRound({ team_history, users }: RoundProps) {
+  function onNextRound({ team_history, users, players }: RoundProps) {
     setUsers(users.map((user) => user.info));
     setTeams(team_history);
+    setPlayers(players);
   }
 
   // To Server
@@ -82,6 +87,7 @@ const useMultiplayerSocket = () => {
     onHostRoom,
     onJoinRoom,
     teams,
+    players,
   };
 };
 

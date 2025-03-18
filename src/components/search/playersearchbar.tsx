@@ -12,19 +12,25 @@ import PlayerSearchResult from './playersearchresult';
 
 export default function PlayerSearchBar({
   className,
+  playerList,
   onSelect,
 }: Readonly<{
   className?: string;
+  playerList?: Player[];
   onSelect?: (id: number) => void;
 }>) {
   const [search, setSearch] = useState<string>('');
   const [players, setPlayers] = useState<Player[]>([]);
 
   useEffect(() => {
-    getPlayers().then((list) =>
-      setPlayers(list.sort((a, b) => a.last_name!.localeCompare(b.last_name!))),
-    );
-  }, []);
+    if (!playerList) {
+      getPlayers().then((list) =>
+        setPlayers(list.sort((a, b) => a.last_name!.localeCompare(b.last_name!))),
+      );
+    } else {
+      setPlayers(playerList);
+    }
+  }, [playerList]);
 
   return (
     <div className={`flex justify-center ${className}`}>
@@ -36,13 +42,13 @@ export default function PlayerSearchBar({
         }}
       >
         <CommandInput
-          placeholder={`Search ${players.length} players...`}
+          placeholder={`Search ${players?.length} players...`}
           value={search}
           onValueChange={setSearch}
         />
         <CommandList>
           <CommandEmpty>No player found</CommandEmpty>
-          {players.map((player) => (
+          {players?.map((player) => (
             <CommandItem
               key={player.id}
               onSelect={() => {
