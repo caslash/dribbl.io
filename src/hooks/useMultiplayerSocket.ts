@@ -49,7 +49,7 @@ const useMultiplayerSocket = () => {
   }
   function onStartGame() {
     setCanStartGame(false);
-    clientSocket.emit('start_game');
+    clientSocket.emit('start_game', users);
   }
 
   useEffect(() => {

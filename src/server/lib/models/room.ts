@@ -1,12 +1,12 @@
 import { Actor, AnyStateMachine } from 'xstate';
 
-export type Room = {
+export interface Room {
   id: string;
   stateMachine: Actor<AnyStateMachine> | undefined;
   users: User[];
-};
+}
 
-export type User = {
+export interface User {
   id: string;
   name: string;
-};
+}

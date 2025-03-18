@@ -52,10 +52,10 @@ export function createMultiplayerMachine(io: Server, room: Room): Actor<AnyState
         initial: 'startingGame',
         states: {
           startingGame: {
-            entry: assign(({ context }) => ({
+            entry: assign(({ context, event }) => ({
               gameState: {
                 ...context.gameState,
-                users: room.users.map((user: User) => ({
+                users: event.users.map((user: User) => ({
                   info: user,
                   score: 0,
                 })),
