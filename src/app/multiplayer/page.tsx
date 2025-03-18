@@ -1,5 +1,6 @@
 'use client';
 
+import { CareerPath } from '@/components/careerpath/careerpathview';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -19,7 +20,17 @@ import { generateUsername } from 'unique-username-generator';
 import { z } from 'zod';
 
 export default function Game() {
-  const { socketId, isConnected, roomId, users, onHostRoom, onJoinRoom } = useMultiplayerSocket();
+  const {
+    socketId,
+    isConnected,
+    roomId,
+    canStartGame,
+    onStartGame,
+    users,
+    onHostRoom,
+    onJoinRoom,
+    teams,
+  } = useMultiplayerSocket();
 
   function RoomForm() {
     const formSchema = z.object({
@@ -108,6 +119,18 @@ export default function Game() {
       {!roomId && (
         <div className="w-full flex flex-col items-center space-y-4">
           <RoomForm />
+        </div>
+      )}
+
+      {canStartGame && (
+        <div>
+          <Button onClick={onStartGame}>Start Game</Button>
+        </div>
+      )}
+
+      {teams && (
+        <div className="w-full flex flex-col items-center space-y-8">
+          <CareerPath teams={teams} />
         </div>
       )}
     </div>

@@ -1,34 +1,54 @@
 import { createMultiplayerMachine } from '@/server/lib/multiplayer/statemachine';
 import { createSinglePlayerMachine } from '@/server/lib/singleplayer/statemachine';
 import { Server, Socket } from 'socket.io';
-import { Actor, AnyStateMachine } from 'xstate';
+import { Room } from '../models/room';
 
-export function createSinglePlayerRoom(socket: Socket): Actor<AnyStateMachine> {
-  const gameActor = createSinglePlayerMachine(socket).start();
+export function createSinglePlayerRoom(socket: Socket): Room {
+  let room: Room = {
+    id: '',
+    stateMachine: undefined,
+    users: [],
+  };
+
+  room.stateMachine = createSinglePlayerMachine(socket).start();
 
   socket.on('start_game', () => {
-    gameActor.subscribe((s) => {
+    room.stateMachine?.subscribe((s) => {
       socket.emit('state_change', s.value);
     });
 
     socket.on('client_guess', (guessId: number) =>
-      gameActor.send({ type: 'CLIENT_GUESS', guessId }),
+      room.stateMachine?.send({ type: 'CLIENT_GUESS', guessId }),
     );
 
-    socket.on('skip_round', () => gameActor.send({ type: 'SKIP' }));
+    socket.on('skip_round', () => room.stateMachine?.send({ type: 'SKIP' }));
 
     socket.on('disconnect', () => {
-      gameActor.stop();
+      room.stateMachine?.stop();
     });
 
-    gameActor.send({ type: 'START_GAME', socket });
+    room.stateMachine?.send({ type: 'START_GAME', socket });
   });
 
-  return gameActor;
+  return room;
 }
 
-export function createMultiplayerRoom(io: Server, roomId: string): Actor<AnyStateMachine> {
-  const gameActor = createMultiplayerMachine(io, roomId).start();
+export function createMultiplayerRoom(io: Server, socket: Socket, roomId: string): Room {
+  let room: Room = {
+    id: roomId,
+    stateMachine: undefined,
+    users: [],
+  };
 
-  return gameActor;
+  room.stateMachine = createMultiplayerMachine(io, room).start();
+
+  socket.on('start_game', () => {
+    room.stateMachine?.subscribe((s) => {
+      io.to(room.id).emit('state_change', s.value);
+    });
+
+    room.stateMachine?.send({ type: 'START_GAME', socket });
+  });
+
+  return room;
 }

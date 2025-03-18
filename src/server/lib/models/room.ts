@@ -2,7 +2,7 @@ import { Actor, AnyStateMachine } from 'xstate';
 
 export type Room = {
   id: string;
-  stateMachine: Actor<AnyStateMachine>;
+  stateMachine: Actor<AnyStateMachine> | undefined;
   users: User[];
 };
 

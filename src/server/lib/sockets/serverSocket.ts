@@ -6,7 +6,7 @@ import { Server, Socket } from 'socket.io';
 const uid = new ShortUniqueId({ length: 5, dictionary: 'alpha_upper' });
 
 export const createServerSocket = (httpServer: HttpServer): Server => {
-  const gameMachines: Record<string, Room> = {};
+  const rooms: Record<string, Room> = {};
 
   const io = new Server(httpServer);
 
@@ -16,14 +16,10 @@ export const createServerSocket = (httpServer: HttpServer): Server => {
     socket.on('host_room', (isMulti: boolean, userName: string) => {
       const roomId = generateUniqueCode();
 
-      if (!gameMachines[roomId]) {
-        gameMachines[roomId] = {
-          id: roomId,
-          stateMachine: isMulti
-            ? createMultiplayerRoom(io, roomId)
-            : createSinglePlayerRoom(socket),
-          users: [],
-        };
+      if (!rooms[roomId]) {
+        rooms[roomId] = isMulti
+          ? createMultiplayerRoom(io, socket, roomId)
+          : createSinglePlayerRoom(socket);
       }
 
       console.log(`Game machine created for room ${roomId}`);
@@ -38,17 +34,17 @@ export const createServerSocket = (httpServer: HttpServer): Server => {
     socket.on('disconnecting', () => {
       const roomId: string = Array.from(socket.rooms)[1];
 
-      if (gameMachines[roomId]) {
-        gameMachines[roomId] = {
-          ...gameMachines[roomId],
-          users: [...gameMachines[roomId].users.filter((user) => user.id !== socket.id)],
+      if (rooms[roomId]) {
+        rooms[roomId] = {
+          ...rooms[roomId],
+          users: [...rooms[roomId].users.filter((user) => user.id !== socket.id)],
         };
 
-        if (!gameMachines[roomId].users.some((user) => user)) {
-          delete gameMachines[roomId];
+        if (!rooms[roomId].users.some((user) => user)) {
+          delete rooms[roomId];
           console.log(`Game machine destroyed for room ${roomId}`);
         } else {
-          const { ...room } = gameMachines[roomId];
+          const { ...room } = rooms[roomId];
 
           io.to(roomId).emit('room_updated', room);
         }
@@ -61,23 +57,23 @@ export const createServerSocket = (httpServer: HttpServer): Server => {
   });
 
   function joinRoom(socket: Socket, roomId: string, userName: string) {
-    if (!gameMachines[roomId]) return;
+    if (!rooms[roomId]) return;
 
     socket.join(roomId);
 
-    gameMachines[roomId] = {
-      ...gameMachines[roomId],
-      users: [...gameMachines[roomId].users, { id: socket.id, name: userName }],
+    rooms[roomId] = {
+      ...rooms[roomId],
+      users: [...rooms[roomId].users, { id: socket.id, name: userName }],
     };
 
-    const { ...room } = gameMachines[roomId];
+    const { ...room } = rooms[roomId];
 
     io.to(roomId).emit('room_updated', room);
   }
 
   function generateUniqueCode(): string {
     const roomId = uid.randomUUID();
-    if (roomId in gameMachines) {
+    if (roomId in rooms) {
       return generateUniqueCode();
     }
 
