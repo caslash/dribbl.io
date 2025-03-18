@@ -1,7 +1,7 @@
+import { Room, User } from '@/server/lib/models/room';
 import { createMultiplayerMachine } from '@/server/lib/multiplayer/statemachine';
 import { createSinglePlayerMachine } from '@/server/lib/singleplayer/statemachine';
 import { Server, Socket } from 'socket.io';
-import { Room } from '../models/room';
 
 export function createSinglePlayerRoom(socket: Socket): Room {
   let room: Room = {
@@ -42,12 +42,12 @@ export function createMultiplayerRoom(io: Server, socket: Socket, roomId: string
 
   room.stateMachine = createMultiplayerMachine(io, room).start();
 
-  socket.on('start_game', () => {
+  socket.on('start_game', (users: User[]) => {
     room.stateMachine?.subscribe((s) => {
       io.to(room.id).emit('state_change', s.value);
     });
 
-    room.stateMachine?.send({ type: 'START_GAME', socket });
+    room.stateMachine?.send({ type: 'START_GAME', users });
   });
 
   return room;

@@ -21,7 +21,8 @@
     "esbenp.prettier-vscode",
     "statelyai.stately-vscode",
     "ms-vscode.vscode-typescript-next",
-    "oderwat.indent-rainbow"
+    "oderwat.indent-rainbow",
+    "moalamri.inline-fold"
   ],
   "postCreateCommand": "npm install"
 }
