@@ -4,7 +4,7 @@ import { createSinglePlayerMachine } from '@/server/lib/singleplayer/statemachin
 import { Server, Socket } from 'socket.io';
 
 export function createSinglePlayerRoom(socket: Socket): Room {
-  let room: Room = {
+  const room: Room = {
     id: '',
     stateMachine: undefined,
     users: [],
@@ -34,7 +34,7 @@ export function createSinglePlayerRoom(socket: Socket): Room {
 }
 
 export function createMultiplayerRoom(io: Server, socket: Socket, roomId: string): Room {
-  let room: Room = {
+  const room: Room = {
     id: roomId,
     stateMachine: undefined,
     users: [],

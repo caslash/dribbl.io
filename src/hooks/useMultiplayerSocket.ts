@@ -20,7 +20,7 @@ type RoundProps = {
 const useMultiplayerSocket = () => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [canStartGame, setCanStartGame] = useState<boolean>(false);
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<UserGameInfo[]>([]);
   const [roomId, setRoomId] = useState<string | undefined>(undefined);
 
   const [teams, setTeams] = useState<string[] | null>(null);
@@ -30,10 +30,10 @@ const useMultiplayerSocket = () => {
   // From Server
   function onRoomUpdated({ id, users }: RoomProps) {
     setRoomId(id);
-    setUsers(users);
+    setUsers(users.map((user: User) => ({ info: user, score: 0 })));
   }
   function onNextRound({ team_history, users, players }: RoundProps) {
-    setUsers(users.map((user) => user.info));
+    setUsers(users);
     setTeams(team_history);
     setPlayers(players);
   }
