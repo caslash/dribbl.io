@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import useMultiplayerSocket from '@/hooks/useMultiplayerSocket';
-import { User } from '@/server/lib/models/room';
+import { UserGameInfo } from '@/server/lib/multiplayer/statemachine';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Star } from 'lucide-react';
 import { useForm } from 'react-hook-form';
@@ -101,15 +101,15 @@ export default function Game() {
       <div className="justify-start">
         <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
         {roomId && <p>{`Room Code: ${roomId}`}</p>}
-        {users.some((user: User) => user) && (
+        {users.some((user: UserGameInfo) => user) && (
           <div>
             <p>Users:</p>
             <ul>
-              {users.map((user: User) => (
-                <li key={user.id}>
+              {users.map((user: UserGameInfo) => (
+                <li key={user.info.id}>
                   <div className="flex flex-row space-x-2">
-                    <p>{user.name}</p>
-                    {user.id === socketId && <Star />}
+                    <p>{user.info.name}</p>
+                    {user.info.id === socketId && <Star />}
                   </div>
                 </li>
               ))}
