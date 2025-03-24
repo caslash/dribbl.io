@@ -11,7 +11,9 @@
       "source.organizeImports": "explicit"
     },
     "terminal.integrated.shell.linux": "/bin/bash",
-    "terminal.integrated-detectLocale": "off"
+    "terminal.integrated-detectLocale": "off",
+    "typescript.preferences.importModuleSpecifier": "non-relative",
+    "javascript.preferences.importModuleSpecifier": "non-relative"
   },
   "extensions": [
     "editorconfig.editorconfig",

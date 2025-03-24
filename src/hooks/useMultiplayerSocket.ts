@@ -2,7 +2,7 @@
 
 import { clientSocket } from '@/app/clientSocket';
 import { User } from '@/server/lib/models/room';
-import { UserGameInfo } from '@/server/lib/multiplayer/statemachine';
+import { UserGameInfo } from '@/server/lib/multiplayer/gamemachine';
 import { Player } from '@prisma/client';
 import { useEffect, useState } from 'react';
 
@@ -56,6 +56,9 @@ const useMultiplayerSocket = () => {
     setCanStartGame(false);
     clientSocket.emit('start_game', users);
   }
+  function onGuess(playerId: number) {
+    clientSocket.emit('client_guess', playerId);
+  }
 
   useEffect(() => {
     setCanStartGame(false);
@@ -88,6 +91,7 @@ const useMultiplayerSocket = () => {
     onJoinRoom,
     teams,
     players,
+    onGuess,
   };
 };
 

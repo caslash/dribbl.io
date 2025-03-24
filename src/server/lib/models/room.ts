@@ -1,8 +1,8 @@
-import { Actor, AnyStateMachine } from 'xstate';
+import { GameMachine } from '@/server/lib/models/gamemachine';
 
 export interface Room {
   id: string;
-  stateMachine: Actor<AnyStateMachine> | undefined;
+  gameMachine: GameMachine | undefined;
   users: User[];
 }
 
