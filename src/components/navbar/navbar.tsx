@@ -1,13 +1,13 @@
 'use client';
 
 import { Dock, DockIcon } from '@/components/magicui/dock';
+import ThemeSwitcher from '@/components/navbar/themeswitcher';
 import { buttonVariants } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { siteConfig } from '@/config/site';
 import { cn } from '@/lib/utils';
 import NextLink from 'next/link';
-import ThemeSwitcher from './themeswitcher';
 
 export default function NBANavbar({ className }: Readonly<{ className?: string }>) {
   return (

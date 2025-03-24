@@ -1,3 +1,4 @@
+import PlayerSearchResult from '@/components/search/playersearchresult';
 import {
   Command,
   CommandEmpty,
@@ -8,7 +9,6 @@ import {
 import { getPlayers } from '@/server/actions';
 import { Player } from '@prisma/client';
 import { useEffect, useState } from 'react';
-import PlayerSearchResult from './playersearchresult';
 
 export default function PlayerSearchBar({
   className,

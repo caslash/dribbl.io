@@ -1,7 +1,11 @@
 import { Room, User } from '@/server/lib/models/room';
+import {
+  createMultiplayerRoom,
+  createSinglePlayerRoom,
+  setUpListenersOnJoin,
+} from '@/server/lib/sockets/roomFactory';
 import ShortUniqueId from 'short-unique-id';
 import { Server, Socket } from 'socket.io';
-import { createMultiplayerRoom, createSinglePlayerRoom } from '../sockets/roomFactory';
 
 const uid = new ShortUniqueId({ length: 5, dictionary: 'alpha_upper' });
 
@@ -40,7 +44,7 @@ export class GlobalRoomManager implements RoomManager {
 
   destroyRoom(id: string) {
     delete this.rooms[id];
-    console.log(`Game machine destroyed for room ${id}`);
+    console.log(`Room destroyed for room ${id}`);
   }
 
   joinRoom(socket: Socket, id: string, userName: string): void {
@@ -54,6 +58,8 @@ export class GlobalRoomManager implements RoomManager {
     };
 
     const { ...room } = this.rooms[id];
+
+    setUpListenersOnJoin(socket, room);
 
     this.server.to(id).emit('room_updated', room);
   }

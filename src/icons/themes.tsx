@@ -1,6 +1,6 @@
 'use client';
 
-import { IconSvgProps } from './iconsvgprops';
+import { IconSvgProps } from '@/icons/iconsvgprops';
 
 export const MoonIcon = (props: IconSvgProps) => {
   return (

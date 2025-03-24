@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import useMultiplayerSocket from '@/hooks/useMultiplayerSocket';
-import { UserGameInfo } from '@/server/lib/multiplayer/statemachine';
+import { UserGameInfo } from '@/server/lib/multiplayer/gamemachine';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { generateUsername } from 'unique-username-generator';
@@ -21,7 +21,6 @@ import { z } from 'zod';
 
 export default function Game() {
   const {
-    socketId,
     isConnected,
     roomId,
     canStartGame,
@@ -31,6 +30,7 @@ export default function Game() {
     onJoinRoom,
     teams,
     players,
+    onGuess,
   } = useMultiplayerSocket();
 
   function RoomForm() {
@@ -108,7 +108,7 @@ export default function Game() {
                 <li key={user.info.id}>
                   <div className="flex flex-row space-x-2">
                     <p>{user.info.name}</p>
-                    {user.info.id === socketId && <Star />}
+                    <p>{user.score}</p>
                   </div>
                 </li>
               ))}
@@ -132,7 +132,7 @@ export default function Game() {
       {teams && (
         <div className="w-full flex flex-col items-center space-y-8">
           <CareerPath teams={teams} />
-          <PlayerSearchBar playerList={players} />
+          <PlayerSearchBar playerList={players} onSelect={onGuess} />
         </div>
       )}
     </div>
