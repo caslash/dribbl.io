@@ -15,7 +15,6 @@ import { Input } from '@/components/ui/input';
 import useMultiplayerSocket from '@/hooks/useMultiplayerSocket';
 import { UserGameInfo } from '@/server/lib/multiplayer/statemachine';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Star } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { generateUsername } from 'unique-username-generator';
 import { z } from 'zod';
