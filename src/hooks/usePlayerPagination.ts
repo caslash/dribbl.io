@@ -1,6 +1,5 @@
 'use client';
 import { PaginatedResponse } from '@/app/api/players/route';
-import { fetcher } from '@/server/utils/fetcher';
 import { Player } from '@prisma/client';
 import { LoadingState } from '@react-types/shared';
 import { ChangeEvent, useCallback, useMemo, useState } from 'react';
@@ -12,7 +11,7 @@ const usePlayerPagination = () => {
 
   const { data, isLoading }: { data: PaginatedResponse; isLoading: boolean } = useSwr(
     `http://localhost:3000/api/players?page=${page}&rowsPerPage=${rowsPerPage}`,
-    fetcher,
+    (input: RequestInfo | URL, init?: RequestInit) => fetch(input, init).then((res) => res.json()),
     { keepPreviousData: true },
   );
 

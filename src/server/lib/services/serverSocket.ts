@@ -1,4 +1,4 @@
-import { GlobalRoomManager } from '@/server/lib/models/roommanager';
+import { GlobalRoomManager } from '@/server/lib/services/roommanager';
 import { Server as HttpServer } from 'http';
 import { Server } from 'socket.io';
 

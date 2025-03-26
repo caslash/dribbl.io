@@ -1,6 +1,6 @@
 import { Room, User } from '@/server/lib/models/room';
-import { createMultiplayerMachine } from '@/server/lib/multiplayer/gamemachine';
-import { createSinglePlayerMachine } from '@/server/lib/singleplayer/gamemachine';
+import { createMultiplayerMachine } from '@/server/lib/statemachines/multiplayer/gamemachine';
+import { createSinglePlayerMachine } from '@/server/lib/statemachines/singleplayer/gamemachine';
 import { Server, Socket } from 'socket.io';
 
 export function createSinglePlayerRoom(socket: Socket): Room {

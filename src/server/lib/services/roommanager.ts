@@ -3,7 +3,7 @@ import {
   createMultiplayerRoom,
   createSinglePlayerRoom,
   setUpListenersOnJoin,
-} from '@/server/lib/sockets/roomFactory';
+} from '@/server/lib/services/roomFactory';
 import ShortUniqueId from 'short-unique-id';
 import { Server, Socket } from 'socket.io';
 
