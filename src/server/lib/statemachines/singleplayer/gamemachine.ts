@@ -2,8 +2,8 @@ import { Player } from '@prisma/client';
 import { Socket } from 'socket.io';
 import { assign, createActor, enqueueActions, setup } from 'xstate';
 
-import { generateRound } from '@/server/lib/actors';
 import { GameMachine } from '@/server/lib/models/gamemachine';
+import { generateRound } from '@/server/lib/statemachines/actors';
 import {
   notifyCorrectGuess,
   notifyGameOver,
@@ -11,8 +11,8 @@ import {
   notifySkipRound,
   sendPlayerToClient,
   waitForUser,
-} from '@/server/lib/singleplayer/actions';
-import { hasLives, isCorrect } from '@/server/lib/singleplayer/guards';
+} from '@/server/lib/statemachines/singleplayer/actions';
+import { hasLives, isCorrect } from '@/server/lib/statemachines/singleplayer/guards';
 
 export function createSinglePlayerMachine(socket: Socket): GameMachine {
   const gameMachine = setup({

@@ -1,7 +1,7 @@
 import next from 'next';
 import { createServer } from 'node:http';
 
-import { createServerSocket } from '@/server/lib/sockets/serverSocket';
+import { createServerSocket } from '@/server/lib/services/serverSocket';
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = 'localhost';

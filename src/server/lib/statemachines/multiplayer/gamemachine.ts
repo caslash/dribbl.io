@@ -1,8 +1,8 @@
-import { generateRound } from '@/server/lib/actors';
 import { GameMachine, MultiplayerGuess } from '@/server/lib/models/gamemachine';
 import { Room, User } from '@/server/lib/models/room';
-import { sendPlayerToRoom } from '@/server/lib/multiplayer/actions';
-import { isCorrect } from '@/server/lib/multiplayer/guards';
+import { generateRound } from '@/server/lib/statemachines/actors';
+import { sendPlayerToRoom } from '@/server/lib/statemachines/multiplayer/actions';
+import { isCorrect } from '@/server/lib/statemachines/multiplayer/guards';
 import { Player } from '@prisma/client';
 import { Queue } from 'elegant-queue';
 import { Server } from 'socket.io';
