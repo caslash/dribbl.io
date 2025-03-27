@@ -1,3 +1,4 @@
+import { MultiplayerGuess } from '@/server/lib/models/gamemachine';
 import { Room, User } from '@/server/lib/models/room';
 import { createMultiplayerMachine } from '@/server/lib/statemachines/multiplayer/gamemachine';
 import { createSinglePlayerMachine } from '@/server/lib/statemachines/singleplayer/gamemachine';
@@ -57,8 +58,9 @@ export function createMultiplayerRoom(io: Server, socket: Socket, roomId: string
 
 export function setUpListenersOnJoin(socket: Socket, room: Room) {
   socket.on('client_guess', (guessId: number) => {
-    room.gameMachine?.guessQueue?.enqueue({ userId: socket.id, guessId });
-    room.gameMachine?.statemachine.send({ type: 'CLIENT_GUESS' });
+    const userId = socket.id;
+    const guess: MultiplayerGuess = { userId, guessId };
+    room.gameMachine?.statemachine.send({ type: 'CLIENT_GUESS', guess });
   });
 
   socket.on('disconnect', () => {
