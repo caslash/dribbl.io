@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import useMultiplayerSocket from '@/hooks/useMultiplayerSocket';
-import { UserGameInfo } from '@/server/lib/multiplayer/gamemachine';
+import { UserGameInfo } from '@/server/lib/statemachines/multiplayer/gamemachine';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { generateUsername } from 'unique-username-generator';

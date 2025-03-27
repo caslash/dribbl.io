@@ -1,9 +1,5 @@
 import { Room, User } from '@/server/lib/models/room';
-import {
-  createMultiplayerRoom,
-  createSinglePlayerRoom,
-  setUpListenersOnJoin,
-} from '@/server/lib/services/roomFactory';
+import { createMultiplayerRoom, createSinglePlayerRoom } from '@/server/lib/services/roomFactory';
 import ShortUniqueId from 'short-unique-id';
 import { Server, Socket } from 'socket.io';
 
@@ -58,8 +54,6 @@ export class GlobalRoomManager implements RoomManager {
     };
 
     const { ...room } = this.rooms[id];
-
-    setUpListenersOnJoin(socket, room);
 
     this.server.to(id).emit('room_updated', room);
   }

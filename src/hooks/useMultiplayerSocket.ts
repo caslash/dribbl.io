@@ -2,7 +2,7 @@
 
 import { clientSocket } from '@/app/clientSocket';
 import { User } from '@/server/lib/models/room';
-import { UserGameInfo } from '@/server/lib/multiplayer/gamemachine';
+import { UserGameInfo } from '@/server/lib/statemachines/multiplayer/gamemachine';
 import { Player } from '@prisma/client';
 import { useEffect, useState } from 'react';
 

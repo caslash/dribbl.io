@@ -1,6 +1,6 @@
 import { MultiplayerGuess } from '@/server/lib/models/gamemachine';
 import { Room } from '@/server/lib/models/room';
-import { UserGameInfo } from '@/server/lib/multiplayer/gamemachine';
+import { UserGameInfo } from '@/server/lib/statemachines/multiplayer/gamemachine';
 import { Player } from '@prisma/client';
 import { Server } from 'socket.io';
 import { AnyEventObject } from 'xstate';
