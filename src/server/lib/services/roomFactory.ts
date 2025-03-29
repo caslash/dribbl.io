@@ -7,28 +7,28 @@ import { Server, Socket } from 'socket.io';
 export function createSinglePlayerRoom(socket: Socket): Room {
   const room: Room = {
     id: '',
-    gameMachine: undefined,
+    statemachine: undefined,
     users: [],
   };
 
-  room.gameMachine = createSinglePlayerMachine(socket);
+  room.statemachine = createSinglePlayerMachine(socket);
 
   socket.on('start_game', () => {
-    room.gameMachine?.statemachine.subscribe((s) => {
+    room.statemachine?.subscribe((s) => {
       socket.emit('state_change', s.value);
     });
 
     socket.on('client_guess', (guessId: number) =>
-      room.gameMachine?.statemachine.send({ type: 'CLIENT_GUESS', guessId }),
+      room.statemachine?.send({ type: 'CLIENT_GUESS', guessId }),
     );
 
-    socket.on('skip_round', () => room.gameMachine?.statemachine.send({ type: 'SKIP' }));
+    socket.on('skip_round', () => room.statemachine?.send({ type: 'SKIP' }));
 
     socket.on('disconnect', () => {
-      room.gameMachine?.statemachine.stop();
+      room.statemachine?.stop();
     });
 
-    room.gameMachine?.statemachine.send({ type: 'START_GAME', socket });
+    room.statemachine?.send({ type: 'START_GAME', socket });
   });
 
   return room;
@@ -37,18 +37,18 @@ export function createSinglePlayerRoom(socket: Socket): Room {
 export function createMultiplayerRoom(io: Server, socket: Socket, roomId: string): Room {
   const room: Room = {
     id: roomId,
-    gameMachine: undefined,
+    statemachine: undefined,
     users: [],
   };
 
-  room.gameMachine = createMultiplayerMachine(io, room);
+  room.statemachine = createMultiplayerMachine(io, room);
 
   socket.on('start_game', (users: User[]) => {
-    room.gameMachine?.statemachine.subscribe((s) => {
+    room.statemachine?.subscribe((s) => {
       io.to(room.id).emit('state_change', s.value);
     });
 
-    room.gameMachine?.statemachine.send({ type: 'START_GAME', users });
+    room.statemachine?.send({ type: 'START_GAME', users });
   });
 
   return room;
@@ -58,10 +58,10 @@ export function setUpListenersOnJoin(socket: Socket, room: Room) {
   socket.on('client_guess', (guessId: number) => {
     const userId = socket.id;
     const guess: MultiplayerGuess = { userId, guessId };
-    room.gameMachine?.statemachine.send({ type: 'CLIENT_GUESS', guess });
+    room.statemachine?.send({ type: 'CLIENT_GUESS', guess });
   });
 
   socket.on('disconnect', () => {
-    room.gameMachine?.statemachine.stop();
+    room.statemachine?.stop();
   });
 }

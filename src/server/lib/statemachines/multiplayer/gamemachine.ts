@@ -1,12 +1,11 @@
-import { GameMachine, MultiplayerGuess } from '@/server/lib/models/gamemachine';
+import { MultiplayerGuess } from '@/server/lib/models/gamemachine';
 import { Room, User } from '@/server/lib/models/room';
 import { generateRound } from '@/server/lib/statemachines/actors';
 import { sendPlayerToRoom, sendTimerToRoom } from '@/server/lib/statemachines/multiplayer/actions';
 import { isCorrect, timeExpired } from '@/server/lib/statemachines/multiplayer/guards';
 import { Player } from '@prisma/client';
-import { Queue } from 'elegant-queue';
 import { Server } from 'socket.io';
-import { assign, createActor, enqueueActions, setup } from 'xstate';
+import { Actor, AnyStateMachine, assign, createActor, enqueueActions, setup } from 'xstate';
 
 export type UserGameInfo = {
   info: User;
@@ -36,9 +35,7 @@ const updateUserScore = (users: UserGameInfo[], currentGuess: MultiplayerGuess):
   return [...otherUsers, { ...currentUser, score: currentUser.score + 1 }];
 };
 
-export function createMultiplayerMachine(io: Server, room: Room): GameMachine {
-  const guessQueue = new Queue<MultiplayerGuess>();
-
+export function createMultiplayerMachine(io: Server, room: Room): Actor<AnyStateMachine> {
   const gameMachine = setup({
     types: {} as {
       context: MultiplayerContext;
@@ -154,8 +151,5 @@ export function createMultiplayerMachine(io: Server, room: Room): GameMachine {
     },
   });
 
-  return {
-    guessQueue,
-    statemachine: createActor(gameMachine).start(),
-  };
+  return createActor(gameMachine).start();
 }
