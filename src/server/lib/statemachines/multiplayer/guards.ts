@@ -1,25 +1,17 @@
-import { MultiplayerGuess } from '@/server/lib/models/gamemachine';
-import { Room } from '@/server/lib/models/room';
-import { UserGameInfo } from '@/server/lib/statemachines/multiplayer/gamemachine';
-import { Player } from '@prisma/client';
-import { Server } from 'socket.io';
+import { MultiplayerContext } from '@/server/lib/statemachines/multiplayer/gamemachine';
 import { AnyEventObject } from 'xstate';
 
 type GuardProps = {
-  context: {
-    io: Server;
-    room: Room;
-    gameState: {
-      currentGuess: MultiplayerGuess | undefined;
-      users: UserGameInfo[];
-      currentPlayer: Player | undefined;
-      validAnswers: Player[];
-    };
-  };
+  context: MultiplayerContext;
   event: AnyEventObject;
 };
 
-export const isCorrect = ({ context }: GuardProps): boolean => {
-  const { guessId } = context.gameState.currentGuess!;
+export const isCorrect = ({ context, event }: GuardProps): boolean => {
+  const { guessId } = event.guess;
   return !!context.gameState.validAnswers.find((player) => player.id === guessId);
+};
+
+export const timeExpired = ({ context }: GuardProps): boolean => {
+  const { timeLeft } = context.gameState;
+  return timeLeft <= 0;
 };

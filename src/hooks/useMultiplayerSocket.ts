@@ -27,6 +27,8 @@ const useMultiplayerSocket = () => {
 
   const [players, setPlayers] = useState<Player[]>([]);
 
+  const [timeLeft, setTimeLeft] = useState<number>(0);
+
   // From Server
   function onRoomUpdated({ id, users }: RoomProps) {
     setRoomId(id);
@@ -36,6 +38,9 @@ const useMultiplayerSocket = () => {
     setUsers(users);
     setTeams(team_history);
     setPlayers(players);
+  }
+  function onTimerUpdated({ timeLeft }: { timeLeft: number }) {
+    setTimeLeft(timeLeft);
   }
 
   // To Server
@@ -67,6 +72,7 @@ const useMultiplayerSocket = () => {
     clientSocket.on('disconnect', onDisconnect);
     clientSocket.on('room_updated', onRoomUpdated);
     clientSocket.on('next_round', onNextRound);
+    clientSocket.on('timer_updated', onTimerUpdated);
 
     clientSocket.connect();
 
@@ -75,7 +81,7 @@ const useMultiplayerSocket = () => {
       clientSocket.off('disconnect', onDisconnect);
       clientSocket.off('room_updated', onRoomUpdated);
       clientSocket.off('next_round', onNextRound);
-
+      clientSocket.off('timer_updated', onTimerUpdated);
       clientSocket.disconnect();
     };
   }, []);
@@ -92,6 +98,7 @@ const useMultiplayerSocket = () => {
     teams,
     players,
     onGuess,
+    timeLeft,
   };
 };
 

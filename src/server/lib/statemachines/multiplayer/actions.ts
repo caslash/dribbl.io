@@ -1,18 +1,9 @@
-import { Room } from '@/server/lib/models/room';
-import { UserGameInfo } from '@/server/lib/statemachines/multiplayer/gamemachine';
-import { Player } from '@prisma/client';
-import { Server } from 'socket.io';
+import { MultiplayerContext } from '@/server/lib/statemachines/multiplayer/gamemachine';
+import { AnyEventObject } from 'xstate';
 
 type ActionProps = {
-  context: {
-    io: Server;
-    room: Room;
-    gameState: {
-      users: UserGameInfo[];
-      currentPlayer: Player | undefined;
-      validAnswers: Player[];
-    };
-  };
+  context: MultiplayerContext;
+  event: AnyEventObject;
 };
 
 export const sendPlayerToRoom = ({ context }: ActionProps) => {
@@ -26,4 +17,11 @@ export const sendPlayerToRoom = ({ context }: ActionProps) => {
   } catch (err) {
     throw Error(`Socket could not be found: ${err}`);
   }
+};
+
+export const sendTimerToRoom = ({ context }: ActionProps) => {
+  const { io, room, gameState } = context;
+  const { timeLeft } = gameState;
+
+  io?.to(room.id).emit('timer_updated', { timeLeft });
 };
