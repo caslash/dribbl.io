@@ -48,8 +48,6 @@ export function createMultiplayerRoom(io: Server, socket: Socket, roomId: string
       io.to(room.id).emit('state_change', s.value);
     });
 
-    setUpListenersOnJoin(socket, room);
-
     room.gameMachine?.statemachine.send({ type: 'START_GAME', users });
   });
 

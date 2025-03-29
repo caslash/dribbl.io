@@ -6,11 +6,12 @@ type GuardProps = {
   event: AnyEventObject;
 };
 
-export const isCorrect = ({ context }: GuardProps): boolean => {
-  const { guessId } = context.gameState.currentGuess!;
+export const isCorrect = ({ context, event }: GuardProps): boolean => {
+  const { guessId } = event.guess;
   return !!context.gameState.validAnswers.find((player) => player.id === guessId);
 };
 
 export const timeExpired = ({ context }: GuardProps): boolean => {
-  return true;
+  const { timeLeft } = context.gameState;
+  return timeLeft <= 0;
 };
