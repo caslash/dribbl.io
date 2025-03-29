@@ -1,9 +1,5 @@
-import { MultiplayerGuess } from '@/server/lib/models/gamemachine';
-import {
-  MultiplayerContext,
-  UserGameInfo,
-} from '@/server/lib/statemachines/multiplayer/gamemachine';
-import { AnyEventObject, assign } from 'xstate';
+import { MultiplayerContext } from '@/server/lib/statemachines/multiplayer/gamemachine';
+import { AnyEventObject } from 'xstate';
 
 type ActionProps = {
   context: MultiplayerContext;
@@ -21,41 +17,11 @@ export const sendPlayerToRoom = ({ context }: ActionProps) => {
   } catch (err) {
     throw Error(`Socket could not be found: ${err}`);
   }
-};\
-
-const updateUserScore = (users: UserGameInfo[], currentGuess: MultiplayerGuess): UserGameInfo[] => {
-  const otherUsers = users.filter((user) => user.info.id != currentGuess.userId);
-  const currentUser = users.find((user) => user.info.id == currentGuess.userId)!;
-
-  return [...otherUsers, { ...currentUser, score: currentUser.score + 1 }];
 };
 
-export const checkGuess = ({ context, event }: ActionProps) => {
-  const isCorrect = !!context.gameState.validAnswers.find(
-    (player) => player.id === event.guess.guessId,
-  );
-  if (isCorrect) {
-    assign({
-      ...context,
-      gameState: {
-        ...context.gameState,
-        users: updateUserScore(context.gameState.users, event.guess),
-      },
-    });
-  }
-};
-
-export const decrementTimer = ({ context }: ActionProps) => {
+export const sendTimerToRoom = ({ context }: ActionProps) => {
   const { io, room, gameState } = context;
-  const timeLeft = gameState.timeLeft - 1;
-
-  assign({
-    ...context,
-    gameState: {
-      ...context.gameState,
-      timeLeft,
-    },
-  });
+  const { timeLeft } = gameState;
 
   io?.to(room.id).emit('timer_updated', { timeLeft });
 };

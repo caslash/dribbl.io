@@ -1,11 +1,7 @@
 import { GameMachine, MultiplayerGuess } from '@/server/lib/models/gamemachine';
 import { Room, User } from '@/server/lib/models/room';
 import { generateRound } from '@/server/lib/statemachines/actors';
-import {
-  checkGuess,
-  decrementTimer,
-  sendPlayerToRoom,
-} from '@/server/lib/statemachines/multiplayer/actions';
+import { sendPlayerToRoom, sendTimerToRoom } from '@/server/lib/statemachines/multiplayer/actions';
 import { isCorrect, timeExpired } from '@/server/lib/statemachines/multiplayer/guards';
 import { Player } from '@prisma/client';
 import { Queue } from 'elegant-queue';
@@ -27,11 +23,17 @@ export type MultiplayerContext = {
   gameState: {
     timeLeft: number;
     currentRound: number;
-    currentGuess: MultiplayerGuess | undefined;
     users: UserGameInfo[];
     currentPlayer: Player | undefined;
     validAnswers: Player[];
   };
+};
+
+const updateUserScore = (users: UserGameInfo[], currentGuess: MultiplayerGuess): UserGameInfo[] => {
+  const otherUsers = users.filter((user) => user.info.id != currentGuess.userId);
+  const currentUser = users.find((user) => user.info.id == currentGuess.userId)!;
+
+  return [...otherUsers, { ...currentUser, score: currentUser.score + 1 }];
 };
 
 export function createMultiplayerMachine(io: Server, room: Room): GameMachine {
@@ -43,7 +45,6 @@ export function createMultiplayerMachine(io: Server, room: Room): GameMachine {
     },
     actions: {
       sendPlayerToRoom,
-      checkGuess,
     },
     actors: {
       generateRound,
@@ -66,7 +67,6 @@ export function createMultiplayerMachine(io: Server, room: Room): GameMachine {
       gameState: {
         timeLeft: 0,
         currentRound: 0,
-        currentGuess: undefined,
         users: [],
         currentPlayer: undefined,
         validAnswers: [],
@@ -111,15 +111,44 @@ export function createMultiplayerMachine(io: Server, room: Room): GameMachine {
             },
           },
           waitingForGuess: {
-            always: [{ guard: 'timeExpired', target: 'endRound' }, {}],
-            on: {
-              CLIENT_GUESS: {
-                actions: checkGuess,
+            after: {
+              1000: {
+                target: 'waitingForGuess',
+                reenter: true,
               },
             },
-            exit: decrementTimer,
+            always: [{ guard: 'timeExpired', target: 'endRound' }],
+            on: {
+              CLIENT_GUESS: [
+                {
+                  guard: 'isCorrect',
+                  target: 'endRound',
+                  actions: [
+                    assign(({ context, event }) => ({
+                      ...context,
+                      gameState: {
+                        ...context.gameState,
+                        users: updateUserScore(context.gameState.users, event.guess),
+                      },
+                    })),
+                  ],
+                },
+                { target: 'waitingForGuess', reenter: true },
+              ],
+            },
+            exit: [
+              assign(({ context }) => ({
+                ...context,
+                gameState: { ...context.gameState, timeLeft: context.gameState.timeLeft - 1 },
+              })),
+              sendTimerToRoom,
+            ],
           },
-          endRound: {},
+          endRound: {
+            always: {
+              target: 'generatingRound',
+            },
+          },
         },
       },
     },
