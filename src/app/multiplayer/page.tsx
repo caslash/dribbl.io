@@ -31,6 +31,7 @@ export default function Game() {
     teams,
     players,
     onGuess,
+    timeLeft,
   } = useMultiplayerSocket();
 
   function RoomForm() {
@@ -131,6 +132,7 @@ export default function Game() {
 
       {teams && (
         <div className="w-full flex flex-col items-center space-y-8">
+          <p className="text-2xl font-bold">Time Left: {timeLeft}</p>
           <CareerPath teams={teams} />
           <PlayerSearchBar playerList={players} onSelect={onGuess} />
         </div>
