@@ -24,7 +24,8 @@
     "statelyai.stately-vscode",
     "ms-vscode.vscode-typescript-next",
     "oderwat.indent-rainbow",
-    "moalamri.inline-fold"
+    "moalamri.inline-fold",
+    "cweijan.vscode-database-client2"
   ],
   "postCreateCommand": "npm install"
 }
