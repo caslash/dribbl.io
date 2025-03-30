@@ -7,8 +7,13 @@ import { Response } from 'express';
 export class PlayersController {
   constructor(private readonly playersService: PlayersService) {}
 
+  @Get()
+  async getAll(@Res() response: Response) {
+    response.status(HttpStatus.OK).json(await this.playersService.all());
+  }
+
   @Post()
-  async getAll(
+  async getWhere(
     @Body() where: Prisma.PlayerWhereInput,
     @Res() response: Response,
   ) {

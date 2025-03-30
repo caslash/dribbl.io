@@ -26,6 +26,10 @@ export class PlayersService {
     return randomPlayer ? randomPlayer : undefined;
   }
 
+  async all(): Promise<Player[]> {
+    return this.prisma.player.findMany();
+  }
+
   async players(params: {
     where?: Prisma.PlayerWhereInput;
   }): Promise<Player[]> {
