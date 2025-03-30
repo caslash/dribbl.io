@@ -63,6 +63,7 @@ pids
 
 # vercel
 .vercel
+.next/
 
 # typescript
 *.tsbuildinfo

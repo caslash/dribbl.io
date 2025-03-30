@@ -1,0 +1,15 @@
+{
+  "name": "dribbl.io",
+  "version": "0.0.1",
+  "description": "NBA Career Path Game Web App",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "cd apps/frontend && npm run dev",
+    "dev:backend": "cd apps/backend && npm run start:dev"
+  },
+  "author": "Cameron Slash",
+  "dependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
