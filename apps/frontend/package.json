@@ -9,11 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@repo/ui": "workspace:*",
+    "@repo/types": "workspace:*",
     "react": "^18",
     "react-dom": "^18",
     "next": "14.2.26"
   },
   "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/tsconfig": "workspace:*",
     "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^18",

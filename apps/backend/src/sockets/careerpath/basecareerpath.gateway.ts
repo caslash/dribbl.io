@@ -1,4 +1,3 @@
-import { HostRoomMessageBody } from "@dribbl.io/shared";
 import {
   MessageBody,
   OnGatewayConnection,
@@ -7,6 +6,7 @@ import {
   SubscribeMessage,
   WebSocketGateway,
 } from '@nestjs/websockets';
+import { HostRoomMessageBody } from '@repo/types';
 
 @WebSocketGateway()
 export class BaseCareerPathGateway
