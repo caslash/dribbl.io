@@ -2,7 +2,7 @@
 
 import { clientSocket } from '@/app/clientSocket';
 import { User } from '@/server/lib/models/room';
-import { UserGameInfo } from '@/server/lib/statemachines/multiplayer/gamemachine';
+import { GameState, UserGameInfo } from '@/server/lib/statemachines/multiplayer/gamemachine';
 import { Player } from '@prisma/client';
 import { useEffect, useState } from 'react';
 
@@ -12,6 +12,8 @@ type RoomProps = {
 };
 
 type RoundProps = {
+  roundActive: boolean;
+  timeLeft: number;
   users: UserGameInfo[];
   team_history: string[];
   players: Player[];
@@ -20,8 +22,11 @@ type RoundProps = {
 const useMultiplayerSocket = () => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [canStartGame, setCanStartGame] = useState<boolean>(false);
+
+  const [roundActive, setRoundActive] = useState<boolean>(false);
   const [users, setUsers] = useState<UserGameInfo[]>([]);
   const [roomId, setRoomId] = useState<string | undefined>(undefined);
+  const [validAnswers, setValidAnswers] = useState<Player[]>([]);
 
   const [teams, setTeams] = useState<string[] | null>(null);
 
@@ -34,13 +39,20 @@ const useMultiplayerSocket = () => {
     setRoomId(id);
     setUsers(users.map((user: User) => ({ info: user, score: 0 })));
   }
-  function onNextRound({ team_history, users, players }: RoundProps) {
+  function onNextRound({ roundActive, timeLeft, team_history, users, players }: RoundProps) {
+    setRoundActive(roundActive);
+    setTimeLeft(timeLeft);
     setUsers(users);
     setTeams(team_history);
     setPlayers(players);
   }
   function onTimerUpdated({ timeLeft }: { timeLeft: number }) {
     setTimeLeft(timeLeft);
+  }
+  function onEndRound({ roundActive, users, validAnswers }: GameState) {
+    setRoundActive(roundActive);
+    setUsers(users);
+    setValidAnswers(validAnswers);
   }
 
   // To Server
@@ -73,6 +85,7 @@ const useMultiplayerSocket = () => {
     clientSocket.on('room_updated', onRoomUpdated);
     clientSocket.on('next_round', onNextRound);
     clientSocket.on('timer_updated', onTimerUpdated);
+    clientSocket.on('end_round', onEndRound);
 
     clientSocket.connect();
 
@@ -82,6 +95,7 @@ const useMultiplayerSocket = () => {
       clientSocket.off('room_updated', onRoomUpdated);
       clientSocket.off('next_round', onNextRound);
       clientSocket.off('timer_updated', onTimerUpdated);
+      clientSocket.off('end_round', onEndRound);
       clientSocket.disconnect();
     };
   }, []);
@@ -89,6 +103,7 @@ const useMultiplayerSocket = () => {
   return {
     socketId: clientSocket.id,
     isConnected,
+    roundActive,
     roomId,
     canStartGame,
     onStartGame,
@@ -99,6 +114,7 @@ const useMultiplayerSocket = () => {
     players,
     onGuess,
     timeLeft,
+    validAnswers,
   };
 };
 
