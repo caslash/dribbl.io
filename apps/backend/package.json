@@ -20,12 +20,12 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@repo/types": "workspace:*",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/platform-socket.io": "^11.0.12",
     "@nestjs/websockets": "^11.0.12",
-    "@repo/types": "workspace:*",
     "@prisma/client": "^6.5.0",
     "prisma-json-types-generator": "^3.2.3",
     "reflect-metadata": "^0.2.2",

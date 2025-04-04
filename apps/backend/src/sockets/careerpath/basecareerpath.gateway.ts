@@ -6,7 +6,7 @@ import {
   SubscribeMessage,
   WebSocketGateway,
 } from '@nestjs/websockets';
-import { HostRoomMessageBody } from '@repo/types';
+import { HostRoomMessageBody, JoinRoomMessageBody } from '@repo/types';
 
 @WebSocketGateway()
 export class BaseCareerPathGateway
@@ -24,4 +24,7 @@ export class BaseCareerPathGateway
 
   @SubscribeMessage('host_room')
   handleHostRoom(@MessageBody() messageBody: HostRoomMessageBody) {}
+
+  @SubscribeMessage('join_room')
+  handleJoinRoom(@MessageBody() messageBody: JoinRoomMessageBody) {}
 }
