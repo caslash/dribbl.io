@@ -1,7 +1,11 @@
 import { MultiplayerGuess } from '@/server/lib/models/gamemachine';
 import { Room, User } from '@/server/lib/models/room';
 import { generateRound } from '@/server/lib/statemachines/actors';
-import { sendPlayerToRoom, sendTimerToRoom } from '@/server/lib/statemachines/multiplayer/actions';
+import {
+  sendPlayerToRoom,
+  sendRoundInfoToRoom,
+  sendTimerToRoom,
+} from '@/server/lib/statemachines/multiplayer/actions';
 import { isCorrect, timeExpired } from '@/server/lib/statemachines/multiplayer/guards';
 import { Player } from '@prisma/client';
 import { Server } from 'socket.io';
@@ -12,6 +16,14 @@ export type UserGameInfo = {
   score: number;
 };
 
+export type GameState = {
+  roundActive: boolean;
+  timeLeft: number;
+  currentRound: number;
+  users: UserGameInfo[];
+  validAnswers: Player[];
+};
+
 export type MultiplayerContext = {
   io: Server;
   room: Room;
@@ -19,13 +31,7 @@ export type MultiplayerContext = {
     rounds: number;
     roundTimeLimit: number;
   };
-  gameState: {
-    timeLeft: number;
-    currentRound: number;
-    users: UserGameInfo[];
-    currentPlayer: Player | undefined;
-    validAnswers: Player[];
-  };
+  gameState: GameState;
 };
 
 const updateUserScore = (users: UserGameInfo[], currentGuess: MultiplayerGuess): UserGameInfo[] => {
@@ -42,6 +48,7 @@ export function createMultiplayerMachine(io: Server, room: Room): Actor<AnyState
     },
     actions: {
       sendPlayerToRoom,
+      sendRoundInfoToRoom,
     },
     actors: {
       generateRound,
@@ -62,10 +69,10 @@ export function createMultiplayerMachine(io: Server, room: Room): Actor<AnyState
         roundTimeLimit: 30,
       },
       gameState: {
+        roundActive: false,
         timeLeft: 0,
         currentRound: 0,
         users: [],
-        currentPlayer: undefined,
         validAnswers: [],
       },
     },
@@ -97,8 +104,8 @@ export function createMultiplayerMachine(io: Server, room: Room): Actor<AnyState
                   enqueue.assign({
                     gameState: {
                       ...context.gameState,
+                      roundActive: true,
                       timeLeft: context.config.roundTimeLimit,
-                      currentPlayer: event.output.player,
                       validAnswers: event.output.validAnswers,
                     },
                   });
@@ -130,20 +137,35 @@ export function createMultiplayerMachine(io: Server, room: Room): Actor<AnyState
                     })),
                   ],
                 },
-                { target: 'waitingForGuess', reenter: true },
               ],
             },
             exit: [
               assign(({ context }) => ({
                 ...context,
-                gameState: { ...context.gameState, timeLeft: context.gameState.timeLeft - 1 },
+                gameState: {
+                  ...context.gameState,
+                  timeLeft: Math.max(0, context.gameState.timeLeft - 1),
+                },
               })),
               sendTimerToRoom,
             ],
           },
           endRound: {
-            always: {
-              target: 'generatingRound',
+            entry: enqueueActions(({ context, enqueue }) => {
+              enqueue(() => console.log('ROUND ENDED'));
+              enqueue.assign({
+                ...context,
+                gameState: {
+                  ...context.gameState,
+                  roundActive: false,
+                },
+              });
+              enqueue('sendRoundInfoToRoom');
+            }),
+            after: {
+              3000: {
+                target: 'generatingRound',
+              },
             },
           },
         },

@@ -23,6 +23,7 @@ export default function Game() {
   const {
     isConnected,
     roomId,
+    roundActive,
     canStartGame,
     onStartGame,
     users,
@@ -32,6 +33,7 @@ export default function Game() {
     players,
     onGuess,
     timeLeft,
+    validAnswers,
   } = useMultiplayerSocket();
 
   function RoomForm() {
@@ -130,11 +132,22 @@ export default function Game() {
         </div>
       )}
 
-      {teams && (
+      {roundActive && (
         <div className="w-full flex flex-col items-center space-y-8">
           <p className="text-2xl font-bold">Time Left: {timeLeft}</p>
-          <CareerPath teams={teams} />
+          <CareerPath teams={teams!} />
           <PlayerSearchBar playerList={players} onSelect={onGuess} />
+        </div>
+      )}
+
+      {!roundActive && !canStartGame && (
+        <div>
+          <p>Correct Answers:</p>
+          <ul>
+            {validAnswers.map((answer) => (
+              <li key={answer.id}>{answer.display_first_last}</li>
+            ))}
+          </ul>
         </div>
       )}
     </div>
