@@ -4,6 +4,8 @@ import {
   createSinglePlayerRoom,
   setUpListenersOnJoin,
 } from '@/server/lib/services/roomFactory';
+import { MultiplayerConfig } from '@/server/lib/statemachines/multiplayer/gamemachine';
+import { SinglePlayerConfig } from '@/server/lib/statemachines/singleplayer/gamemachine';
 import ShortUniqueId from 'short-unique-id';
 import { Server, Socket } from 'socket.io';
 
@@ -11,7 +13,7 @@ const uid = new ShortUniqueId({ length: 5, dictionary: 'alpha_upper' });
 
 export interface RoomManager {
   server: Server;
-  createRoom(isMulti: boolean, socket: Socket, userName: string): Room;
+  createRoom(isMulti: boolean, socket: Socket, userName: string, config: MultiplayerConfig): Room;
   destroyRoom(id: string): void;
   joinRoom(socket: Socket, id: string, userName: string): void;
   leaveRoom(roomId: string, userId: string): void;
@@ -26,13 +28,18 @@ export class GlobalRoomManager implements RoomManager {
     this.server = server;
   }
 
-  createRoom(isMulti: boolean, socket: Socket, userName: string): Room {
+  createRoom(
+    isMulti: boolean,
+    socket: Socket,
+    userName: string,
+    config: MultiplayerConfig | SinglePlayerConfig,
+  ): Room {
     const roomId: string = this.generateUniqueCode();
 
     if (!this.rooms[roomId]) {
       this.rooms[roomId] = isMulti
-        ? createMultiplayerRoom(this.server, socket, roomId)
-        : createSinglePlayerRoom(socket);
+        ? createMultiplayerRoom(this.server, socket, roomId, config as MultiplayerConfig)
+        : createSinglePlayerRoom(socket, config as SinglePlayerConfig);
     }
 
     console.log(`Game machine created for room ${roomId}`);

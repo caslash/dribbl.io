@@ -2,7 +2,11 @@
 
 import { clientSocket } from '@/app/clientSocket';
 import { User } from '@/server/lib/models/room';
-import { GameState, UserGameInfo } from '@/server/lib/statemachines/multiplayer/gamemachine';
+import {
+  GameState,
+  MultiplayerConfig,
+  UserGameInfo,
+} from '@/server/lib/statemachines/multiplayer/gamemachine';
 import { Player } from '@prisma/client';
 import { useEffect, useState } from 'react';
 
@@ -62,8 +66,9 @@ const useMultiplayerSocket = () => {
   function onDisconnect() {
     setIsConnected(false);
   }
-  function onHostRoom(userName: string) {
-    clientSocket.emit('host_room', true, userName);
+  function onHostRoom(userName: string, config: MultiplayerConfig) {
+    console.log(`Creating room with config: ${JSON.stringify(config)}`);
+    clientSocket.emit('host_room', true, userName, config);
     setCanStartGame(true);
   }
   function onJoinRoom(roomId: string, userName: string) {

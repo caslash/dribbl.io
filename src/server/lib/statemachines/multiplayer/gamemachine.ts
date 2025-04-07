@@ -1,4 +1,5 @@
-import { MultiplayerGuess } from '@/server/lib/models/gamemachine';
+import { GameDifficulty } from '@/server/lib/models/gamedifficulties';
+import { PlayerGuess } from '@/server/lib/models/gamemachine';
 import { Room, User } from '@/server/lib/models/room';
 import { generateRound } from '@/server/lib/statemachines/actors';
 import {
@@ -24,17 +25,21 @@ export type GameState = {
   validAnswers: Player[];
 };
 
+export type MultiplayerConfig = {
+  scoreLimit?: number | undefined;
+  roundLimit?: number | undefined;
+  roundTimeLimit: number;
+  gameDifficulty: GameDifficulty;
+};
+
 export type MultiplayerContext = {
   io: Server;
   room: Room;
-  config: {
-    rounds: number;
-    roundTimeLimit: number;
-  };
+  config: MultiplayerConfig;
   gameState: GameState;
 };
 
-const updateUserScore = (users: UserGameInfo[], currentGuess: MultiplayerGuess): UserGameInfo[] => {
+const updateUserScore = (users: UserGameInfo[], currentGuess: PlayerGuess): UserGameInfo[] => {
   const otherUsers = users.filter((user) => user.info.id != currentGuess.userId);
   const currentUser = users.find((user) => user.info.id == currentGuess.userId)!;
 
@@ -64,10 +69,7 @@ export function createMultiplayerMachine(io: Server, room: Room): Actor<AnyState
     context: {
       io,
       room,
-      config: {
-        rounds: 10,
-        roundTimeLimit: 30,
-      },
+      config: room.config!,
       gameState: {
         roundActive: false,
         timeLeft: 0,
@@ -98,6 +100,7 @@ export function createMultiplayerMachine(io: Server, room: Room): Actor<AnyState
           generatingRound: {
             invoke: {
               src: 'generateRound',
+              input: { difficulty: room.config!.gameDifficulty },
               onDone: {
                 target: 'waitingForGuess',
                 actions: enqueueActions(({ context, event, enqueue }) => {

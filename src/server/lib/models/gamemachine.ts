@@ -1,4 +1,4 @@
-export type MultiplayerGuess = {
+export type PlayerGuess = {
   userId: string;
   guessId: number;
 };

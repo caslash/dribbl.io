@@ -1,7 +1,6 @@
 import { Player } from '@prisma/client';
 import { Socket } from 'socket.io';
 import { Actor, AnyStateMachine, assign, createActor, enqueueActions, setup } from 'xstate';
-
 import { generateRound } from '@/server/lib/statemachines/actors';
 import {
   notifyCorrectGuess,
@@ -12,19 +11,29 @@ import {
   waitForUser,
 } from '@/server/lib/statemachines/singleplayer/actions';
 import { hasLives, isCorrect } from '@/server/lib/statemachines/singleplayer/guards';
+import { GameDifficulties, GameDifficulty } from '@/server/lib/models/gamedifficulties';
 
-export function createSinglePlayerMachine(socket: Socket): Actor<AnyStateMachine> {
+export type SinglePlayerConfig = {
+  gameDifficulty: GameDifficulty;
+};
+
+export type SinglePlayerContext = {
+  socket: Socket;
+  config: SinglePlayerConfig;
+  gameState: {
+    score: number;
+    validAnswers: Player[];
+    lives: number;
+  };
+};
+
+export function createSinglePlayerMachine(
+  socket: Socket,
+  config: SinglePlayerConfig,
+): Actor<AnyStateMachine> {
   const gameMachine = setup({
     types: {} as {
-      context: {
-        socket: Socket;
-        gameState: {
-          score: number;
-          currentPlayer: Player | undefined;
-          validAnswers: Player[];
-          lives: number;
-        };
-      };
+      context: SinglePlayerContext
     },
     actions: {
       waitForUser,
@@ -47,9 +56,9 @@ export function createSinglePlayerMachine(socket: Socket): Actor<AnyStateMachine
     initial: 'waitingForGameStart',
     context: {
       socket,
+      config,
       gameState: {
         score: 0,
-        currentPlayer: undefined,
         validAnswers: [],
         lives: 0,
       },
@@ -57,7 +66,7 @@ export function createSinglePlayerMachine(socket: Socket): Actor<AnyStateMachine
     states: {
       waitingForGameStart: {
         entry: assign({
-          gameState: { score: 0, currentPlayer: undefined, validAnswers: [], lives: 0 },
+          gameState: { score: 0, validAnswers: [], lives: 0 },
         }),
         on: {
           START_GAME: 'gameActive',
@@ -76,13 +85,13 @@ export function createSinglePlayerMachine(socket: Socket): Actor<AnyStateMachine
           generatingRound: {
             invoke: {
               src: 'generateRound',
+              input: { difficulty: config.gameDifficulty },
               onDone: {
                 target: 'waitingForGuess',
                 actions: enqueueActions(({ context, event, enqueue }) => {
                   enqueue.assign({
                     gameState: {
                       ...context.gameState,
-                      currentPlayer: event.output.player,
                       validAnswers: event.output.validAnswers,
                     },
                   });

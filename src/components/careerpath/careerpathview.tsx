@@ -7,9 +7,9 @@ export function CareerPath({ teams }: Readonly<{ teams?: string[] }>) {
   return (
     <div key={containerKey}>
       <div className="flex flex-row">
-        {teams?.map((id: string) => (
+        {teams?.map((id: string, index: number) => (
           <Image
-            key={id}
+            key={`${id}-${index}`}
             alt={`logo-${id}`}
             src={`/logos/${id}.svg`}
             className={`${id === '1610612762' ? 'dark:invert' : ''}`}
