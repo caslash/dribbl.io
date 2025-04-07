@@ -1,6 +1,7 @@
 'use client';
 
 import { clientSocket } from '@/app/clientSocket';
+import { SinglePlayerConfig } from '@/server/lib/statemachines/singleplayer/gamemachine';
 import { Player } from '@prisma/client';
 import { useEffect, useState } from 'react';
 
@@ -29,6 +30,7 @@ type IncorrectGuessProps = {
 
 const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketProps) => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [isRoomConfigured, setIsRoomConfigured] = useState<boolean>(false);
   const [canStartGame, setCanStartGame] = useState<boolean>(true);
   const [machineState, setMachineState] = useState<string>('waitingForGameStart');
 
@@ -58,13 +60,16 @@ const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketP
   function onConnect() {
     setIsConnected(true);
     setCanStartGame(true);
-    clientSocket.emit('host_room', false, '');
   }
   function onDisconnect() {
     setIsConnected(false);
     setMachineState('waitingForGameStart');
     setScore(0);
     setTeams(null);
+  }
+  function onConfigureRoom(config: SinglePlayerConfig) {
+    clientSocket.emit('host_room', false, '', config);
+    setIsRoomConfigured(true);
   }
   function onStartGame() {
     setCanStartGame(false);
@@ -116,6 +121,8 @@ const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketP
   return {
     isConnected,
     canStartGame,
+    isRoomConfigured,
+    onConfigureRoom,
     onStartGame,
     machineState,
     score,

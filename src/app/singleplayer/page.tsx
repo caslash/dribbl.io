@@ -2,12 +2,14 @@
 
 import { CorrectAnswer } from '@/components/careerpath/answer';
 import { CareerPath } from '@/components/careerpath/careerpathview';
+import SinglePlayerConfigModal from '@/components/config/singleplayer/configmodal';
 import PlayerSearchBar from '@/components/search/playersearchbar';
 import { Button } from '@/components/ui/button';
 import useConfetti from '@/hooks/useConfetti';
 import useSinglePlayerSocket from '@/hooks/useSinglePlayerSocket';
 import { Player } from '@prisma/client';
 import { useTheme } from 'next-themes';
+import { useState } from 'react';
 import { toast } from 'react-toastify';
 
 export default function SinglePlayer() {
@@ -26,6 +28,8 @@ export default function SinglePlayer() {
   const {
     isConnected,
     canStartGame,
+    isRoomConfigured,
+    onConfigureRoom,
     onStartGame,
     machineState,
     score,
@@ -37,6 +41,7 @@ export default function SinglePlayer() {
 
   return (
     <div className="flex flex-col h-full m-16 space-y-8">
+      <SinglePlayerConfigModal isOpen={!isRoomConfigured} onConfigureRoom={onConfigureRoom} />
       <div className="justify-start">
         <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
         <p>State: {machineState}</p>

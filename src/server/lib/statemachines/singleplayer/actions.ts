@@ -1,16 +1,11 @@
+import { SinglePlayerContext } from '@/server/lib/statemachines/singleplayer/gamemachine';
 import { Player } from '@prisma/client';
 import { Socket } from 'socket.io';
+import { AnyEventObject } from 'xstate';
 
 type ActionProps = {
-  context: {
-    socket: Socket | undefined;
-    gameState: {
-      score: number;
-      currentPlayer: Player | undefined;
-      validAnswers: Player[];
-      lives: number;
-    };
-  };
+  context: SinglePlayerContext;
+  event: AnyEventObject;
 };
 
 export const waitForUser = ({ context }: ActionProps) => {
@@ -26,9 +21,9 @@ export const waitForUser = ({ context }: ActionProps) => {
 export const sendPlayerToClient = ({ context }: ActionProps) => {
   try {
     const { socket, gameState } = context;
-    const { score, currentPlayer, lives } = gameState;
+    const { score, validAnswers, lives } = gameState;
 
-    const team_history = currentPlayer?.team_history?.split(',');
+    const team_history = validAnswers[0]?.team_history?.split(',');
 
     socket?.emit('next_round', { score, team_history, lives: lives + 1 });
   } catch (err) {

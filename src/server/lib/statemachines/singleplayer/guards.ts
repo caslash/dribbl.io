@@ -1,22 +1,15 @@
+import { SinglePlayerContext } from '@/server/lib/statemachines/singleplayer/gamemachine';
 import { Player } from '@prisma/client';
 import { Socket } from 'socket.io';
 import { AnyEventObject } from 'xstate';
 
 type GuardProps = {
-  context: {
-    socket: Socket | undefined;
-    gameState: {
-      score: number;
-      currentPlayer: Player | undefined;
-      validAnswers: Player[];
-      lives: number;
-    };
-  };
+  context: SinglePlayerContext;
   event: AnyEventObject;
 };
 
 export const isCorrect = ({ context, event }: GuardProps): boolean => {
-  const { guessId } = event;
+  const { guessId } = event.guess;
   return !!context.gameState.validAnswers.find((player) => player.id === guessId);
 };
 
