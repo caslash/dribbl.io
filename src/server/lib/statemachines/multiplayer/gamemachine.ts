@@ -69,7 +69,7 @@ export function createMultiplayerMachine(io: Server, room: Room): Actor<AnyState
     context: {
       io,
       room,
-      config: room.config!,
+      config: room.config! as MultiplayerConfig,
       gameState: {
         roundActive: false,
         timeLeft: 0,

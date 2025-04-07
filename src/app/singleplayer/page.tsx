@@ -9,7 +9,6 @@ import useConfetti from '@/hooks/useConfetti';
 import useSinglePlayerSocket from '@/hooks/useSinglePlayerSocket';
 import { Player } from '@prisma/client';
 import { useTheme } from 'next-themes';
-import { useState } from 'react';
 import { toast } from 'react-toastify';
 
 export default function SinglePlayer() {

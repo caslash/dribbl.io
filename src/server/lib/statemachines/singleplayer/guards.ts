@@ -1,6 +1,4 @@
 import { SinglePlayerContext } from '@/server/lib/statemachines/singleplayer/gamemachine';
-import { Player } from '@prisma/client';
-import { Socket } from 'socket.io';
 import { AnyEventObject } from 'xstate';
 
 type GuardProps = {

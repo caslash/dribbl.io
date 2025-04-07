@@ -2,14 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { GameDifficulties, GameDifficultySchema } from '@/server/lib/models/gamedifficulties';
 import {
   Select,
@@ -54,11 +47,11 @@ function SinglePlayerForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       gameDifficulty: GameDifficulties.currentPlayers,
-    }
-  })
+    },
+  });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    onConfigureRoom({ gameDifficulty: values.gameDifficulty })
+    onConfigureRoom({ gameDifficulty: values.gameDifficulty });
   }
 
   return (

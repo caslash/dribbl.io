@@ -1,4 +1,5 @@
 import { MultiplayerConfig } from '@/server/lib/statemachines/multiplayer/gamemachine';
+import { SinglePlayerConfig } from '@/server/lib/statemachines/singleplayer/gamemachine';
 import { Actor, AnyStateMachine } from 'xstate';
 
 export interface Room {
