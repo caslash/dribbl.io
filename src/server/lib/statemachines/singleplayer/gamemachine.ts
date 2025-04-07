@@ -11,7 +11,7 @@ import {
   waitForUser,
 } from '@/server/lib/statemachines/singleplayer/actions';
 import { hasLives, isCorrect } from '@/server/lib/statemachines/singleplayer/guards';
-import { GameDifficulties, GameDifficulty } from '@/server/lib/models/gamedifficulties';
+import { GameDifficulty } from '@/server/lib/models/gamedifficulties';
 
 export type SinglePlayerConfig = {
   gameDifficulty: GameDifficulty;
@@ -33,7 +33,7 @@ export function createSinglePlayerMachine(
 ): Actor<AnyStateMachine> {
   const gameMachine = setup({
     types: {} as {
-      context: SinglePlayerContext
+      context: SinglePlayerContext;
     },
     actions: {
       waitForUser,

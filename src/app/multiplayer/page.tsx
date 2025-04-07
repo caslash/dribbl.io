@@ -6,7 +6,6 @@ import PlayerSearchBar from '@/components/search/playersearchbar';
 import { Button } from '@/components/ui/button';
 import useMultiplayerSocket from '@/hooks/useMultiplayerSocket';
 import { UserGameInfo } from '@/server/lib/statemachines/multiplayer/gamemachine';
-import { useEffect, useState } from 'react';
 
 export default function Game() {
   const {
