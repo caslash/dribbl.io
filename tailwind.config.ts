@@ -9,6 +9,9 @@ export default {
       fontFamily: {
         sf: ['var(--font-sf)'],
       },
+      zIndex: {
+        60: "60",
+      },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
