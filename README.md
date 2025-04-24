@@ -1,4 +1,4 @@
-# NBA Career Path Game
+# dribbl.io
 
 This is a Next.js web app game to measure your NBA history knowledge. The entire app is written in Typescript using SQLite and [Prisma.io ORM](https://www.prisma.io) for the database containing every NBA player to ever play a single game, and [HeroUI](https://www.heroui.com) for UI components.
 
