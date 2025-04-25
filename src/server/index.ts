@@ -5,7 +5,7 @@ import { createServerSocket } from '@/server/lib/services/serverSocket';
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = 'localhost';
-const port = 3000;
+const port = 3001;
 
 const app = next({ dev, hostname, port });
 const handler = app.getRequestHandler();
