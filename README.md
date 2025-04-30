@@ -16,9 +16,11 @@ This Turborepo includes the following packages/apps:
 
 ### Apps and Packages
 
+- `backend`: a [NestJS](https://nestjs.com) app
 - `docs`: a [Next.js](https://nextjs.org/) app
 - `web`: another [Next.js](https://nextjs.org/) app
 - `@dribblio/ui`: a stub React component library shared by both `web` and `docs` applications
+- `@dribblio/types`: a Typescript types library shared by both `web` and `backend` applications
 - `@dribblio/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
 - `@dribblio/typescript-config`: `tsconfig.json`s used throughout the monorepo
 
