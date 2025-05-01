@@ -17,6 +17,7 @@
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@dribblio/types": "*",
     "@dribblio/eslint-config": "*",
     "@dribblio/typescript-config": "*",
     "@types/node": "^22.15.3",
