@@ -31,8 +31,8 @@ This Turborepo has some additional tools already setup for you:
 To build all apps and packages, run the following command:
 
 ```
-cd my-turborepo
-pnpm build
+cd dribbl.io
+npm run build
 ```
 
 ### Develop
@@ -40,8 +40,8 @@ pnpm build
 To develop all apps and packages, run the following command:
 
 ```
-cd my-turborepo
-pnpm dev
+cd dribbl.io
+npm run dev
 ```
 
 ### Remote Caching
