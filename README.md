@@ -1,14 +1,6 @@
-# Turborepo starter
+# dribbl.io
 
-This Turborepo starter is maintained by the Turborepo core team.
-
-## Using this example
-
-Run the following command:
-
-```sh
-npx create-turbo@latest
-```
+This is a NBA career path guessing game. Guess the NBA player based on the presented career path. Play against friends in Multiplayer or simply test your ball knowledge in Single Player.
 
 ## What's inside?
 
