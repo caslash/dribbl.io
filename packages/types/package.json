@@ -10,5 +10,8 @@
   "devDependencies": {
     "@dribblio/typescript-config": "*",
     "typescript": "latest"
+  },
+  "dependencies": {
+    "xstate": "^5.19.2"
   }
 }
