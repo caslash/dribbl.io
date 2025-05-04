@@ -1,0 +1,54 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+generator json {
+  provider = "prisma-json-types-generator"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Player {
+  id                 Int               @id(map: "idx_16392_player_pkey")
+  first_name         String?
+  last_name          String?
+  display_first_last String?
+  display_fi_last    String?
+  birthdate          DateTime?         @db.Timestamp(6)
+  school             String?
+  country            String?
+  height             String?
+  weight             String?
+  season_exp         Int?
+  jersey             String?
+  position           String?
+  team_history       String?
+  is_active          Boolean?
+  from_year          Int?
+  to_year            Int?
+  total_games_played Int?
+  draft_round        String?
+  draft_number       String?
+  draft_year         String?
+  player_accolades   player_accolades?
+
+  @@map("player")
+}
+
+model player_accolades {
+  player_id Int    @id(map: "idx_16397_player_accolades_pkey")
+  /// [PlayerAccoladeList]
+  accolades Json?
+  player    Player @relation(fields: [player_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
