@@ -9,9 +9,9 @@ This Turborepo includes the following packages/apps:
 ### Apps and Packages
 
 - `api`: a [NestJS](https://nestjs.com) app
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@dribblio/ui`: a stub React component library shared by both `web` and `docs` applications
+- `web`: a [Next.js](https://nextjs.org/) app
+- `@dribblio/ui`: a stub React component library used by `web` application
+- `@dribblio/datatbase`: a Prisma ORM types library shared by both `web` and `api` applications
 - `@dribblio/types`: a Typescript types library shared by both `web` and `api` applications
 - `@dribblio/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
 - `@dribblio/typescript-config`: `tsconfig.json`s used throughout the monorepo
