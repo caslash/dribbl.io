@@ -1,11 +1,7 @@
 {
   "extends": "@dribblio/typescript-config/react-library.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": ".",
-    "paths": {
-      "#/*": ["./src/*"]
-    }
+    "outDir": "dist"
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]
