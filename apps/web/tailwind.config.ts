@@ -10,7 +10,7 @@ export default {
         sf: ['var(--font-sf)'],
       },
       zIndex: {
-        60: "60",
+        60: '60',
       },
       borderRadius: {
         lg: 'var(--radius)',

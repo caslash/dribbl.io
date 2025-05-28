@@ -21,12 +21,13 @@ export default function PlayerSearchBar({
   const [search, setSearch] = useState<string>('');
   const [players, setPlayers] = useState<Player[]>([]);
 
-  // TODO: Refactor to use /players endpoint
   useEffect(() => {
     if (!playerList) {
-      // getPlayers().then((list) =>
-      //   setPlayers(list.sort((a, b) => a.last_name!.localeCompare(b.last_name!))),
-      // );
+      fetch('/api/players')
+        .then((res) => res.json())
+        .then((list: Player[]) =>
+          setPlayers(list.sort((a, b) => a.last_name!.localeCompare(b.last_name!))),
+        );
     } else {
       setPlayers(playerList);
     }
