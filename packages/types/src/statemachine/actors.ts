@@ -29,6 +29,6 @@ export const generateRound = fromPromise(async ({ input }: RoundInput): Promise<
   // };
   return {
     validAnswers: [],
-    players: []
-  }
+    players: [],
+  };
 });
