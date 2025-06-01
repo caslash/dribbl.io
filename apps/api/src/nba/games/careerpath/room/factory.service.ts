@@ -7,17 +7,18 @@ import {
   SinglePlayerConfig,
   User,
 } from '@dribblio/types';
-import { Injectable } from '@nestjs/common';
-import { Server, Socket } from 'socket.io';
-import { generateRound } from '../actors';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Socket } from 'socket.io';
+import { GameService } from '../game.service';
+import { CareerPathGateway } from '../careerpath.gateway';
 
 @Injectable()
 export class RoomFactory {
-  private server: Server;
-
-  constructor(server: Server) {
-    this.server = server;
-  }
+  constructor(
+    @Inject(forwardRef(() => CareerPathGateway))
+    private gateway: CareerPathGateway,
+    private gameService: GameService,
+  ) {}
 
   createSinglePlayerRoom(socket: Socket, config: SinglePlayerConfig): Room {
     const room: Room = {
@@ -30,7 +31,7 @@ export class RoomFactory {
     room.statemachine = createSinglePlayerMachine(
       socket,
       room.config,
-      generateRound,
+      this.gameService,
     );
 
     socket.on('start_game', () => {
@@ -63,14 +64,14 @@ export class RoomFactory {
     };
 
     room.statemachine = createMultiplayerMachine(
-      this.server,
+      this.gateway.server,
       room,
-      generateRound,
+      this.gameService,
     );
 
     socket.on('start_game', (users: User[]) => {
       room.statemachine?.subscribe((s) => {
-        this.server.to(room.id).emit('state_change', s.value);
+        this.gateway.server.to(room.id).emit('state_change', s.value);
       });
 
       room.statemachine?.send({ type: 'START_GAME', users });

@@ -5,16 +5,9 @@ import { sendPlayerToRoom, sendRoundInfoToRoom, sendTimerToRoom } from './action
 import { isCorrectMultiplayer, timeExpired } from './guards.js';
 import { Player } from '@dribblio/database';
 import { Server } from 'socket.io';
-import {
-  Actor,
-  AnyStateMachine,
-  assign,
-  createActor,
-  enqueueActions,
-  EventObject,
-  PromiseActorLogic,
-  setup,
-} from 'xstate';
+import { Actor, AnyStateMachine, assign, createActor, enqueueActions, setup } from 'xstate';
+import { BaseGameService } from '../gameservice.js';
+import { generateRound } from '../actors.js';
 
 export type UserGameInfo = {
   info: User;
@@ -53,7 +46,7 @@ const updateUserScore = (users: UserGameInfo[], currentGuess: PlayerGuess): User
 export function createMultiplayerMachine(
   io: Server,
   room: Room,
-  generateRound: PromiseActorLogic<any, any, EventObject>,
+  gameService: BaseGameService,
 ): Actor<AnyStateMachine> {
   const gameMachine = setup({
     types: {} as {
@@ -108,7 +101,7 @@ export function createMultiplayerMachine(
           generatingRound: {
             invoke: {
               src: 'generateRound',
-              input: { difficulty: room.config!.gameDifficulty },
+              input: { difficulty: room.config!.gameDifficulty, gameService },
               onDone: {
                 target: 'waitingForGuess',
                 actions: enqueueActions(({ context, event, enqueue }) => {
@@ -163,7 +156,6 @@ export function createMultiplayerMachine(
           },
           endRound: {
             entry: enqueueActions(({ context, enqueue }) => {
-              enqueue(() => console.log('ROUND ENDED'));
               enqueue.assign({
                 ...context,
                 gameState: {

@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  NotFoundException,
+  Query,
+} from '@nestjs/common';
 import { PlayersService } from './player.service';
 
 @Controller('players')
@@ -9,15 +19,34 @@ export class PlayersController {
   findAll() {
     return this.playerService.findAll();
   }
-  
+
   @Get('random')
-  async findRandom(){
-    return await this.playerService.findRandom()
+  async findRandom() {
+    return await this.playerService.findRandom();
   }
 
   @Get('count')
   async findCount() {
     return await this.playerService.findCount();
+  }
+
+  @Get('search')
+  async search(@Query('searchTerm') searchTerm: string) {
+    const results = await this.playerService.findAll({
+      orderBy: {
+        last_name: 'asc',
+      },
+      where: {
+        display_first_last: {
+          contains: searchTerm,
+          mode: 'insensitive',
+        },
+      },
+    });
+
+    return {
+      results,
+    };
   }
 
   @Get(':id')
