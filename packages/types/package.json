@@ -1,0 +1,19 @@
+{
+  "name": "@dribblio/types",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@dribblio/typescript-config": "*",
+    "typescript": "latest"
+  },
+  "dependencies": {
+    "socket.io": "^4.8.1",
+    "xstate": "^5.19.2",
+    "zod": "^3.25.28"
+  }
+}
