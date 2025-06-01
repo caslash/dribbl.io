@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PlayersService } from '../../player/player.service';
-import { GameDifficulty } from '@dribblio/types';
-import { RoundProps } from './actors';
+import { BaseGameService, GameDifficulty, RoundProps } from '@dribblio/types';
 
 @Injectable()
-export class GameService {
-  constructor(private readonly playerService: PlayersService) {}
+export class GameService implements BaseGameService {
+  constructor(private playerService: PlayersService) {}
 
   async generateRound(difficulty: GameDifficulty): Promise<RoundProps> {
     const player = await this.playerService.findRandom(difficulty.filter);

@@ -11,17 +11,18 @@ import { Server, Socket } from 'socket.io';
 import { HostRoomMessageBody, JoinRoomMessageBody } from '@dribblio/types';
 import { RoomService } from './room/room.service';
 import { RoomFactory } from './room/factory.service';
+import { forwardRef } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
 
 @WebSocketGateway({ cors: true })
-export class CareerPathGateway implements OnGatewayInit, OnGatewayDisconnect {
+export class CareerPathGateway implements OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
-  private roomService: RoomService;
-
-  afterInit(server: Server) {
-    this.roomService = new RoomService(server, new RoomFactory(server));
-  }
+  constructor(
+    @Inject(forwardRef(() => RoomService))
+    private roomService: RoomService,
+  ) {}
 
   handleDisconnect(client: Socket) {
     console.log(`Client socket ${client.id} disconnected`);

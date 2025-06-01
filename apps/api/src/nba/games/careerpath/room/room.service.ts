@@ -4,24 +4,23 @@ import {
   SinglePlayerConfig,
   User,
 } from '@dribblio/types';
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { RoomFactory } from './factory.service';
 import ShortUniqueId from 'short-unique-id';
+import { CareerPathGateway } from '../careerpath.gateway';
 
 const uid = new ShortUniqueId({ length: 5, dictionary: 'alpha_upper' });
 
 @Injectable()
 export class RoomService {
-  private server: Server;
-  private roomFactory: RoomFactory;
-
   private rooms: Record<string, Room> = {};
 
-  constructor(server: Server, roomFactory: RoomFactory) {
-    this.server = server;
-    this.roomFactory = roomFactory;
-  }
+  constructor(
+    @Inject(forwardRef(() => CareerPathGateway))
+    private gateway: CareerPathGateway,
+    private roomFactory: RoomFactory,
+  ) {}
 
   createRoom(
     isMulti: boolean,
@@ -70,7 +69,7 @@ export class RoomService {
 
     const { ...room } = this.rooms[id];
 
-    this.server.to(id).emit('room_updated', room);
+    this.gateway.server.to(id).emit('room_updated', room);
   }
 
   leaveRoom(roomId: string, userId: string): void {
@@ -85,7 +84,7 @@ export class RoomService {
       if (!room.users.some((user: User) => user)) {
         this.destroyRoom(roomId);
       } else {
-        this.server.to(roomId).emit('room_updated', room);
+        this.gateway.server.to(roomId).emit('room_updated', room);
       }
     }
   }
