@@ -1,12 +1,20 @@
 import { GameDifficulty } from '../gamedifficulties.js';
 import { PlayerGuess } from '../../websocket/playerguess.js';
 import { Room, User } from '../../websocket/room.js';
-import { generateRound } from '../actors.js';
 import { sendPlayerToRoom, sendRoundInfoToRoom, sendTimerToRoom } from './actions.js';
 import { isCorrectMultiplayer, timeExpired } from './guards.js';
 import { Player } from '@dribblio/database';
 import { Server } from 'socket.io';
-import { Actor, AnyStateMachine, assign, createActor, enqueueActions, setup } from 'xstate';
+import {
+  Actor,
+  AnyStateMachine,
+  assign,
+  createActor,
+  enqueueActions,
+  EventObject,
+  PromiseActorLogic,
+  setup,
+} from 'xstate';
 
 export type UserGameInfo = {
   info: User;
@@ -42,7 +50,11 @@ const updateUserScore = (users: UserGameInfo[], currentGuess: PlayerGuess): User
   return [...otherUsers, { ...currentUser, score: currentUser.score + 1 }];
 };
 
-export function createMultiplayerMachine(io: Server, room: Room): Actor<AnyStateMachine> {
+export function createMultiplayerMachine(
+  io: Server,
+  room: Room,
+  generateRound: PromiseActorLogic<any, any, EventObject>,
+): Actor<AnyStateMachine> {
   const gameMachine = setup({
     types: {} as {
       context: MultiplayerContext;
