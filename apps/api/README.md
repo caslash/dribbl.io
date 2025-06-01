@@ -1,98 +1,189 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Dribbl.io API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A NestJS-based API service for Dribbl.io, providing NBA player data and real-time game functionality.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Architecture
 
-## Description
+The API is built using NestJS and follows a modular architecture:
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- `NBAModule`: Core module handling NBA-related features
+  - `PlayersModule`: Manages NBA player data and statistics
+  - `GamesModule`: Handles game-related functionality
+    - `CareerPath`: Real-time game implementation using WebSockets
+- `DatabaseModule`: Database integration using Prisma with PostgreSQL
 
-## Project setup
+## Tech Stack
 
-```bash
-$ npm install
+- NestJS 11.x
+- Socket.IO for real-time communication
+- Prisma for database operations
+- PostgreSQL database
+- TypeScript
+- Jest for testing
+
+## Database Schema
+
+The API uses a PostgreSQL database with the following main models:
+
+### Player Model
+
+```prisma
+model Player {
+  id                 Int               @id
+  first_name         String?
+  last_name          String?
+  display_first_last String?
+  display_fi_last    String?
+  birthdate          DateTime?
+  school             String?
+  country            String?
+  height             String?
+  weight             String?
+  season_exp         Int?
+  jersey             String?
+  position           String?
+  team_history       String?
+  is_active          Boolean?
+  from_year          Int?
+  to_year            Int?
+  total_games_played Int?
+  draft_round        String?
+  draft_number       String?
+  draft_year         String?
+  player_accolades   player_accolades?
+}
 ```
 
-## Compile and run the project
+### Player Accolades Model
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+```prisma
+model player_accolades {
+  player_id Int    @id
+  accolades Json?
+  player    Player @relation(fields: [player_id], references: [id])
+}
 ```
 
-## Run tests
+## API Endpoints
 
-```bash
-# unit tests
-$ npm run test
+### Players API
 
-# e2e tests
-$ npm run test:e2e
+Base URL: `/players`
 
-# test coverage
-$ npm run test:cov
-```
+| Method | Endpoint                   | Description            |
+| ------ | -------------------------- | ---------------------- |
+| GET    | `/`                        | Get all players        |
+| GET    | `/random`                  | Get a random player    |
+| GET    | `/count`                   | Get total player count |
+| GET    | `/search?searchTerm=:term` | Search players by name |
+| GET    | `/:id`                     | Get player by ID       |
 
-## Deployment
+## CareerPath Game
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+The CareerPath game is a real-time multiplayer/singleplayer game where players must identify NBA players based on their team history.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Game Modes
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+1. **Single Player**
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+   - Players try to achieve the highest score possible
+   - Limited number of lives
+   - Progressive difficulty
 
-## Resources
+2. **Multiplayer**
+   - Real-time competition in game rooms
+   - All players see the same team history
+   - First correct answer gets a point
+   - Real-time score updates
 
-Check out a few resources that may come in handy when working with NestJS:
+### Game Difficulties
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+1. **First Team All-NBA Players**
 
-## Support
+   - Only players who made All-NBA First Team
+   - Players from 1980 onwards
+   - Multiple team history required
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+2. **All-NBA Players**
 
-## Stay in touch
+   - Players who made any All-NBA team
+   - Players from 1980 onwards
+   - Multiple team history required
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+3. **Current Players**
+
+   - Only active NBA players
+   - Easier difficulty level
+
+4. **All Players**
+   - Complete NBA player database
+   - Most challenging difficulty
+
+## Development Setup
+
+1. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+2. Set up environment variables:
+
+   ```bash
+   DATABASE_URL="postgresql://user:password@localhost:5432/dribblio"
+   ```
+
+3. Start the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+4. Run tests:
+   ```bash
+   npm test
+   ```
+
+## Available Scripts
+
+- `npm run build`: Build the application
+- `npm run dev`: Start development server with hot reload
+- `npm run start:prod`: Start production server
+- `npm run test`: Run unit tests
+- `npm run test:e2e`: Run end-to-end tests
+- `npm run test:cov`: Generate test coverage report
+
+## WebSocket Events
+
+The CareerPath game uses WebSocket connections for real-time gameplay. The following events are supported:
+
+- `join_room`: Join a game room
+- `leave_room`: Leave a game room
+- `start_game`: Start a new game
+- `submit_answer`: Submit a player guess
+- `game_state`: Receive game state updates
+- `score_update`: Receive score updates
+
+## Future Enhancements
+
+- Authentication system for user management
+- Persistent user profiles and statistics
+- Additional game modes and difficulties
+- Leaderboards and achievements
+- Cloud deployment
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Copyright (c) 2025 Cameron Slash. All Rights Reserved.
+
+This software and associated documentation files (the "Software") are the proprietary property of Cameron Slash and are protected by copyright law. The Software is licensed, not sold.
+
+You are not permitted to:
+
+- Copy, modify, or create derivative works of the Software
+- Reverse engineer, decompile, or disassemble the Software
+- Remove or alter any proprietary notices or labels on the Software
+- Use the Software for any commercial purpose
+- Distribute, sublicense, or transfer the Software to any third party
+
+Any unauthorized use, reproduction, or distribution of the Software is strictly prohibited and may result in severe legal consequences.
