@@ -107,7 +107,7 @@ npm run dev
 This will start:
 
 - Next.js development server on port 3000
-- NestJS development server on port 3001
+- NestJS development server on port 3002
 
 ### Remote Caching
 
