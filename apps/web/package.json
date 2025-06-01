@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "@dribblio/database": "*",
-    "@dribblio/ui": "*",
     "@hookform/resolvers": "^5.0.1",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-label": "^2.1.7",
