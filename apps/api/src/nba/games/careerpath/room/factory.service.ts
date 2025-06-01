@@ -9,6 +9,7 @@ import {
 } from '@dribblio/types';
 import { Injectable } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
+import { generateRound } from '../actors';
 
 @Injectable()
 export class RoomFactory {
@@ -26,7 +27,11 @@ export class RoomFactory {
       config,
     };
 
-    room.statemachine = createSinglePlayerMachine(socket, room.config);
+    room.statemachine = createSinglePlayerMachine(
+      socket,
+      room.config,
+      generateRound,
+    );
 
     socket.on('start_game', () => {
       room.statemachine?.subscribe((s) => {
@@ -57,7 +62,11 @@ export class RoomFactory {
       config: config,
     };
 
-    room.statemachine = createMultiplayerMachine(this.server, room);
+    room.statemachine = createMultiplayerMachine(
+      this.server,
+      room,
+      generateRound,
+    );
 
     socket.on('start_game', (users: User[]) => {
       room.statemachine?.subscribe((s) => {

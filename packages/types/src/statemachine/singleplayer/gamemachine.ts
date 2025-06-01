@@ -1,7 +1,15 @@
 import { Player } from '@dribblio/database';
 import { Socket } from 'socket.io';
-import { Actor, AnyStateMachine, assign, createActor, enqueueActions, setup } from 'xstate';
-import { generateRound } from '../actors.js';
+import {
+  Actor,
+  AnyStateMachine,
+  assign,
+  createActor,
+  enqueueActions,
+  EventObject,
+  PromiseActorLogic,
+  setup,
+} from 'xstate';
 import {
   notifyCorrectGuess,
   notifyGameOver,
@@ -30,6 +38,7 @@ export type SinglePlayerContext = {
 export function createSinglePlayerMachine(
   socket: Socket,
   config: SinglePlayerConfig,
+  generateRound: PromiseActorLogic<any, any, EventObject>,
 ): Actor<AnyStateMachine> {
   const gameMachine = setup({
     types: {} as {
