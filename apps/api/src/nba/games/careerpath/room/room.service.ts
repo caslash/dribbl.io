@@ -1,0 +1,101 @@
+import {
+  MultiplayerConfig,
+  Room,
+  SinglePlayerConfig,
+  User,
+} from '@dribblio/types';
+import { Injectable } from '@nestjs/common';
+import { Server, Socket } from 'socket.io';
+import { RoomFactory } from './factory.service';
+import ShortUniqueId from 'short-unique-id';
+
+const uid = new ShortUniqueId({ length: 5, dictionary: 'alpha_upper' });
+
+@Injectable()
+export class RoomService {
+  private server: Server;
+  private roomFactory: RoomFactory;
+
+  private rooms: Record<string, Room> = {};
+
+  constructor(server: Server, roomFactory: RoomFactory) {
+    this.server = server;
+    this.roomFactory = roomFactory;
+  }
+
+  createRoom(
+    isMulti: boolean,
+    socket: Socket,
+    userName: string,
+    config: MultiplayerConfig | SinglePlayerConfig,
+  ): Room {
+    const roomId: string = this.generateUniqueCode();
+
+    if (!this.rooms[roomId]) {
+      this.rooms[roomId] = isMulti
+        ? this.roomFactory.createMultiplayerRoom(
+            socket,
+            roomId,
+            config as MultiplayerConfig,
+          )
+        : this.roomFactory.createSinglePlayerRoom(
+            socket,
+            config as SinglePlayerConfig,
+          );
+    }
+
+    console.log(`Game machine created for room ${roomId}`);
+
+    this.joinRoom(socket, roomId, userName);
+
+    return this.rooms[roomId];
+  }
+
+  destroyRoom(id: string) {
+    delete this.rooms[id];
+    console.log(`Room destroyed for room ${id}`);
+  }
+
+  joinRoom(socket: Socket, id: string, userName: string): void {
+    if (!this.rooms[id]) return;
+
+    socket.join(id);
+
+    this.roomFactory.setUpListenersOnJoin(socket, this.rooms[id]);
+
+    this.rooms[id] = {
+      ...this.rooms[id],
+      users: [...this.rooms[id].users, { id: socket.id, name: userName }],
+    };
+
+    const { ...room } = this.rooms[id];
+
+    this.server.to(id).emit('room_updated', room);
+  }
+
+  leaveRoom(roomId: string, userId: string): void {
+    let room: Room = this.rooms[roomId];
+
+    if (room) {
+      room = {
+        ...room,
+        users: [...room.users.filter((user: User) => user.id !== userId)],
+      };
+
+      if (!room.users.some((user: User) => user)) {
+        this.destroyRoom(roomId);
+      } else {
+        this.server.to(roomId).emit('room_updated', room);
+      }
+    }
+  }
+
+  generateUniqueCode(): string {
+    const roomId = uid.randomUUID();
+    if (roomId in this.rooms) {
+      return this.generateUniqueCode();
+    }
+
+    return roomId;
+  }
+}

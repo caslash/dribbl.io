@@ -1,2 +1,3 @@
 export * from './room.js';
-export * from './gamemachine.js';
+export * from './playerguess.js';
+export * from './messagebodies.js';

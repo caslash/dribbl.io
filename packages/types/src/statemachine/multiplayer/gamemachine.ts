@@ -1,5 +1,5 @@
 import { GameDifficulty } from '../gamedifficulties.js';
-import { PlayerGuess } from '../../websocket/gamemachine.js';
+import { PlayerGuess } from '../../websocket/playerguess.js';
 import { Room, User } from '../../websocket/room.js';
 import { generateRound } from '../actors.js';
 import { sendPlayerToRoom, sendRoundInfoToRoom, sendTimerToRoom } from './actions.js';
