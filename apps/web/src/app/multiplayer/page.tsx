@@ -25,7 +25,7 @@ export default function Game() {
   } = useMultiplayerSocket();
 
   return (
-    <div className="flex flex-col h-full m-16 space-y-8">
+    <div className="flex flex-col h-full space-y-8">
       <JoinHostModal isOpen={!roomId} onJoinRoom={onJoinRoom} onHostRoom={onHostRoom} />
       <div className="justify-start">
         <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
