@@ -7,8 +7,8 @@ import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { siteConfig } from '@/config/site';
 import { cn } from '@/lib/utils';
-import NextLink from 'next/link';
 import { LogIn } from 'lucide-react';
+import NextLink from 'next/link';
 
 export default function NBANavbar({ className }: Readonly<{ className?: string }>) {
   return (

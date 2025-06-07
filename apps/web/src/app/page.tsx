@@ -1,8 +1,8 @@
 'use client';
 
 import GameModeCard from '@/components/gamemodecard';
-import { useEffect } from 'react';
 import { getAccessToken } from '@auth0/nextjs-auth0';
+import { useEffect } from 'react';
 
 export default function Home() {
   useEffect(() => {

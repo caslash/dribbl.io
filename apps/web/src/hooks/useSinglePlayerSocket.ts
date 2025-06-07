@@ -1,8 +1,8 @@
 'use client';
 
 import { clientSocket } from '@/lib/clientsocket';
-import { HostRoomMessageBody, SinglePlayerConfig } from '@dribblio/types';
 import { Player } from '@dribblio/database';
+import { HostRoomMessageBody, SinglePlayerConfig } from '@dribblio/types';
 import { useEffect, useState } from 'react';
 
 type ClientSocketProps = {

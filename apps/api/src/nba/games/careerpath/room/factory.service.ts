@@ -1,3 +1,5 @@
+import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
+import { GameService } from '@/nba/games/careerpath/game.service';
 import {
   createMultiplayerMachine,
   createSinglePlayerMachine,
@@ -9,8 +11,6 @@ import {
 } from '@dribblio/types';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io';
-import { GameService } from '../game.service';
-import { CareerPathGateway } from '../careerpath.gateway';
 
 @Injectable()
 export class RoomFactory {
@@ -28,11 +28,7 @@ export class RoomFactory {
       config,
     };
 
-    room.statemachine = createSinglePlayerMachine(
-      socket,
-      room.config,
-      this.gameService,
-    );
+    room.statemachine = createSinglePlayerMachine(socket, room.config, this.gameService);
 
     socket.on('start_game', () => {
       room.statemachine?.subscribe((s) => {
@@ -51,11 +47,7 @@ export class RoomFactory {
     return room;
   }
 
-  createMultiplayerRoom(
-    socket: Socket,
-    roomId: string,
-    config: MultiplayerConfig,
-  ): Room {
+  createMultiplayerRoom(socket: Socket, roomId: string, config: MultiplayerConfig): Room {
     const room: Room = {
       id: roomId,
       statemachine: undefined,
@@ -63,11 +55,7 @@ export class RoomFactory {
       config: config,
     };
 
-    room.statemachine = createMultiplayerMachine(
-      this.gateway.server,
-      room,
-      this.gameService,
-    );
+    room.statemachine = createMultiplayerMachine(this.gateway.server, room, this.gameService);
 
     socket.on('start_game', (users: User[]) => {
       room.statemachine?.subscribe((s) => {

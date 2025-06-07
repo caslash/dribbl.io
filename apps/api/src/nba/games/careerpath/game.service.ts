@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import { PlayersService } from '../../player/player.service';
+import { PlayersService } from '@/nba/player/player.service';
 import { BaseGameService, GameDifficulty, RoundProps } from '@dribblio/types';
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class GameService implements BaseGameService {

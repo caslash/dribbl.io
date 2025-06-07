@@ -1,6 +1,6 @@
+import { PlayersController } from '@/nba/player/player.controller';
+import { PlayersService } from '@/nba/player/player.service';
 import { Module } from '@nestjs/common';
-import { PlayersService } from './player.service';
-import { PlayersController } from './player.controller';
 
 @Module({
   controllers: [PlayersController],

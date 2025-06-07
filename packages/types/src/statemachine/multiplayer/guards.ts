@@ -1,5 +1,5 @@
-import { MultiplayerContext } from './gamemachine.js';
 import { AnyEventObject } from 'xstate';
+import { MultiplayerContext } from './gamemachine.js';
 
 type GuardProps = {
   context: MultiplayerContext;

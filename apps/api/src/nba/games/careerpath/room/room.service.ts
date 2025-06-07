@@ -1,14 +1,9 @@
-import {
-  MultiplayerConfig,
-  Room,
-  SinglePlayerConfig,
-  User,
-} from '@dribblio/types';
+import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
+import { RoomFactory } from '@/nba/games/careerpath/room/factory.service';
+import { MultiplayerConfig, Room, SinglePlayerConfig, User } from '@dribblio/types';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { Server, Socket } from 'socket.io';
-import { RoomFactory } from './factory.service';
 import ShortUniqueId from 'short-unique-id';
-import { CareerPathGateway } from '../careerpath.gateway';
+import { Socket } from 'socket.io';
 
 const uid = new ShortUniqueId({ length: 5, dictionary: 'alpha_upper' });
 
@@ -32,15 +27,8 @@ export class RoomService {
 
     if (!this.rooms[roomId]) {
       this.rooms[roomId] = isMulti
-        ? this.roomFactory.createMultiplayerRoom(
-            socket,
-            roomId,
-            config as MultiplayerConfig,
-          )
-        : this.roomFactory.createSinglePlayerRoom(
-            socket,
-            config as SinglePlayerConfig,
-          );
+        ? this.roomFactory.createMultiplayerRoom(socket, roomId, config as MultiplayerConfig)
+        : this.roomFactory.createSinglePlayerRoom(socket, config as SinglePlayerConfig);
     }
 
     console.log(`Game machine created for room ${roomId}`);

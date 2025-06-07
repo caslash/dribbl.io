@@ -1,5 +1,5 @@
-import { SinglePlayerContext } from './gamemachine.js';
 import { AnyEventObject } from 'xstate';
+import { SinglePlayerContext } from './gamemachine.js';
 
 type GuardProps = {
   context: SinglePlayerContext;

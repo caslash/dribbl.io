@@ -1,15 +1,15 @@
 'use client';
 
 import { clientSocket } from '@/lib/clientsocket';
+import { Player } from '@dribblio/database';
 import {
-  User,
   GameState,
-  MultiplayerConfig,
-  UserGameInfo,
   HostRoomMessageBody,
   JoinRoomMessageBody,
+  MultiplayerConfig,
+  User,
+  UserGameInfo,
 } from '@dribblio/types';
-import { Player } from '@dribblio/database';
 import { useEffect, useState } from 'react';
 
 type RoomProps = {

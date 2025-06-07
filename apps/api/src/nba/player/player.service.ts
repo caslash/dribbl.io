@@ -10,18 +10,18 @@ export class PlayersService {
 
   async findAll<
     T extends Prisma.PlayerFindManyArgs,
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
   >(args?: Prisma.SelectSubset<T, Prisma.PlayerFindManyArgs<ExtArgs>>) {
     return await this.prisma.player.findMany(args);
   }
 
   async findOne(id: number): Promise<Player | null> {
-    return await this.prisma.player.findFirst({ where: { id: { equals: id } } } );
+    return await this.prisma.player.findFirst({ where: { id: { equals: id } } });
   }
 
   async findRandom(where?: Prisma.PlayerWhereInput): Promise<Player | null> {
     const playerIds = (await this.findAll({ where: where, select: { id: true } })).map(
-      (player) => player.id
+      (player) => player.id,
     );
     const randomId = playerIds[Math.floor(Math.random() * playerIds.length)];
     return await this.findOne(randomId);

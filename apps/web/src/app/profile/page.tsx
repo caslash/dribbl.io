@@ -1,6 +1,5 @@
 'use client';
 
-import { LoginForm } from '@/components/login-form';
 import { useUser } from '@auth0/nextjs-auth0';
 
 export default function ProfilePage() {
