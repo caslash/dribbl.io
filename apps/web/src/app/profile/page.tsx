@@ -3,7 +3,7 @@
 import { useUser } from '@auth0/nextjs-auth0';
 
 export default function ProfilePage() {
-  const { user, error, isLoading } = useUser();
+  const { user } = useUser();
 
   return (
     <div>
