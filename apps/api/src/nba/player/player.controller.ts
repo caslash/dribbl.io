@@ -8,13 +8,16 @@ import {
   Delete,
   NotFoundException,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { PlayersService } from './player.service';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('players')
 export class PlayersController {
   constructor(private readonly playerService: PlayersService) {}
 
+  @UseGuards(AuthGuard('jwt'))
   @Get()
   findAll() {
     return this.playerService.findAll();

@@ -8,12 +8,31 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { siteConfig } from '@/config/site';
 import { cn } from '@/lib/utils';
 import NextLink from 'next/link';
+import { LogIn } from 'lucide-react';
 
 export default function NBANavbar({ className }: Readonly<{ className?: string }>) {
   return (
     <div className={`${className}`}>
       <TooltipProvider>
         <Dock className="rounded-full" iconMagnification={60} iconDistance={25}>
+          <DockIcon>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <a
+                  href="/auth/login"
+                  className={cn(
+                    buttonVariants({ variant: 'ghost', size: 'icon', className: 'rounded-full' }),
+                  )}
+                >
+                  <LogIn />
+                </a>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Login</p>
+              </TooltipContent>
+            </Tooltip>
+          </DockIcon>
+          <Separator orientation="vertical" className="h-full py-2" />
           {siteConfig.navItems.map((item) => (
             <DockIcon key={item.label}>
               <Tooltip>

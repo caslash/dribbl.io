@@ -18,11 +18,6 @@ export const siteConfig: { name: string; navItems: NavItem[] } = {
       href: '/',
     },
     {
-      label: 'Profile',
-      icon: User,
-      href: '/profile',
-    },
-    {
       label: 'Single Player',
       icon: Gamepad2,
       href: '/singleplayer',
