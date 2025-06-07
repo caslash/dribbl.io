@@ -24,7 +24,9 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
             closeButton={false}
             transition={Bounce}
           />
-          <main>{children}</main>
+          <main>
+            <div className="h-dvh w-full p-16">{children}</div>
+          </main>
         </Providers>
       </body>
     </html>

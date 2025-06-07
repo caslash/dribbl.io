@@ -39,7 +39,7 @@ export default function SinglePlayer() {
   } = useSinglePlayerSocket({ correctAction, incorrectAction });
 
   return (
-    <div className="flex flex-col h-full m-16 space-y-8">
+    <div className="flex flex-col h-full space-y-8">
       <SinglePlayerConfigModal isOpen={!isRoomConfigured} onConfigureRoom={onConfigureRoom} />
       <div className="justify-start">
         <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
