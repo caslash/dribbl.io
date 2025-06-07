@@ -2,6 +2,7 @@ import js from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import jest from 'eslint-plugin-jest';
 import turboPlugin from 'eslint-plugin-turbo';
+import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 /**
@@ -9,13 +10,13 @@ import tseslint from 'typescript-eslint';
  *
  * @type {import("eslint").Linter.Config[]}
  * */
-export const config = [
+export const baseConfig = [
   js.configs.recommended,
   eslintConfigPrettier,
   ...tseslint.configs.recommended,
   {
     plugins: {
-      '@typescript-eslint': typescriptEslint,
+      tseslint,
       jest,
       turbo: turboPlugin,
     },
@@ -24,7 +25,7 @@ export const config = [
         ...globals.node,
         ...jest.environments.globals.globals,
       },
-      parser: tsParser,
+      parser: tseslint.parser,
     },
     settings: {
       'import/resolver': {

@@ -1,3 +1,4 @@
+import { Auth0JwtPayload } from '@/auth/payload.type';
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import * as jwksRsa from 'jwks-rsa';
@@ -20,7 +21,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  validate(payload: any, done: VerifiedCallback): unknown {
+  validate(payload: Auth0JwtPayload, done: VerifiedCallback): unknown {
     return done(null, payload);
   }
 }
