@@ -4,21 +4,21 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import {
-  GameDifficulties,
-  GameDifficultyNames,
-  GameDifficultySchema,
-  SinglePlayerConfig,
-} from '@dribblio/types';
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  GameDifficulties,
+  GameDifficultyNames,
+  GameDifficultySchema,
+  SinglePlayerConfig,
+} from '@dribblio/types';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
 
 export default function SinglePlayerConfigModal({
   isOpen,

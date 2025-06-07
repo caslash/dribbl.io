@@ -1,7 +1,7 @@
 'use client';
 
-import { SearchResponse } from '@dribblio/types';
 import { Player } from '@dribblio/database';
+import { SearchResponse } from '@dribblio/types';
 import { AsyncListLoadOptions, useAsyncList } from '@react-stately/data';
 import { useEffect, useState } from 'react';
 

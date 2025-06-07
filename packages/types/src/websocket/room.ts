@@ -1,6 +1,6 @@
+import { Actor, AnyStateMachine } from 'xstate';
 import { MultiplayerConfig } from '../statemachine/multiplayer/gamemachine.js';
 import { SinglePlayerConfig } from '../statemachine/singleplayer/gamemachine.js';
-import { Actor, AnyStateMachine } from 'xstate';
 
 export interface Room {
   id: string;

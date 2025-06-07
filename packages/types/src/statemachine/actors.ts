@@ -1,7 +1,7 @@
 import { fromPromise } from 'xstate';
 
-import { GameDifficulty } from './gamedifficulties.js';
 import { Player } from '@dribblio/database';
+import { GameDifficulty } from './gamedifficulties.js';
 import { BaseGameService } from './gameservice.js';
 
 type RoundInput = {
