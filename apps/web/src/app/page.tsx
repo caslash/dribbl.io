@@ -1,6 +1,20 @@
+'use client';
+
 import GameModeCard from '@/components/gamemodecard';
+import { useEffect } from 'react';
+import { getAccessToken } from '@auth0/nextjs-auth0';
 
 export default function Home() {
+  useEffect(() => {
+    getAccessToken().then((jwt) => {
+      fetch('/api/players', {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      }).then((res) => console.log(res));
+    });
+  });
+
   return (
     <div className="h-dvh w-full p-16">
       <div className="h-full flex flex-row justify-center space-x-8">
