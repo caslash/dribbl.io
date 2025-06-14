@@ -45,14 +45,9 @@ The content is organized as follows:
 apps/
   api/
     src/
-      auth/
-        auth.module.ts
-        jwt.strategy.ts
-        payload.type.ts
       database/
         database.module.ts
-        nba.prisma.service.ts
-        users.prisma.service.ts
+        prisma.service.ts
       nba/
         games/
           careerpath/
@@ -68,19 +63,13 @@ apps/
           player.module.ts
           player.service.ts
         nba.module.ts
-      users/
-        dto/
-          update-user.dto.ts
-        users.controller.ts
-        users.module.ts
-        users.service.ts
       app.module.ts
       main.ts
     test/
       app.e2e-spec.ts
       jest-e2e.json
+    .prettierrc
     eslint.config.mjs
-    jest.lint.config.ts
     nest-cli.json
     package.json
     README.md
@@ -89,11 +78,7 @@ apps/
   web/
     src/
       app/
-        login/
-          page.tsx
         multiplayer/
-          page.tsx
-        profile/
           page.tsx
         singleplayer/
           page.tsx
@@ -119,7 +104,6 @@ apps/
           playersearchresult.tsx
         ui/
           button.tsx
-          card.tsx
           command.tsx
           dialog.tsx
           form.tsx
@@ -131,7 +115,6 @@ apps/
           tabs.tsx
           tooltip.tsx
         gamemodecard.tsx
-        login-form.tsx
         teamlogo.tsx
       config/
         site.ts
@@ -145,16 +128,13 @@ apps/
         iconsvgprops.tsx
         themes.tsx
       lib/
-        auth0.ts
         clientsocket.ts
         utils.ts
       styles/
         globals.css
         sfFont.ts
-      middleware.ts
     components.json
     eslint.config.js
-    jest.lint.config.ts
     next.config.mjs
     package.json
     postcss.config.js
@@ -164,13 +144,7 @@ apps/
     tsconfig.json
 packages/
   database/
-    prisma-nba/
-      schema.prisma
-    prisma-users/
-      migrations/
-        20250613183421_create_user_table/
-          migration.sql
-        migration_lock.toml
+    prisma/
       schema.prisma
     src/
       client.ts
@@ -182,6 +156,7 @@ packages/
     base.js
     next.js
     package.json
+    react-internal.js
     README.md
   types/
     src/
@@ -226,102 +201,6 @@ turbo.json
 ```
 
 # Files
-
-## File: .repomixignore
-````
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# Dependencies
-node_modules
-/pnp
-.pnp.js
-
-# Local env files
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Testing
-coverage
-
-# Turbo
-.turbo
-
-# Vercel
-.vercel
-
-# Build Outputs
-.next/
-out/
-build
-dist
-
-# Debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Misc
-.DS_Store
-*.pem
-
-# production
-/build
-
-# next.js
-/.next/
-/out/
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-**/*-lock.json
-
-*.svg
-````
-
-## File: repomix.config.json
-````json
-{
-  "$schema": "https://repomix.com/schemas/latest/schema.json",
-  "input": {
-    "maxFileSize": 52428800
-  },
-  "output": {
-    "filePath": "docs/repo.md",
-    "style": "markdown",
-    "parsableStyle": false,
-    "fileSummary": true,
-    "directoryStructure": true,
-    "files": true,
-    "removeComments": false,
-    "removeEmptyLines": false,
-    "compress": false,
-    "topFilesLength": 5,
-    "showLineNumbers": false,
-    "copyToClipboard": false,
-    "git": {
-      "sortByChanges": true,
-      "sortByChangesMaxCommits": 100,
-      "includeDiffs": false
-    }
-  },
-  "include": [],
-  "ignore": {
-    "useGitignore": true,
-    "useDefaultPatterns": true,
-    "customPatterns": []
-  },
-  "security": {
-    "enableSecurityCheck": true
-  },
-  "tokenCount": {
-    "encoding": "o200k_base"
-  }
-}
-````
 
 ## File: .cursor/rules/nestjs.mdc
 ````
@@ -450,121 +329,132 @@ You are a senior TypeScript programmer with experience in the NestJS framework a
 - Add a admin/test method to each controller as a smoke test.
 ````
 
-## File: apps/api/src/auth/payload.type.ts
+## File: apps/api/src/database/database.module.ts
 ````typescript
-export interface Auth0JwtPayload {
-  iss: string; // Issuer (Auth0 domain)
-  sub: string; // Subject (user ID)
-  aud: string; // Audience (API identifier)
-  exp: number; // Expiration time
-  iat: number; // Issued at time
-  azp?: string; // Authorized party
-  scope?: string; // Scopes granted
-  permissions?: string[]; // Custom permissions
-  email?: string; // User's email
-  name?: string; // User's name
-  nickname?: string; // User's nickname
-  picture?: string; // User's profile picture
-}
-````
-
-## File: apps/api/src/database/nba.prisma.service.ts
-````typescript
-import { nba } from '@dribblio/database';
-import { Injectable, OnModuleInit } from '@nestjs/common';
-
-@Injectable()
-export class NBAPrismaService extends nba.PrismaClient implements OnModuleInit {
-  async onModuleInit() {
-    await this.$connect();
-  }
-}
-````
-
-## File: apps/api/src/database/users.prisma.service.ts
-````typescript
-import { users } from '@dribblio/database';
-import { Injectable, OnModuleInit } from '@nestjs/common';
-
-@Injectable()
-export class UsersPrismaService extends users.PrismaClient implements OnModuleInit {
-  async onModuleInit() {
-    await this.$connect();
-  }
-}
-````
-
-## File: apps/api/src/users/dto/update-user.dto.ts
-````typescript
-export interface UpdateUserDto {
-  first_name?: string;
-  last_name?: string;
-}
-````
-
-## File: apps/api/src/users/users.controller.ts
-````typescript
-import { UpdateUserDto } from '@/users/dto/update-user.dto';
-import { UsersService } from '@/users/users.service';
-import { Body, Controller, Get, Patch, Request, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-
-@UseGuards(AuthGuard('jwt'))
-@Controller('me')
-export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
-
-  @Get()
-  async get(@Request() req) {
-    return await this.usersService.get(req.user.id);
-  }
-
-  @Patch()
-  async update(@Request() req, @Body() updateUserDto: UpdateUserDto) {
-    return await this.usersService.update(req.user.id, updateUserDto);
-  }
-}
-````
-
-## File: apps/api/src/users/users.module.ts
-````typescript
-import { Module } from '@nestjs/common';
-import { UsersController } from './users.controller';
-import { UsersService } from './users.service';
+import { Global, Module } from '@nestjs/common';
+import { PrismaService } from './prisma.service';
 
 @Module({
-  controllers: [UsersController],
-  providers: [UsersService],
+    providers: [PrismaService],
+    exports: [PrismaService]
 })
-export class UsersModule {}
+@Global()
+export class DatabaseModule {}
 ````
 
-## File: apps/api/src/users/users.service.ts
+## File: apps/api/src/database/prisma.service.ts
 ````typescript
-import { UsersPrismaService } from '@/database/users.prisma.service';
-import { Injectable } from '@nestjs/common';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { Injectable, OnModuleInit } from "@nestjs/common";
+import { PrismaClient } from "@dribblio/database";
 
 @Injectable()
-export class UsersService {
-  constructor(private readonly userPrisma: UsersPrismaService) {}
+export class PrismaService extends PrismaClient implements OnModuleInit {
+    async onModuleInit() {
+        await this.$connect();
+    }
+}
+````
 
-  async get(id: string) {
-    return await this.userPrisma.user.findUnique({
-      where: { id },
-    });
+## File: apps/api/src/nba/games/careerpath/room/room.service.spec.ts
+````typescript
+import { Test, TestingModule } from '@nestjs/testing';
+import { RoomService } from './room.service';
+
+describe('RoomService', () => {
+  let service: RoomService;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [RoomService],
+    }).compile();
+
+    service = module.get<RoomService>(RoomService);
+  });
+
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
+});
+````
+
+## File: apps/api/src/nba/games/careerpath/careerpath.module.ts
+````typescript
+import { Module } from '@nestjs/common';
+import { CareerPathGateway } from './careerpath.gateway';
+import { PlayersModule } from 'src/nba/player/player.module';
+import { DatabaseModule } from 'src/database/database.module';
+
+@Module({
+  imports: [PlayersModule, DatabaseModule],
+  providers: [CareerPathGateway],
+})
+export class CareerPathModule {}
+````
+
+## File: apps/api/src/nba/player/player.service.ts
+````typescript
+import { Player, Prisma, runtime } from '@dribblio/database';
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from 'src/database/prisma.service';
+
+import $Extensions = runtime.Types.Extensions;
+
+@Injectable()
+export class PlayersService {
+  constructor(private prisma: PrismaService) {}
+
+  async findAll<
+    T extends Prisma.PlayerFindManyArgs,
+    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs
+  >(args?: Prisma.SelectSubset<T, Prisma.PlayerFindManyArgs<ExtArgs>>) {
+    return await this.prisma.player.findMany(args);
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto) {
-    return await this.userPrisma.user.update({
-      where: { id: id },
-      data: {
-        first_name: updateUserDto.first_name ?? '',
-        last_name: updateUserDto.last_name ?? '',
-      },
-    });
+  async findOne(id: number): Promise<Player | null> {
+    return await this.prisma.player.findFirst({ where: { id: { equals: id } } } );
+  }
+
+  async findRandom(where?: Prisma.PlayerWhereInput): Promise<Player | null> {
+    const playerIds = (await this.findAll({ where: where, select: { id: true } })).map(
+      (player) => player.id
+    );
+    const randomId = playerIds[Math.floor(Math.random() * playerIds.length)];
+    return await this.findOne(randomId);
+  }
+
+  async findCount(): Promise<number> {
+    return await this.prisma.player.count();
   }
 }
+````
+
+## File: apps/api/test/app.e2e-spec.ts
+````typescript
+import { Test, TestingModule } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
+import * as request from 'supertest';
+import { App } from 'supertest/types';
+import { AppModule } from './../src/app.module';
+
+describe('AppController (e2e)', () => {
+  let app: INestApplication<App>;
+
+  beforeEach(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    await app.init();
+  });
+
+  it('/ (GET)', () => {
+    return request(app.getHttpServer())
+      .get('/')
+      .expect(200)
+      .expect('Hello World!');
+  });
+});
 ````
 
 ## File: apps/api/test/jest-e2e.json
@@ -580,15 +470,50 @@ export class UsersService {
 }
 ````
 
-## File: apps/api/jest.lint.config.ts
-````typescript
-const config = {
-  runner: 'jest-runner-eslint',
-  displayName: 'lint',
-  testMatch: ['<rootDir>/**/*.{js,ts}'],
-};
+## File: apps/api/.prettierrc
+````
+{
+  "singleQuote": true,
+  "trailingComma": "all"
+}
+````
 
-export default config;
+## File: apps/api/eslint.config.mjs
+````
+// @ts-check
+import eslint from '@eslint/js';
+import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+
+export default tseslint.config(
+  {
+    ignores: ['eslint.config.mjs'],
+  },
+  eslint.configs.recommended,
+  ...tseslint.configs.recommendedTypeChecked,
+  eslintPluginPrettierRecommended,
+  {
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.jest,
+      },
+      sourceType: 'commonjs',
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
+  {
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-floating-promises': 'warn',
+      '@typescript-eslint/no-unsafe-argument': 'warn'
+    },
+  },
+);
 ````
 
 ## File: apps/api/nest-cli.json
@@ -608,6 +533,246 @@ export default config;
 {
   "extends": "./tsconfig.json",
   "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
+}
+````
+
+## File: apps/api/tsconfig.json
+````json
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2023",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "noFallthroughCasesInSwitch": false
+  }
+}
+````
+
+## File: apps/web/src/app/multiplayer/page.tsx
+````typescript
+'use client';
+
+import { CareerPath } from '@/components/careerpath/careerpathview';
+import JoinHostModal from '@/components/config/multiplayer/joinhostmodal';
+import PlayerSearchBar from '@/components/search/playersearchbar';
+import { Button } from '@/components/ui/button';
+import useMultiplayerSocket from '@/hooks/useMultiplayerSocket';
+import { UserGameInfo } from '@dribblio/types';
+
+export default function Game() {
+  const {
+    isConnected,
+    roomId,
+    roundActive,
+    canStartGame,
+    onStartGame,
+    users,
+    onHostRoom,
+    onJoinRoom,
+    teams,
+    players,
+    onGuess,
+    timeLeft,
+    validAnswers,
+  } = useMultiplayerSocket();
+
+  return (
+    <div className="flex flex-col h-full m-16 space-y-8">
+      <JoinHostModal isOpen={!roomId} onJoinRoom={onJoinRoom} onHostRoom={onHostRoom} />
+      <div className="justify-start">
+        <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
+        {roomId && <p>{`Room Code: ${roomId}`}</p>}
+        {users.some((user: UserGameInfo) => user) && (
+          <div>
+            <p>Users:</p>
+            <ul>
+              {users.map((user: UserGameInfo) => (
+                <li key={user.info.id}>
+                  <div className="flex flex-row space-x-2">
+                    <p>{user.info.name}</p>
+                    <p>{user.score}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      {canStartGame && (
+        <div>
+          <Button onClick={onStartGame}>Start Game</Button>
+        </div>
+      )}
+
+      {roundActive && (
+        <div className="w-full flex flex-col items-center space-y-8">
+          <p className="text-2xl font-bold">Time Left: {timeLeft}</p>
+          <CareerPath teams={teams!} />
+          <PlayerSearchBar playerList={players} onSelect={onGuess} />
+        </div>
+      )}
+
+      {!roundActive && !canStartGame && (
+        <div>
+          <p>Correct Answers:</p>
+          <ul>
+            {validAnswers.map((answer) => (
+              <li key={answer.id}>{answer.display_first_last}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+````
+
+## File: apps/web/src/app/singleplayer/page.tsx
+````typescript
+'use client';
+
+import { CorrectAnswer } from '@/components/careerpath/answer';
+import { CareerPath } from '@/components/careerpath/careerpathview';
+import SinglePlayerConfigModal from '@/components/config/singleplayer/configmodal';
+import PlayerSearchBar from '@/components/search/playersearchbar';
+import { Button } from '@/components/ui/button';
+import useConfetti from '@/hooks/useConfetti';
+import useSinglePlayerSocket from '@/hooks/useSinglePlayerSocket';
+import { Player } from '@dribblio/database';
+import { useTheme } from 'next-themes';
+import { toast } from 'react-toastify';
+
+export default function SinglePlayer() {
+  const { theme } = useTheme();
+  const { onConfetti } = useConfetti();
+
+  const correctAction = (validAnswers: Player[]) => {
+    toast(<CorrectAnswer validAnswers={validAnswers} />, { theme });
+    onConfetti();
+  };
+
+  const incorrectAction = () => {
+    toast.error('Incorrect', { theme });
+  };
+
+  const {
+    isConnected,
+    canStartGame,
+    isRoomConfigured,
+    onConfigureRoom,
+    onStartGame,
+    machineState,
+    score,
+    teams,
+    lives,
+    onGuess,
+    onSkip,
+  } = useSinglePlayerSocket({ correctAction, incorrectAction });
+
+  return (
+    <div className="flex flex-col h-full m-16 space-y-8">
+      <SinglePlayerConfigModal isOpen={!isRoomConfigured} onConfigureRoom={onConfigureRoom} />
+      <div className="justify-start">
+        <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
+        <p>State: {machineState}</p>
+      </div>
+
+      {isConnected && (
+        <div className="w-full flex flex-col items-center space-y-8">
+          {canStartGame && <Button onClick={onStartGame}>Start Game</Button>}
+          {teams && (
+            <div className="w-full flex flex-col items-center space-y-8">
+              <div className="flex flex-col items-center">
+                <p className="font-black text-2xl">Lives: {lives}</p>
+                <p className="font-black text-2xl">Score: {score}</p>
+              </div>
+              <CareerPath teams={teams} />
+              <PlayerSearchBar className="w-1/2" onSelect={onGuess} />
+              <Button onClick={onSkip}>Skip</Button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+````
+
+## File: apps/web/src/app/layout.tsx
+````typescript
+import '@/styles/globals.css';
+
+import { Providers } from '@/app/providers';
+import NBANavbar from '@/components/navbar/navbar';
+import { sfFont } from '@/styles/sfFont';
+import { ReactNode } from 'react';
+import { Bounce, ToastContainer } from 'react-toastify';
+
+export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+  return (
+    <html lang="en" className={`${sfFont.variable}`} suppressHydrationWarning>
+      <body>
+        <Providers themeProps={{ attribute: 'class', defaultTheme: 'dark' }}>
+          <nav className="fixed top-0 left-0 w-full z-10 flex justify-center z-[100] pointer-events-auto">
+            <NBANavbar className="w-auto top-8" />
+          </nav>
+          <ToastContainer
+            position="bottom-center"
+            autoClose={5000}
+            hideProgressBar
+            closeOnClick
+            newestOnTop
+            pauseOnHover
+            closeButton={false}
+            transition={Bounce}
+          />
+          <main>{children}</main>
+        </Providers>
+      </body>
+    </html>
+  );
+}
+````
+
+## File: apps/web/src/app/page.tsx
+````typescript
+import GameModeCard from '@/components/gamemodecard';
+
+export default function Home() {
+  return (
+    <div className="h-dvh w-full p-16">
+      <div className="h-full flex flex-row justify-center space-x-8">
+        <GameModeCard
+          className="w-1/2"
+          title="Single Player"
+          description="Test your own knowledge, but you only have 5 lives."
+          href="/singleplayer"
+          imageHref="/images/jaylenbrown.jpg"
+        />
+        <GameModeCard
+          className="w-1/2"
+          title="Multiplayer"
+          description="Compete against friends and come out on top."
+          href="/multiplayer"
+          imageHref="/images/jaysontatum.webp"
+        />
+      </div>
+    </div>
+  );
 }
 ````
 
@@ -1036,6 +1201,105 @@ function HostForm({
 }
 ````
 
+## File: apps/web/src/components/config/singleplayer/configmodal.tsx
+````typescript
+'use client';
+
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import {
+  GameDifficulties,
+  GameDifficultyNames,
+  GameDifficultySchema,
+  SinglePlayerConfig,
+} from '@dribblio/types';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+export default function SinglePlayerConfigModal({
+  isOpen,
+  onConfigureRoom,
+}: Readonly<{ isOpen: boolean; onConfigureRoom: (config: SinglePlayerConfig) => void }>) {
+  return (
+    <Dialog open={isOpen}>
+      <DialogContent
+        className="[&>button]:hidden"
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
+        <DialogHeader>
+          <DialogTitle>Single Player</DialogTitle>
+        </DialogHeader>
+        <SinglePlayerForm onConfigureRoom={onConfigureRoom} />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function SinglePlayerForm({
+  onConfigureRoom,
+}: Readonly<{ onConfigureRoom: (config: SinglePlayerConfig) => void }>) {
+  const formSchema = z.object({
+    gameDifficulty: z.enum(GameDifficultyNames as [string, ...string[]]),
+  });
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      gameDifficulty: GameDifficulties.currentPlayers.name,
+    },
+  });
+
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    onConfigureRoom({ gameDifficulty: GameDifficultySchema.parse(values.gameDifficulty) });
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="flex flex-col space-y-4">
+          <FormField
+            control={form.control}
+            name="gameDifficulty"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Difficulty</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select game difficulty" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {GameDifficultyNames.map((mode) => (
+                      <SelectItem key={mode} value={mode}>
+                        {GameDifficultySchema.parse(mode).display_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          ></FormField>
+          <div className="flex justify-end mt-4">
+            <Button type="submit">Create Game</Button>
+          </div>
+        </div>
+      </form>
+    </Form>
+  );
+}
+````
+
 ## File: apps/web/src/components/magicui/dock.tsx
 ````typescript
 'use client';
@@ -1179,6 +1443,52 @@ const DockIcon = ({
 DockIcon.displayName = 'DockIcon';
 
 export { Dock, DockIcon, dockVariants };
+````
+
+## File: apps/web/src/components/navbar/navbar.tsx
+````typescript
+'use client';
+
+import { Dock, DockIcon } from '@/components/magicui/dock';
+import ThemeSwitcher from '@/components/navbar/themeswitcher';
+import { buttonVariants } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { siteConfig } from '@/config/site';
+import { cn } from '@/lib/utils';
+import NextLink from 'next/link';
+
+export default function NBANavbar({ className }: Readonly<{ className?: string }>) {
+  return (
+    <div className={`${className}`}>
+      <TooltipProvider>
+        <Dock className="rounded-full" iconMagnification={60} iconDistance={25}>
+          {siteConfig.navItems.map((item) => (
+            <DockIcon key={item.label}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <NextLink
+                    href={item.href}
+                    className={cn(
+                      buttonVariants({ variant: 'ghost', size: 'icon', className: 'rounded-full' }),
+                    )}
+                  >
+                    <item.icon />
+                  </NextLink>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{item.label}</p>
+                </TooltipContent>
+              </Tooltip>
+            </DockIcon>
+          ))}
+          <Separator orientation="vertical" className="h-full py-2" />
+          <ThemeSwitcher />
+        </Dock>
+      </TooltipProvider>
+    </div>
+  );
+}
 ````
 
 ## File: apps/web/src/components/navbar/themeswitcher.tsx
@@ -1757,6 +2067,162 @@ function Label({ className, ...props }: React.ComponentProps<typeof LabelPrimiti
 export { Label };
 ````
 
+## File: apps/web/src/components/ui/select.tsx
+````typescript
+'use client';
+
+import * as React from 'react';
+import * as SelectPrimitive from '@radix-ui/react-select';
+import { Check, ChevronDown, ChevronUp } from 'lucide-react';
+
+import { cn } from '@/lib/utils';
+
+const Select = SelectPrimitive.Root;
+
+const SelectGroup = SelectPrimitive.Group;
+
+const SelectValue = SelectPrimitive.Value;
+
+const SelectTrigger = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
+>(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Trigger
+    ref={ref}
+    className={cn(
+      'flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background data-[placeholder]:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
+      className,
+    )}
+    {...props}
+  >
+    {children}
+    <SelectPrimitive.Icon asChild>
+      <ChevronDown className="h-4 w-4 opacity-50" />
+    </SelectPrimitive.Icon>
+  </SelectPrimitive.Trigger>
+));
+SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
+
+const SelectScrollUpButton = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.ScrollUpButton>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollUpButton>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.ScrollUpButton
+    ref={ref}
+    className={cn('flex cursor-default items-center justify-center py-1', className)}
+    {...props}
+  >
+    <ChevronUp className="h-4 w-4" />
+  </SelectPrimitive.ScrollUpButton>
+));
+SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName;
+
+const SelectScrollDownButton = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.ScrollDownButton>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollDownButton>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.ScrollDownButton
+    ref={ref}
+    className={cn('flex cursor-default items-center justify-center py-1', className)}
+    {...props}
+  >
+    <ChevronDown className="h-4 w-4" />
+  </SelectPrimitive.ScrollDownButton>
+));
+SelectScrollDownButton.displayName = SelectPrimitive.ScrollDownButton.displayName;
+
+const SelectContent = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
+>(({ className, children, position = 'popper', ...props }, ref) => (
+  <SelectPrimitive.Portal>
+    <SelectPrimitive.Content
+      ref={ref}
+      className={cn(
+        'relative z-50 max-h-[--radix-select-content-available-height] min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-select-content-transform-origin]',
+        position === 'popper' &&
+          'data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1',
+        className,
+      )}
+      position={position}
+      {...props}
+    >
+      <SelectScrollUpButton />
+      <SelectPrimitive.Viewport
+        className={cn(
+          'p-1',
+          position === 'popper' &&
+            'h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]',
+        )}
+      >
+        {children}
+      </SelectPrimitive.Viewport>
+      <SelectScrollDownButton />
+    </SelectPrimitive.Content>
+  </SelectPrimitive.Portal>
+));
+SelectContent.displayName = SelectPrimitive.Content.displayName;
+
+const SelectLabel = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Label>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Label>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.Label
+    ref={ref}
+    className={cn('px-2 py-1.5 text-sm font-semibold', className)}
+    {...props}
+  />
+));
+SelectLabel.displayName = SelectPrimitive.Label.displayName;
+
+const SelectItem = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
+>(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Item
+    ref={ref}
+    className={cn(
+      'relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+      className,
+    )}
+    {...props}
+  >
+    <span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
+      <SelectPrimitive.ItemIndicator>
+        <Check className="h-4 w-4" />
+      </SelectPrimitive.ItemIndicator>
+    </span>
+    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+  </SelectPrimitive.Item>
+));
+SelectItem.displayName = SelectPrimitive.Item.displayName;
+
+const SelectSeparator = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Separator>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Separator>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.Separator
+    ref={ref}
+    className={cn('-mx-1 my-1 h-px bg-muted', className)}
+    {...props}
+  />
+));
+SelectSeparator.displayName = SelectPrimitive.Separator.displayName;
+
+export {
+  Select,
+  SelectGroup,
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+  SelectLabel,
+  SelectItem,
+  SelectSeparator,
+  SelectScrollUpButton,
+  SelectScrollDownButton,
+};
+````
+
 ## File: apps/web/src/components/ui/separator.tsx
 ````typescript
 'use client';
@@ -1785,6 +2251,98 @@ const Separator = React.forwardRef<
 Separator.displayName = SeparatorPrimitive.Root.displayName;
 
 export { Separator };
+````
+
+## File: apps/web/src/components/ui/switch.tsx
+````typescript
+'use client';
+
+import * as React from 'react';
+import * as SwitchPrimitives from '@radix-ui/react-switch';
+
+import { cn } from '@/lib/utils';
+
+const Switch = React.forwardRef<
+  React.ElementRef<typeof SwitchPrimitives.Root>,
+  React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root>
+>(({ className, ...props }, ref) => (
+  <SwitchPrimitives.Root
+    className={cn(
+      'peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-input',
+      className,
+    )}
+    {...props}
+    ref={ref}
+  >
+    <SwitchPrimitives.Thumb
+      className={cn(
+        'pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0',
+      )}
+    />
+  </SwitchPrimitives.Root>
+));
+Switch.displayName = SwitchPrimitives.Root.displayName;
+
+export { Switch };
+````
+
+## File: apps/web/src/components/ui/tabs.tsx
+````typescript
+'use client';
+
+import * as React from 'react';
+import * as TabsPrimitive from '@radix-ui/react-tabs';
+
+import { cn } from '@/lib/utils';
+
+const Tabs = TabsPrimitive.Root;
+
+const TabsList = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.List>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
+>(({ className, ...props }, ref) => (
+  <TabsPrimitive.List
+    ref={ref}
+    className={cn(
+      'inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground',
+      className,
+    )}
+    {...props}
+  />
+));
+TabsList.displayName = TabsPrimitive.List.displayName;
+
+const TabsTrigger = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
+>(({ className, ...props }, ref) => (
+  <TabsPrimitive.Trigger
+    ref={ref}
+    className={cn(
+      'inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow',
+      className,
+    )}
+    {...props}
+  />
+));
+TabsTrigger.displayName = TabsPrimitive.Trigger.displayName;
+
+const TabsContent = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>
+>(({ className, ...props }, ref) => (
+  <TabsPrimitive.Content
+    ref={ref}
+    className={cn(
+      'mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+      className,
+    )}
+    {...props}
+  />
+));
+TabsContent.displayName = TabsPrimitive.Content.displayName;
+
+export { Tabs, TabsList, TabsTrigger, TabsContent };
 ````
 
 ## File: apps/web/src/components/ui/tooltip.tsx
@@ -1895,6 +2453,46 @@ export default function TeamLogo({
 }
 ````
 
+## File: apps/web/src/config/site.ts
+````typescript
+import { Gamepad2, House, LucideProps, Swords, User } from 'lucide-react';
+import { ForwardRefExoticComponent, RefAttributes } from 'react';
+
+export type SiteConfig = typeof siteConfig;
+
+type NavItem = {
+  label: string;
+  icon: ForwardRefExoticComponent<Omit<LucideProps, 'ref'> & RefAttributes<SVGSVGElement>>;
+  href: string;
+};
+
+export const siteConfig: { name: string; navItems: NavItem[] } = {
+  name: 'NBA Career Game',
+  navItems: [
+    {
+      label: 'Home',
+      icon: House,
+      href: '/',
+    },
+    {
+      label: 'Profile',
+      icon: User,
+      href: '/profile',
+    },
+    {
+      label: 'Single Player',
+      icon: Gamepad2,
+      href: '/singleplayer',
+    },
+    {
+      label: 'Multiplayer',
+      icon: Swords,
+      href: '/multiplayer',
+    },
+  ],
+};
+````
+
 ## File: apps/web/src/hooks/useConfetti.ts
 ````typescript
 import confetti from 'canvas-confetti';
@@ -1934,6 +2532,317 @@ const useConfetti = () => {
 };
 
 export default useConfetti;
+````
+
+## File: apps/web/src/hooks/useMultiplayerSocket.ts
+````typescript
+'use client';
+
+import { clientSocket } from '@/lib/clientsocket';
+import {
+  User,
+  GameState,
+  MultiplayerConfig,
+  UserGameInfo,
+  HostRoomMessageBody,
+  JoinRoomMessageBody,
+} from '@dribblio/types';
+import { Player } from '@dribblio/database';
+import { useEffect, useState } from 'react';
+
+type RoomProps = {
+  id: string;
+  users: User[];
+};
+
+type RoundProps = {
+  roundActive: boolean;
+  timeLeft: number;
+  users: UserGameInfo[];
+  team_history: string[];
+  players: Player[];
+};
+
+const useMultiplayerSocket = () => {
+  const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [canStartGame, setCanStartGame] = useState<boolean>(false);
+
+  const [roundActive, setRoundActive] = useState<boolean>(false);
+  const [users, setUsers] = useState<UserGameInfo[]>([]);
+  const [roomId, setRoomId] = useState<string | undefined>(undefined);
+  const [validAnswers, setValidAnswers] = useState<Player[]>([]);
+
+  const [teams, setTeams] = useState<string[] | null>(null);
+
+  const [players, setPlayers] = useState<Player[]>([]);
+
+  const [timeLeft, setTimeLeft] = useState<number>(0);
+
+  // From Server
+  function onRoomUpdated({ id, users }: RoomProps) {
+    setRoomId(id);
+    setUsers(users.map((user: User) => ({ info: user, score: 0 })));
+  }
+  function onNextRound({ roundActive, timeLeft, team_history, users, players }: RoundProps) {
+    setRoundActive(roundActive);
+    setTimeLeft(timeLeft);
+    setUsers(users);
+    setTeams(team_history);
+    setPlayers(players);
+  }
+  function onTimerUpdated({ timeLeft }: { timeLeft: number }) {
+    setTimeLeft(timeLeft);
+  }
+  function onEndRound({ roundActive, users, validAnswers }: GameState) {
+    setRoundActive(roundActive);
+    setUsers(users);
+    setValidAnswers(validAnswers);
+  }
+
+  // To Server
+  function onConnect() {
+    setIsConnected(true);
+  }
+  function onDisconnect() {
+    setIsConnected(false);
+  }
+  function onHostRoom(userName: string, config: MultiplayerConfig) {
+    const body: HostRoomMessageBody = { isMulti: true, userName, config };
+    clientSocket.emit('host_room', body);
+    setCanStartGame(true);
+  }
+  function onJoinRoom(roomId: string, userName: string) {
+    const body: JoinRoomMessageBody = { roomId, userName };
+    clientSocket.emit('join_room', body);
+  }
+  function onStartGame() {
+    setCanStartGame(false);
+    clientSocket.emit('start_game', users);
+  }
+  function onGuess(playerId: number) {
+    clientSocket.emit('client_guess', playerId);
+  }
+
+  useEffect(() => {
+    setCanStartGame(false);
+
+    clientSocket.on('connect', onConnect);
+    clientSocket.on('disconnect', onDisconnect);
+    clientSocket.on('room_updated', onRoomUpdated);
+    clientSocket.on('next_round', onNextRound);
+    clientSocket.on('timer_updated', onTimerUpdated);
+    clientSocket.on('end_round', onEndRound);
+
+    clientSocket.connect();
+
+    return () => {
+      clientSocket.off('connect', onConnect);
+      clientSocket.off('disconnect', onDisconnect);
+      clientSocket.off('room_updated', onRoomUpdated);
+      clientSocket.off('next_round', onNextRound);
+      clientSocket.off('timer_updated', onTimerUpdated);
+      clientSocket.off('end_round', onEndRound);
+      clientSocket.disconnect();
+    };
+  }, []);
+
+  return {
+    socketId: clientSocket.id,
+    isConnected,
+    roundActive,
+    roomId,
+    canStartGame,
+    onStartGame,
+    users,
+    onHostRoom,
+    onJoinRoom,
+    teams,
+    players,
+    onGuess,
+    timeLeft,
+    validAnswers,
+  };
+};
+
+export default useMultiplayerSocket;
+````
+
+## File: apps/web/src/hooks/usePlayerSearch.ts
+````typescript
+'use client';
+
+import { SearchResponse } from '@dribblio/types';
+import { Player } from '@dribblio/database';
+import { AsyncListLoadOptions, useAsyncList } from '@react-stately/data';
+import { useEffect, useState } from 'react';
+
+const usePlayerSearch = () => {
+  const [playerCount, setPlayerCount] = useState<number>(0);
+
+  useEffect(() => {
+    fetch('/api/players/count')
+      .then((res) => res.json())
+      .then(setPlayerCount);
+  }, [setPlayerCount]);
+
+  const list = useAsyncList<Player>({
+    async load({ signal, filterText }: AsyncListLoadOptions<Player, string>) {
+      const res = await fetch(`/api/players/search?searchTerm=${filterText}`, {
+        signal,
+      });
+      const json: SearchResponse = await res.json();
+
+      return {
+        items: json.results,
+      };
+    },
+  });
+
+  return { playerCount, list };
+};
+
+export default usePlayerSearch;
+````
+
+## File: apps/web/src/hooks/useSinglePlayerSocket.ts
+````typescript
+'use client';
+
+import { clientSocket } from '@/lib/clientsocket';
+import { HostRoomMessageBody, SinglePlayerConfig } from '@dribblio/types';
+import { Player } from '@dribblio/database';
+import { useEffect, useState } from 'react';
+
+type ClientSocketProps = {
+  correctAction: (validAnswers: Player[]) => void;
+  incorrectAction: () => void;
+};
+
+type StateProps = {
+  gameActive?: string;
+};
+
+type RoundProps = {
+  score: number;
+  team_history: string[];
+  lives: number;
+};
+
+type CorrectGuessProps = {
+  validAnswers: Player[];
+};
+
+type IncorrectGuessProps = {
+  lives: number;
+};
+
+const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketProps) => {
+  const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [isRoomConfigured, setIsRoomConfigured] = useState<boolean>(false);
+  const [canStartGame, setCanStartGame] = useState<boolean>(true);
+  const [machineState, setMachineState] = useState<string>('waitingForGameStart');
+
+  const [score, setScore] = useState<number>(0);
+  const [teams, setTeams] = useState<string[] | null>(null);
+  const [lives, setLives] = useState<number>(0);
+
+  // From Server
+  function onStateChange({ gameActive }: StateProps) {
+    setMachineState(gameActive ?? 'waitingForGameStart');
+  }
+  function onNextRound({ score, team_history, lives }: RoundProps) {
+    setScore(score);
+    setTeams(team_history);
+    setLives(lives);
+  }
+  function onSkipped({ lives }: IncorrectGuessProps) {
+    setLives(lives);
+  }
+  function onGameOver() {
+    setCanStartGame(true);
+    setScore(0);
+    setTeams(null);
+  }
+
+  // To Server
+  function onConnect() {
+    setIsConnected(true);
+    setCanStartGame(true);
+  }
+  function onDisconnect() {
+    setIsConnected(false);
+    setMachineState('waitingForGameStart');
+    setScore(0);
+    setTeams(null);
+  }
+  function onConfigureRoom(config: SinglePlayerConfig) {
+    const body: HostRoomMessageBody = { isMulti: false, userName: '', config };
+    clientSocket.emit('host_room', body);
+    setIsRoomConfigured(true);
+  }
+  function onStartGame() {
+    setCanStartGame(false);
+    clientSocket.emit('start_game');
+  }
+  function onGuess(playerId: number) {
+    clientSocket.emit('client_guess', playerId);
+  }
+  function onSkip() {
+    clientSocket.emit('skip_round');
+  }
+
+  useEffect(() => {
+    function onCorrectGuess({ validAnswers }: CorrectGuessProps) {
+      correctAction(validAnswers);
+    }
+    function onIncorrectGuess({ lives }: IncorrectGuessProps) {
+      setLives(lives);
+      incorrectAction();
+    }
+
+    setCanStartGame(false);
+
+    clientSocket.on('connect', onConnect);
+    clientSocket.on('disconnect', onDisconnect);
+    clientSocket.on('state_change', onStateChange);
+    clientSocket.on('correct_guess', onCorrectGuess);
+    clientSocket.on('incorrect_guess', onIncorrectGuess);
+    clientSocket.on('round_skipped', onSkipped);
+    clientSocket.on('next_round', onNextRound);
+    clientSocket.on('game_over', onGameOver);
+
+    clientSocket.connect();
+
+    return () => {
+      clientSocket.off('connect', onConnect);
+      clientSocket.off('disconnect', onDisconnect);
+      clientSocket.off('state_change', onStateChange);
+      clientSocket.off('correct_guess', onCorrectGuess);
+      clientSocket.off('incorrect_guess', onIncorrectGuess);
+      clientSocket.off('round_skipped', onSkipped);
+      clientSocket.off('next_round', onNextRound);
+      clientSocket.off('game_over', onGameOver);
+
+      clientSocket.disconnect();
+    };
+  }, []);
+
+  return {
+    isConnected,
+    canStartGame,
+    isRoomConfigured,
+    onConfigureRoom,
+    onStartGame,
+    machineState,
+    score,
+    teams,
+    lives,
+    onGuess,
+    onSkip,
+  };
+};
+
+export default useSinglePlayerSocket;
 ````
 
 ## File: apps/web/src/hooks/useUnveilLogos.ts
@@ -2020,18 +2929,6 @@ export const SunIcon = (props: IconSvgProps) => {
 };
 ````
 
-## File: apps/web/src/lib/auth0.ts
-````typescript
-import { Auth0Client } from '@auth0/nextjs-auth0/server';
-
-export const auth0 = new Auth0Client({
-  authorizationParameters: {
-    audience: process.env.AUTH0_AUDIENCE,
-    scope: process.env.AUTH0_SCOPE,
-  },
-});
-````
-
 ## File: apps/web/src/lib/clientsocket.ts
 ````typescript
 'use client';
@@ -2041,6 +2938,16 @@ import { io } from 'socket.io-client';
 export const clientSocket = io(`http://localhost:3002`, {
   autoConnect: false,
 });
+````
+
+## File: apps/web/src/lib/utils.ts
+````typescript
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
 ````
 
 ## File: apps/web/src/styles/sfFont.ts
@@ -2145,15 +3052,37 @@ export const sfFont = localFont({
 });
 ````
 
-## File: apps/web/jest.lint.config.ts
-````typescript
-const config = {
-  runner: 'jest-runner-eslint',
-  displayName: 'lint',
-  testMatch: ['<rootDir>/src/**/*.ts(x)'],
-};
+## File: apps/web/components.json
+````json
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": {
+    "config": "tailwind.config.ts",
+    "css": "src/styles/globals.css",
+    "baseColor": "zinc",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils",
+    "ui": "@/components/ui",
+    "lib": "@/lib",
+    "hooks": "@/hooks"
+  },
+  "iconLibrary": "lucide"
+}
+````
 
-export default config;
+## File: apps/web/eslint.config.js
+````javascript
+import { nextJsConfig } from "@dribblio/eslint-config/next-js";
+
+/** @type {import("eslint").Linter.Config} */
+export default nextJsConfig;
 ````
 
 ## File: apps/web/postcss.config.js
@@ -2178,7 +3107,7 @@ const config = {
 export default config;
 ````
 
-## File: packages/database/prisma-nba/schema.prisma
+## File: packages/database/prisma/schema.prisma
 ````
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
@@ -2188,7 +3117,7 @@ export default config;
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma-nba"
+  output   = "../generated/prisma"
 }
 
 generator json {
@@ -2197,7 +3126,7 @@ generator json {
 
 datasource db {
   provider = "postgresql"
-  url      = env("NBA_DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 model Player {
@@ -2235,48 +3164,15 @@ model player_accolades {
 }
 ````
 
-## File: packages/database/prisma-users/migrations/20250613183421_create_user_table/migration.sql
-````sql
--- CreateTable
-CREATE TABLE "User" (
-    "id" TEXT NOT NULL,
-    "first_name" TEXT NOT NULL,
-    "last_name" TEXT NOT NULL,
+## File: packages/database/src/client.ts
+````typescript
+import { PrismaClient } from '../generated/prisma';
 
-    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
-);
-````
+const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
-## File: packages/database/prisma-users/migrations/migration_lock.toml
-````toml
-# Please do not edit this file manually
-# It should be added in your version-control system (e.g., Git)
-provider = "postgresql"
-````
+export const prisma = globalForPrisma.prisma || new PrismaClient();
 
-## File: packages/database/prisma-users/schema.prisma
-````
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-generator client {
-  provider = "prisma-client-js"
-  output   = "../generated/prisma-users"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("USERS_DATABASE_URL")
-}
-
-model User {
-  id String @id
-  first_name String
-  last_name String
-}
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 ````
 
 ## File: packages/database/package.json
@@ -2287,8 +3183,7 @@ model User {
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "db:generate": "prisma generate --schema ./prisma-users/schema.prisma && prisma generate --schema ./prisma-nba/schema.prisma",
-    "db:migrate": "prisma migrate dev --schema ./prisma-users/schema.prisma"
+    "db:generate": "prisma generate"
   },
   "devDependencies": {
     "prisma": "^6.7.0"
@@ -2313,6 +3208,166 @@ model User {
 }
 ````
 
+## File: packages/eslint-config/base.js
+````javascript
+import js from "@eslint/js";
+import eslintConfigPrettier from "eslint-config-prettier";
+import turboPlugin from "eslint-plugin-turbo";
+import tseslint from "typescript-eslint";
+import onlyWarn from "eslint-plugin-only-warn";
+
+/**
+ * A shared ESLint configuration for the repository.
+ *
+ * @type {import("eslint").Linter.Config[]}
+ * */
+export const config = [
+  js.configs.recommended,
+  eslintConfigPrettier,
+  ...tseslint.configs.recommended,
+  {
+    plugins: {
+      turbo: turboPlugin,
+    },
+    rules: {
+      "turbo/no-undeclared-env-vars": "warn",
+    },
+  },
+  {
+    plugins: {
+      onlyWarn,
+    },
+  },
+  {
+    ignores: ["dist/**"],
+  },
+];
+````
+
+## File: packages/eslint-config/next.js
+````javascript
+import js from "@eslint/js";
+import eslintConfigPrettier from "eslint-config-prettier";
+import tseslint from "typescript-eslint";
+import pluginReactHooks from "eslint-plugin-react-hooks";
+import pluginReact from "eslint-plugin-react";
+import globals from "globals";
+import pluginNext from "@next/eslint-plugin-next";
+import { config as baseConfig } from "./base.js";
+
+/**
+ * A custom ESLint configuration for libraries that use Next.js.
+ *
+ * @type {import("eslint").Linter.Config[]}
+ * */
+export const nextJsConfig = [
+  ...baseConfig,
+  js.configs.recommended,
+  eslintConfigPrettier,
+  ...tseslint.configs.recommended,
+  {
+    ...pluginReact.configs.flat.recommended,
+    languageOptions: {
+      ...pluginReact.configs.flat.recommended.languageOptions,
+      globals: {
+        ...globals.serviceworker,
+      },
+    },
+  },
+  {
+    plugins: {
+      "@next/next": pluginNext,
+    },
+    rules: {
+      ...pluginNext.configs.recommended.rules,
+      ...pluginNext.configs["core-web-vitals"].rules,
+    },
+  },
+  {
+    plugins: {
+      "react-hooks": pluginReactHooks,
+    },
+    settings: { react: { version: "detect" } },
+    rules: {
+      ...pluginReactHooks.configs.recommended.rules,
+      // React scope no longer necessary with new JSX transform.
+      "react/react-in-jsx-scope": "off",
+    },
+  },
+];
+````
+
+## File: packages/eslint-config/package.json
+````json
+{
+  "name": "@dribblio/eslint-config",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./base": "./base.js",
+    "./next-js": "./next.js",
+    "./react-internal": "./react-internal.js"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.25.0",
+    "@next/eslint-plugin-next": "^15.3.0",
+    "eslint": "^9.25.0",
+    "eslint-config-prettier": "^10.1.1",
+    "eslint-plugin-only-warn": "^1.1.0",
+    "eslint-plugin-react": "^7.37.4",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-turbo": "^2.5.0",
+    "globals": "^16.0.0",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.31.0"
+  }
+}
+````
+
+## File: packages/eslint-config/react-internal.js
+````javascript
+import js from "@eslint/js";
+import eslintConfigPrettier from "eslint-config-prettier";
+import tseslint from "typescript-eslint";
+import pluginReactHooks from "eslint-plugin-react-hooks";
+import pluginReact from "eslint-plugin-react";
+import globals from "globals";
+import { config as baseConfig } from "./base.js";
+
+/**
+ * A custom ESLint configuration for libraries that use React.
+ *
+ * @type {import("eslint").Linter.Config[]} */
+export const config = [
+  ...baseConfig,
+  js.configs.recommended,
+  eslintConfigPrettier,
+  ...tseslint.configs.recommended,
+  pluginReact.configs.flat.recommended,
+  {
+    languageOptions: {
+      ...pluginReact.configs.flat.recommended.languageOptions,
+      globals: {
+        ...globals.serviceworker,
+        ...globals.browser,
+      },
+    },
+  },
+  {
+    plugins: {
+      "react-hooks": pluginReactHooks,
+    },
+    settings: { react: { version: "detect" } },
+    rules: {
+      ...pluginReactHooks.configs.recommended.rules,
+      // React scope no longer necessary with new JSX transform.
+      "react/react-in-jsx-scope": "off",
+    },
+  },
+];
+````
+
 ## File: packages/eslint-config/README.md
 ````markdown
 # `@turbo/eslint-config`
@@ -2332,6 +3387,173 @@ import { Player } from '@dribblio/database';
 export interface SearchResponse {
   results: Player[];
 }
+````
+
+## File: packages/types/src/statemachine/multiplayer/actions.ts
+````typescript
+import { MultiplayerContext } from './gamemachine.js';
+import { AnyEventObject } from 'xstate';
+
+type ActionProps = {
+  context: MultiplayerContext;
+  event: AnyEventObject;
+};
+
+export const sendPlayerToRoom = ({ context }: ActionProps) => {
+  try {
+    const { io, room, gameState } = context;
+    const { roundActive, timeLeft, users, validAnswers } = gameState;
+
+    const team_history = validAnswers[0]?.team_history?.split(',');
+
+    io?.to(room.id).emit('next_round', { roundActive, timeLeft, users, team_history });
+  } catch (err) {
+    throw Error(`Socket could not be found: ${err}`);
+  }
+};
+
+export const sendTimerToRoom = ({ context }: ActionProps) => {
+  const { io, room, gameState } = context;
+  const { timeLeft } = gameState;
+
+  io?.to(room.id).emit('timer_updated', { timeLeft });
+};
+
+export const sendRoundInfoToRoom = ({ context }: ActionProps) => {
+  const { io, room, gameState } = context;
+
+  io?.to(room.id).emit('end_round', gameState);
+};
+````
+
+## File: packages/types/src/statemachine/multiplayer/guards.ts
+````typescript
+import { MultiplayerContext } from './gamemachine.js';
+import { AnyEventObject } from 'xstate';
+
+type GuardProps = {
+  context: MultiplayerContext;
+  event: AnyEventObject;
+};
+
+export const isCorrectMultiplayer = ({ context, event }: GuardProps): boolean => {
+  const { guessId } = event.guess;
+  return !!context.gameState.validAnswers.find((player) => player.id === guessId);
+};
+
+export const timeExpired = ({ context }: GuardProps): boolean => {
+  const { timeLeft } = context.gameState;
+  return timeLeft <= 0;
+};
+````
+
+## File: packages/types/src/statemachine/multiplayer/index.ts
+````typescript
+export * from './actions.js';
+export * from './gamemachine.js';
+export * from './guards.js';
+````
+
+## File: packages/types/src/statemachine/singleplayer/actions.ts
+````typescript
+import { SinglePlayerContext } from './gamemachine.js';
+import { AnyEventObject } from 'xstate';
+
+type ActionProps = {
+  context: SinglePlayerContext;
+  event: AnyEventObject;
+};
+
+export const waitForUser = ({ context }: ActionProps) => {
+  try {
+    const { socket } = context;
+
+    socket?.emit('waiting_for_user');
+  } catch (err) {
+    throw Error(`Socket could not be found: ${err}`);
+  }
+};
+
+export const sendPlayerToClient = ({ context }: ActionProps) => {
+  try {
+    const { socket, gameState } = context;
+    const { score, validAnswers, lives } = gameState;
+
+    const team_history = validAnswers[0]?.team_history?.split(',');
+
+    socket?.emit('next_round', { score, team_history, lives: lives + 1 });
+  } catch (err) {
+    throw Error(`Socket could not be found: ${err}`);
+  }
+};
+
+export const notifyCorrectGuess = ({ context }: ActionProps) => {
+  try {
+    const { socket, gameState } = context;
+    const { validAnswers } = gameState;
+
+    socket?.emit('correct_guess', { validAnswers });
+  } catch (err) {
+    throw Error(`Socket could not be found: ${err}`);
+  }
+};
+
+export const notifyIncorrectGuess = ({ context }: ActionProps) => {
+  try {
+    const { socket, gameState } = context;
+    const { lives } = gameState;
+
+    socket?.emit('incorrect_guess', { lives: lives + 1 });
+  } catch (err) {
+    throw Error(`Socket could not be found: ${err}`);
+  }
+};
+
+export const notifySkipRound = ({ context }: ActionProps) => {
+  try {
+    const { socket, gameState } = context;
+    const { lives } = gameState;
+
+    socket?.emit('round_skipped', { lives: lives + 1 });
+  } catch (err) {
+    throw Error(`Socket could not be found: ${err}`);
+  }
+};
+
+export const notifyGameOver = ({ context }: ActionProps) => {
+  try {
+    const { socket } = context;
+
+    socket?.emit('game_over');
+  } catch (err) {
+    throw Error(`Socket could not be found: ${err}`);
+  }
+};
+````
+
+## File: packages/types/src/statemachine/singleplayer/guards.ts
+````typescript
+import { SinglePlayerContext } from './gamemachine.js';
+import { AnyEventObject } from 'xstate';
+
+type GuardProps = {
+  context: SinglePlayerContext;
+  event: AnyEventObject;
+};
+
+export const isCorrectSinglePlayer = ({ context, event }: GuardProps): boolean => {
+  const { guessId } = event.guess;
+  return !!context.gameState.validAnswers.find((player) => player.id === guessId);
+};
+
+export const hasLives = ({ context }: GuardProps): boolean => context.gameState.lives > 0;
+````
+
+## File: packages/types/src/statemachine/singleplayer/index.ts
+````typescript
+export * from './actions.js';
+export * from './gamemachine.js';
+export * from './guards.js';
 ````
 
 ## File: packages/types/src/statemachine/gamedifficulties.ts
@@ -2596,88 +3818,388 @@ endOfLine: auto
 tabWidth: 2
 ````
 
-## File: apps/api/src/auth/auth.module.ts
+## File: .repomixignore
+````
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# Dependencies
+node_modules
+/pnp
+.pnp.js
+
+# Local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Testing
+coverage
+
+# Turbo
+.turbo
+
+# Vercel
+.vercel
+
+# Build Outputs
+.next/
+out/
+build
+dist
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Misc
+.DS_Store
+*.pem
+
+# production
+/build
+
+# next.js
+/.next/
+/out/
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+**/*-lock.json
+
+*.svg
+````
+
+## File: repomix.config.json
+````json
+{
+  "$schema": "https://repomix.com/schemas/latest/schema.json",
+  "input": {
+    "maxFileSize": 52428800
+  },
+  "output": {
+    "filePath": "docs/repo.md",
+    "style": "markdown",
+    "parsableStyle": false,
+    "fileSummary": true,
+    "directoryStructure": true,
+    "files": true,
+    "removeComments": false,
+    "removeEmptyLines": false,
+    "compress": false,
+    "topFilesLength": 5,
+    "showLineNumbers": false,
+    "copyToClipboard": false,
+    "git": {
+      "sortByChanges": true,
+      "sortByChangesMaxCommits": 100,
+      "includeDiffs": false
+    }
+  },
+  "include": [],
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": []
+  },
+  "security": {
+    "enableSecurityCheck": true
+  },
+  "tokenCount": {
+    "encoding": "o200k_base"
+  }
+}
+````
+
+## File: apps/api/src/nba/games/careerpath/room/room.service.ts
 ````typescript
-import { JwtStrategy } from '@/auth/jwt.strategy';
+import {
+  MultiplayerConfig,
+  Room,
+  SinglePlayerConfig,
+  User,
+} from '@dribblio/types';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Server, Socket } from 'socket.io';
+import { RoomFactory } from './factory.service';
+import ShortUniqueId from 'short-unique-id';
+import { CareerPathGateway } from '../careerpath.gateway';
+
+const uid = new ShortUniqueId({ length: 5, dictionary: 'alpha_upper' });
+
+@Injectable()
+export class RoomService {
+  private rooms: Record<string, Room> = {};
+
+  constructor(
+    @Inject(forwardRef(() => CareerPathGateway))
+    private gateway: CareerPathGateway,
+    private roomFactory: RoomFactory,
+  ) {}
+
+  createRoom(
+    isMulti: boolean,
+    socket: Socket,
+    userName: string,
+    config: MultiplayerConfig | SinglePlayerConfig,
+  ): Room {
+    const roomId: string = this.generateUniqueCode();
+
+    if (!this.rooms[roomId]) {
+      this.rooms[roomId] = isMulti
+        ? this.roomFactory.createMultiplayerRoom(
+            socket,
+            roomId,
+            config as MultiplayerConfig,
+          )
+        : this.roomFactory.createSinglePlayerRoom(
+            socket,
+            config as SinglePlayerConfig,
+          );
+    }
+
+    console.log(`Game machine created for room ${roomId}`);
+
+    this.joinRoom(socket, roomId, userName);
+
+    return this.rooms[roomId];
+  }
+
+  destroyRoom(id: string) {
+    delete this.rooms[id];
+    console.log(`Room destroyed for room ${id}`);
+  }
+
+  joinRoom(socket: Socket, id: string, userName: string): void {
+    if (!this.rooms[id]) return;
+
+    socket.join(id);
+
+    this.roomFactory.setUpListenersOnJoin(socket, this.rooms[id]);
+
+    this.rooms[id] = {
+      ...this.rooms[id],
+      users: [...this.rooms[id].users, { id: socket.id, name: userName }],
+    };
+
+    const { ...room } = this.rooms[id];
+
+    this.gateway.server.to(id).emit('room_updated', room);
+  }
+
+  leaveRoom(roomId: string, userId: string): void {
+    let room: Room = this.rooms[roomId];
+
+    if (room) {
+      room = {
+        ...room,
+        users: [...room.users.filter((user: User) => user.id !== userId)],
+      };
+
+      if (!room.users.some((user: User) => user)) {
+        this.destroyRoom(roomId);
+      } else {
+        this.gateway.server.to(roomId).emit('room_updated', room);
+      }
+    }
+  }
+
+  generateUniqueCode(): string {
+    const roomId = uid.randomUUID();
+    if (roomId in this.rooms) {
+      return this.generateUniqueCode();
+    }
+
+    return roomId;
+  }
+}
+````
+
+## File: apps/api/src/nba/games/careerpath/careerpath.gateway.ts
+````typescript
+import {
+  ConnectedSocket,
+  MessageBody,
+  OnGatewayDisconnect,
+  OnGatewayInit,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
+} from '@nestjs/websockets';
+import { Server, Socket } from 'socket.io';
+import { HostRoomMessageBody, JoinRoomMessageBody } from '@dribblio/types';
+import { RoomService } from './room/room.service';
+import { RoomFactory } from './room/factory.service';
+import { forwardRef } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
+
+@WebSocketGateway({ cors: true })
+export class CareerPathGateway implements OnGatewayDisconnect {
+  @WebSocketServer()
+  server: Server;
+
+  constructor(
+    @Inject(forwardRef(() => RoomService))
+    private roomService: RoomService,
+  ) {}
+
+  handleDisconnect(client: Socket) {
+    console.log(`Client socket ${client.id} disconnected`);
+  }
+
+  @SubscribeMessage('host_room')
+  handleHostRoom(
+    @MessageBody() config: HostRoomMessageBody,
+    @ConnectedSocket() client: Socket,
+  ) {
+    this.roomService.createRoom(
+      config.isMulti,
+      client,
+      config.userName,
+      config.config,
+    );
+  }
+
+  @SubscribeMessage('join_room')
+  handleJoinRoom(
+    @MessageBody() config: JoinRoomMessageBody,
+    @ConnectedSocket() client: Socket,
+  ) {
+    this.roomService.joinRoom(client, config.roomId, config.userName);
+  }
+
+  @SubscribeMessage('disconnecting')
+  handleDisconnecting(@ConnectedSocket() client: Socket) {
+    this.roomService.leaveRoom(Array.from(client.rooms)[1], client.id);
+  }
+}
+````
+
+## File: apps/api/src/nba/games/careerpath/game.service.ts
+````typescript
+import { Injectable } from '@nestjs/common';
+import { PlayersService } from '../../player/player.service';
+import { BaseGameService, GameDifficulty, RoundProps } from '@dribblio/types';
+
+@Injectable()
+export class GameService implements BaseGameService {
+  constructor(private playerService: PlayersService) {}
+
+  async generateRound(difficulty: GameDifficulty): Promise<RoundProps> {
+    const player = await this.playerService.findRandom(difficulty.filter);
+
+    if (!player) {
+      throw new Error('No player found');
+    }
+
+    const validAnswers = await this.playerService.findAll({
+      where: { team_history: { equals: player.team_history } },
+    });
+
+    const players = await this.playerService.findAll({
+      orderBy: {
+        last_name: 'desc',
+      },
+    });
+
+    return { validAnswers, players };
+  }
+}
+````
+
+## File: apps/api/src/nba/player/player.controller.ts
+````typescript
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  NotFoundException,
+  Query,
+} from '@nestjs/common';
+import { PlayersService } from './player.service';
+
+@Controller('players')
+export class PlayersController {
+  constructor(private readonly playerService: PlayersService) {}
+
+  @Get()
+  findAll() {
+    return this.playerService.findAll();
+  }
+
+  @Get('random')
+  async findRandom() {
+    return await this.playerService.findRandom();
+  }
+
+  @Get('count')
+  async findCount() {
+    return await this.playerService.findCount();
+  }
+
+  @Get('search')
+  async search(@Query('searchTerm') searchTerm: string) {
+    const results = await this.playerService.findAll({
+      orderBy: {
+        last_name: 'asc',
+      },
+      where: {
+        display_first_last: {
+          contains: searchTerm,
+          mode: 'insensitive',
+        },
+      },
+    });
+
+    return {
+      results,
+    };
+  }
+
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    return await this.playerService.findOne(+id);
+  }
+}
+````
+
+## File: apps/api/src/nba/player/player.module.ts
+````typescript
 import { Module } from '@nestjs/common';
-import { PassportModule } from '@nestjs/passport';
+import { PlayersService } from './player.service';
+import { PlayersController } from './player.controller';
 
 @Module({
-  imports: [PassportModule.register({ defaultStrategy: 'jwt' })],
-  providers: [JwtStrategy],
-  exports: [PassportModule],
+  controllers: [PlayersController],
+  providers: [PlayersService],
+  exports: [PlayersService],
 })
-export class AuthModule {}
+export class PlayersModule {}
 ````
 
-## File: apps/api/src/nba/games/careerpath/room/room.service.spec.ts
+## File: apps/api/src/nba/nba.module.ts
 ````typescript
-import { RoomService } from '@/nba/games/careerpath/room/room.service';
-import { Test, TestingModule } from '@nestjs/testing';
-
-describe('RoomService', () => {
-  let service: RoomService;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [RoomService],
-    }).compile();
-
-    service = module.get<RoomService>(RoomService);
-  });
-
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
-````
-
-## File: apps/api/src/nba/games/careerpath/careerpath.module.ts
-````typescript
-import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
 import { Module } from '@nestjs/common';
-import { DatabaseModule } from 'src/database/database.module';
-import { PlayersModule } from 'src/nba/player/player.module';
+import { PlayersModule } from './player/player.module';
+import { DatabaseModule } from '../database/database.module';
+import { CareerPathGateway } from './games/careerpath/careerpath.gateway';
+import { RoomService } from './games/careerpath/room/room.service';
+import { GameService } from './games/careerpath/game.service';
+import { RoomFactory } from './games/careerpath/room/factory.service';
 
 @Module({
   imports: [PlayersModule, DatabaseModule],
-  providers: [CareerPathGateway],
+  controllers: [],
+  providers: [CareerPathGateway, RoomService, RoomFactory, GameService],
 })
-export class CareerPathModule {}
-````
-
-## File: apps/api/test/app.e2e-spec.ts
-````typescript
-import { INestApplication } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import * as request from 'supertest';
-import { App } from 'supertest/types';
-import { AppModule } from './../src/app.module';
-
-describe('AppController (e2e)', () => {
-  let app: INestApplication<App>;
-
-  beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    await app.init();
-  });
-
-  it('/ (GET)', () => {
-    return request(app.getHttpServer()).get('/').expect(200).expect('Hello World!');
-  });
-});
-````
-
-## File: apps/api/eslint.config.mjs
-````
-import { baseConfig } from '@dribblio/eslint-config/base';
-
-/** @type {import("eslint").Linter.Config} */
-export default baseConfig;
+export class NBAModule {}
 ````
 
 ## File: apps/api/README.md
@@ -2873,345 +4395,6 @@ You are not permitted to:
 Any unauthorized use, reproduction, or distribution of the Software is strictly prohibited and may result in severe legal consequences.
 ````
 
-## File: apps/api/tsconfig.json
-````json
-{
-  "compilerOptions": {
-    "module": "commonjs",
-    "declaration": true,
-    "removeComments": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
-    "target": "ES2023",
-    "sourceMap": true,
-    "outDir": "./dist",
-    "baseUrl": "./",
-    "incremental": true,
-    "skipLibCheck": true,
-    "strictNullChecks": true,
-    "forceConsistentCasingInFileNames": true,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false,
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  }
-}
-````
-
-## File: apps/web/src/app/login/page.tsx
-````typescript
-import { GalleryVerticalEnd } from 'lucide-react';
-
-import { LoginForm } from '@/components/login-form';
-
-export default function LoginPage() {
-  return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
-      <div className="flex w-full max-w-sm flex-col gap-6">
-        <a href="#" className="flex items-center gap-2 self-center font-medium">
-          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <GalleryVerticalEnd className="size-4" />
-          </div>
-          Acme Inc.
-        </a>
-        <LoginForm />
-      </div>
-    </div>
-  );
-}
-````
-
-## File: apps/web/src/app/multiplayer/page.tsx
-````typescript
-'use client';
-
-import { CareerPath } from '@/components/careerpath/careerpathview';
-import JoinHostModal from '@/components/config/multiplayer/joinhostmodal';
-import PlayerSearchBar from '@/components/search/playersearchbar';
-import { Button } from '@/components/ui/button';
-import useMultiplayerSocket from '@/hooks/useMultiplayerSocket';
-import { UserGameInfo } from '@dribblio/types';
-
-export default function Game() {
-  const {
-    isConnected,
-    roomId,
-    roundActive,
-    canStartGame,
-    onStartGame,
-    users,
-    onHostRoom,
-    onJoinRoom,
-    teams,
-    players,
-    onGuess,
-    timeLeft,
-    validAnswers,
-  } = useMultiplayerSocket();
-
-  return (
-    <div className="flex flex-col h-full space-y-8">
-      <JoinHostModal isOpen={!roomId} onJoinRoom={onJoinRoom} onHostRoom={onHostRoom} />
-      <div className="justify-start">
-        <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
-        {roomId && <p>{`Room Code: ${roomId}`}</p>}
-        {users.some((user: UserGameInfo) => user) && (
-          <div>
-            <p>Users:</p>
-            <ul>
-              {users.map((user: UserGameInfo) => (
-                <li key={user.info.id}>
-                  <div className="flex flex-row space-x-2">
-                    <p>{user.info.name}</p>
-                    <p>{user.score}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
-
-      {canStartGame && (
-        <div>
-          <Button onClick={onStartGame}>Start Game</Button>
-        </div>
-      )}
-
-      {roundActive && (
-        <div className="w-full flex flex-col items-center space-y-8">
-          <p className="text-2xl font-bold">Time Left: {timeLeft}</p>
-          <CareerPath teams={teams!} />
-          <PlayerSearchBar playerList={players} onSelect={onGuess} />
-        </div>
-      )}
-
-      {!roundActive && !canStartGame && (
-        <div>
-          <p>Correct Answers:</p>
-          <ul>
-            {validAnswers.map((answer) => (
-              <li key={answer.id}>{answer.display_first_last}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-}
-````
-
-## File: apps/web/src/app/singleplayer/page.tsx
-````typescript
-'use client';
-
-import { CorrectAnswer } from '@/components/careerpath/answer';
-import { CareerPath } from '@/components/careerpath/careerpathview';
-import SinglePlayerConfigModal from '@/components/config/singleplayer/configmodal';
-import PlayerSearchBar from '@/components/search/playersearchbar';
-import { Button } from '@/components/ui/button';
-import useConfetti from '@/hooks/useConfetti';
-import useSinglePlayerSocket from '@/hooks/useSinglePlayerSocket';
-import { Player } from '@dribblio/database';
-import { useTheme } from 'next-themes';
-import { toast } from 'react-toastify';
-
-export default function SinglePlayer() {
-  const { theme } = useTheme();
-  const { onConfetti } = useConfetti();
-
-  const correctAction = (validAnswers: Player[]) => {
-    toast(<CorrectAnswer validAnswers={validAnswers} />, { theme });
-    onConfetti();
-  };
-
-  const incorrectAction = () => {
-    toast.error('Incorrect', { theme });
-  };
-
-  const {
-    isConnected,
-    canStartGame,
-    isRoomConfigured,
-    onConfigureRoom,
-    onStartGame,
-    machineState,
-    score,
-    teams,
-    lives,
-    onGuess,
-    onSkip,
-  } = useSinglePlayerSocket({ correctAction, incorrectAction });
-
-  return (
-    <div className="flex flex-col h-full space-y-8">
-      <SinglePlayerConfigModal isOpen={!isRoomConfigured} onConfigureRoom={onConfigureRoom} />
-      <div className="justify-start">
-        <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
-        <p>State: {machineState}</p>
-      </div>
-
-      {isConnected && (
-        <div className="w-full flex flex-col items-center space-y-8">
-          {canStartGame && <Button onClick={onStartGame}>Start Game</Button>}
-          {teams && (
-            <div className="w-full flex flex-col items-center space-y-8">
-              <div className="flex flex-col items-center">
-                <p className="font-black text-2xl">Lives: {lives}</p>
-                <p className="font-black text-2xl">Score: {score}</p>
-              </div>
-              <CareerPath teams={teams} />
-              <PlayerSearchBar className="w-1/2" onSelect={onGuess} />
-              <Button onClick={onSkip}>Skip</Button>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-````
-
-## File: apps/web/src/app/layout.tsx
-````typescript
-import '@/styles/globals.css';
-
-import { Providers } from '@/app/providers';
-import NBANavbar from '@/components/navbar/navbar';
-import { sfFont } from '@/styles/sfFont';
-import { ReactNode } from 'react';
-import { Bounce, ToastContainer } from 'react-toastify';
-
-export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
-  return (
-    <html lang="en" className={`${sfFont.variable}`} suppressHydrationWarning>
-      <body>
-        <Providers themeProps={{ attribute: 'class', defaultTheme: 'dark' }}>
-          <nav className="fixed top-0 left-0 w-full z-10 flex justify-center z-[100] pointer-events-auto">
-            <NBANavbar className="w-auto top-8" />
-          </nav>
-          <ToastContainer
-            position="bottom-center"
-            autoClose={5000}
-            hideProgressBar
-            closeOnClick
-            newestOnTop
-            pauseOnHover
-            closeButton={false}
-            transition={Bounce}
-          />
-          <main>
-            <div className="h-dvh w-full p-16">{children}</div>
-          </main>
-        </Providers>
-      </body>
-    </html>
-  );
-}
-````
-
-## File: apps/web/src/components/config/singleplayer/configmodal.tsx
-````typescript
-'use client';
-
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  GameDifficulties,
-  GameDifficultyNames,
-  GameDifficultySchema,
-  SinglePlayerConfig,
-} from '@dribblio/types';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-
-export default function SinglePlayerConfigModal({
-  isOpen,
-  onConfigureRoom,
-}: Readonly<{ isOpen: boolean; onConfigureRoom: (config: SinglePlayerConfig) => void }>) {
-  return (
-    <Dialog open={isOpen}>
-      <DialogContent
-        className="[&>button]:hidden"
-        onInteractOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-      >
-        <DialogHeader>
-          <DialogTitle>Single Player</DialogTitle>
-        </DialogHeader>
-        <SinglePlayerForm onConfigureRoom={onConfigureRoom} />
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function SinglePlayerForm({
-  onConfigureRoom,
-}: Readonly<{ onConfigureRoom: (config: SinglePlayerConfig) => void }>) {
-  const formSchema = z.object({
-    gameDifficulty: z.enum(GameDifficultyNames as [string, ...string[]]),
-  });
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      gameDifficulty: GameDifficulties.currentPlayers.name,
-    },
-  });
-
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    onConfigureRoom({ gameDifficulty: GameDifficultySchema.parse(values.gameDifficulty) });
-  }
-
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="flex flex-col space-y-4">
-          <FormField
-            control={form.control}
-            name="gameDifficulty"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Difficulty</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select game difficulty" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {GameDifficultyNames.map((mode) => (
-                      <SelectItem key={mode} value={mode}>
-                        {GameDifficultySchema.parse(mode).display_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          ></FormField>
-          <div className="flex justify-end mt-4">
-            <Button type="submit">Create Game</Button>
-          </div>
-        </div>
-      </form>
-    </Form>
-  );
-}
-````
-
 ## File: apps/web/src/components/search/playersearchbar.tsx
 ````typescript
 import PlayerSearchResult from '@/components/search/playersearchresult';
@@ -3285,715 +4468,6 @@ export default function PlayerSearchBar({
 }
 ````
 
-## File: apps/web/src/components/ui/card.tsx
-````typescript
-import * as React from 'react';
-
-import { cn } from '@/lib/utils';
-
-const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn('rounded-xl border bg-card text-card-foreground shadow', className)}
-      {...props}
-    />
-  ),
-);
-Card.displayName = 'Card';
-
-const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('flex flex-col space-y-1.5 p-6', className)} {...props} />
-  ),
-);
-CardHeader.displayName = 'CardHeader';
-
-const CardTitle = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn('font-semibold leading-none tracking-tight', className)}
-      {...props}
-    />
-  ),
-);
-CardTitle.displayName = 'CardTitle';
-
-const CardDescription = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('text-sm text-muted-foreground', className)} {...props} />
-  ),
-);
-CardDescription.displayName = 'CardDescription';
-
-const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('p-6 pt-0', className)} {...props} />
-  ),
-);
-CardContent.displayName = 'CardContent';
-
-const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('flex items-center p-6 pt-0', className)} {...props} />
-  ),
-);
-CardFooter.displayName = 'CardFooter';
-
-export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle };
-````
-
-## File: apps/web/src/components/ui/select.tsx
-````typescript
-'use client';
-
-import * as SelectPrimitive from '@radix-ui/react-select';
-import { Check, ChevronDown, ChevronUp } from 'lucide-react';
-import * as React from 'react';
-
-import { cn } from '@/lib/utils';
-
-const Select = SelectPrimitive.Root;
-
-const SelectGroup = SelectPrimitive.Group;
-
-const SelectValue = SelectPrimitive.Value;
-
-const SelectTrigger = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
->(({ className, children, ...props }, ref) => (
-  <SelectPrimitive.Trigger
-    ref={ref}
-    className={cn(
-      'flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background data-[placeholder]:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
-      className,
-    )}
-    {...props}
-  >
-    {children}
-    <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-4 w-4 opacity-50" />
-    </SelectPrimitive.Icon>
-  </SelectPrimitive.Trigger>
-));
-SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
-
-const SelectScrollUpButton = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.ScrollUpButton>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollUpButton>
->(({ className, ...props }, ref) => (
-  <SelectPrimitive.ScrollUpButton
-    ref={ref}
-    className={cn('flex cursor-default items-center justify-center py-1', className)}
-    {...props}
-  >
-    <ChevronUp className="h-4 w-4" />
-  </SelectPrimitive.ScrollUpButton>
-));
-SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName;
-
-const SelectScrollDownButton = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.ScrollDownButton>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollDownButton>
->(({ className, ...props }, ref) => (
-  <SelectPrimitive.ScrollDownButton
-    ref={ref}
-    className={cn('flex cursor-default items-center justify-center py-1', className)}
-    {...props}
-  >
-    <ChevronDown className="h-4 w-4" />
-  </SelectPrimitive.ScrollDownButton>
-));
-SelectScrollDownButton.displayName = SelectPrimitive.ScrollDownButton.displayName;
-
-const SelectContent = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
->(({ className, children, position = 'popper', ...props }, ref) => (
-  <SelectPrimitive.Portal>
-    <SelectPrimitive.Content
-      ref={ref}
-      className={cn(
-        'relative z-50 max-h-[--radix-select-content-available-height] min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-select-content-transform-origin]',
-        position === 'popper' &&
-          'data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1',
-        className,
-      )}
-      position={position}
-      {...props}
-    >
-      <SelectScrollUpButton />
-      <SelectPrimitive.Viewport
-        className={cn(
-          'p-1',
-          position === 'popper' &&
-            'h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]',
-        )}
-      >
-        {children}
-      </SelectPrimitive.Viewport>
-      <SelectScrollDownButton />
-    </SelectPrimitive.Content>
-  </SelectPrimitive.Portal>
-));
-SelectContent.displayName = SelectPrimitive.Content.displayName;
-
-const SelectLabel = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Label>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Label>
->(({ className, ...props }, ref) => (
-  <SelectPrimitive.Label
-    ref={ref}
-    className={cn('px-2 py-1.5 text-sm font-semibold', className)}
-    {...props}
-  />
-));
-SelectLabel.displayName = SelectPrimitive.Label.displayName;
-
-const SelectItem = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
->(({ className, children, ...props }, ref) => (
-  <SelectPrimitive.Item
-    ref={ref}
-    className={cn(
-      'relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
-      className,
-    )}
-    {...props}
-  >
-    <span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
-      <SelectPrimitive.ItemIndicator>
-        <Check className="h-4 w-4" />
-      </SelectPrimitive.ItemIndicator>
-    </span>
-    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-  </SelectPrimitive.Item>
-));
-SelectItem.displayName = SelectPrimitive.Item.displayName;
-
-const SelectSeparator = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Separator>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Separator>
->(({ className, ...props }, ref) => (
-  <SelectPrimitive.Separator
-    ref={ref}
-    className={cn('-mx-1 my-1 h-px bg-muted', className)}
-    {...props}
-  />
-));
-SelectSeparator.displayName = SelectPrimitive.Separator.displayName;
-
-export {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectScrollDownButton,
-  SelectScrollUpButton,
-  SelectSeparator,
-  SelectTrigger,
-  SelectValue,
-};
-````
-
-## File: apps/web/src/components/ui/switch.tsx
-````typescript
-'use client';
-
-import * as SwitchPrimitives from '@radix-ui/react-switch';
-import * as React from 'react';
-
-import { cn } from '@/lib/utils';
-
-const Switch = React.forwardRef<
-  React.ElementRef<typeof SwitchPrimitives.Root>,
-  React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root>
->(({ className, ...props }, ref) => (
-  <SwitchPrimitives.Root
-    className={cn(
-      'peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-input',
-      className,
-    )}
-    {...props}
-    ref={ref}
-  >
-    <SwitchPrimitives.Thumb
-      className={cn(
-        'pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0',
-      )}
-    />
-  </SwitchPrimitives.Root>
-));
-Switch.displayName = SwitchPrimitives.Root.displayName;
-
-export { Switch };
-````
-
-## File: apps/web/src/components/ui/tabs.tsx
-````typescript
-'use client';
-
-import * as TabsPrimitive from '@radix-ui/react-tabs';
-import * as React from 'react';
-
-import { cn } from '@/lib/utils';
-
-const Tabs = TabsPrimitive.Root;
-
-const TabsList = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.List>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
->(({ className, ...props }, ref) => (
-  <TabsPrimitive.List
-    ref={ref}
-    className={cn(
-      'inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground',
-      className,
-    )}
-    {...props}
-  />
-));
-TabsList.displayName = TabsPrimitive.List.displayName;
-
-const TabsTrigger = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
->(({ className, ...props }, ref) => (
-  <TabsPrimitive.Trigger
-    ref={ref}
-    className={cn(
-      'inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow',
-      className,
-    )}
-    {...props}
-  />
-));
-TabsTrigger.displayName = TabsPrimitive.Trigger.displayName;
-
-const TabsContent = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>
->(({ className, ...props }, ref) => (
-  <TabsPrimitive.Content
-    ref={ref}
-    className={cn(
-      'mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-      className,
-    )}
-    {...props}
-  />
-));
-TabsContent.displayName = TabsPrimitive.Content.displayName;
-
-export { Tabs, TabsContent, TabsList, TabsTrigger };
-````
-
-## File: apps/web/src/components/login-form.tsx
-````typescript
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
-
-export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-  return (
-    <div className={cn('flex flex-col gap-6', className)} {...props}>
-      <Card>
-        <CardHeader className="text-center">
-          <CardTitle className="text-xl">Welcome back</CardTitle>
-          <CardDescription>Login with your Apple or Google account</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form>
-            <div className="grid gap-6">
-              <div className="flex flex-col gap-4">
-                <Button variant="outline" className="w-full">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path
-                      d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"
-                      fill="currentColor"
-                    />
-                  </svg>
-                  Login with Apple
-                </Button>
-                <Button variant="outline" className="w-full">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path
-                      d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                  Login with Google
-                </Button>
-              </div>
-              <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
-                <span className="relative z-10 bg-background px-2 text-muted-foreground">
-                  Or continue with
-                </span>
-              </div>
-              <div className="grid gap-6">
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="m@example.com" required />
-                </div>
-                <div className="grid gap-2">
-                  <div className="flex items-center">
-                    <Label htmlFor="password">Password</Label>
-                    <a href="#" className="ml-auto text-sm underline-offset-4 hover:underline">
-                      Forgot your password?
-                    </a>
-                  </div>
-                  <Input id="password" type="password" required />
-                </div>
-                <Button type="submit" className="w-full">
-                  Login
-                </Button>
-              </div>
-              <div className="text-center text-sm">
-                Don&apos;t have an account?{' '}
-                <a href="#" className="underline underline-offset-4">
-                  Sign up
-                </a>
-              </div>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-      <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 [&_a]:hover:text-primary  ">
-        By clicking continue, you agree to our <a href="#">Terms of Service</a> and{' '}
-        <a href="#">Privacy Policy</a>.
-      </div>
-    </div>
-  );
-}
-````
-
-## File: apps/web/src/hooks/useMultiplayerSocket.ts
-````typescript
-'use client';
-
-import { clientSocket } from '@/lib/clientsocket';
-import { Player } from '@dribblio/database';
-import {
-  GameState,
-  HostRoomMessageBody,
-  JoinRoomMessageBody,
-  MultiplayerConfig,
-  User,
-  UserGameInfo,
-} from '@dribblio/types';
-import { useEffect, useState } from 'react';
-
-type RoomProps = {
-  id: string;
-  users: User[];
-};
-
-type RoundProps = {
-  roundActive: boolean;
-  timeLeft: number;
-  users: UserGameInfo[];
-  team_history: string[];
-  players: Player[];
-};
-
-const useMultiplayerSocket = () => {
-  const [isConnected, setIsConnected] = useState<boolean>(false);
-  const [canStartGame, setCanStartGame] = useState<boolean>(false);
-
-  const [roundActive, setRoundActive] = useState<boolean>(false);
-  const [users, setUsers] = useState<UserGameInfo[]>([]);
-  const [roomId, setRoomId] = useState<string | undefined>(undefined);
-  const [validAnswers, setValidAnswers] = useState<Player[]>([]);
-
-  const [teams, setTeams] = useState<string[] | null>(null);
-
-  const [players, setPlayers] = useState<Player[]>([]);
-
-  const [timeLeft, setTimeLeft] = useState<number>(0);
-
-  // From Server
-  function onRoomUpdated({ id, users }: RoomProps) {
-    setRoomId(id);
-    setUsers(users.map((user: User) => ({ info: user, score: 0 })));
-  }
-  function onNextRound({ roundActive, timeLeft, team_history, users, players }: RoundProps) {
-    setRoundActive(roundActive);
-    setTimeLeft(timeLeft);
-    setUsers(users);
-    setTeams(team_history);
-    setPlayers(players);
-  }
-  function onTimerUpdated({ timeLeft }: { timeLeft: number }) {
-    setTimeLeft(timeLeft);
-  }
-  function onEndRound({ roundActive, users, validAnswers }: GameState) {
-    setRoundActive(roundActive);
-    setUsers(users);
-    setValidAnswers(validAnswers);
-  }
-
-  // To Server
-  function onConnect() {
-    setIsConnected(true);
-  }
-  function onDisconnect() {
-    setIsConnected(false);
-  }
-  function onHostRoom(userName: string, config: MultiplayerConfig) {
-    const body: HostRoomMessageBody = { isMulti: true, userName, config };
-    clientSocket.emit('host_room', body);
-    setCanStartGame(true);
-  }
-  function onJoinRoom(roomId: string, userName: string) {
-    const body: JoinRoomMessageBody = { roomId, userName };
-    clientSocket.emit('join_room', body);
-  }
-  function onStartGame() {
-    setCanStartGame(false);
-    clientSocket.emit('start_game', users);
-  }
-  function onGuess(playerId: number) {
-    clientSocket.emit('client_guess', playerId);
-  }
-
-  useEffect(() => {
-    setCanStartGame(false);
-
-    clientSocket.on('connect', onConnect);
-    clientSocket.on('disconnect', onDisconnect);
-    clientSocket.on('room_updated', onRoomUpdated);
-    clientSocket.on('next_round', onNextRound);
-    clientSocket.on('timer_updated', onTimerUpdated);
-    clientSocket.on('end_round', onEndRound);
-
-    clientSocket.connect();
-
-    return () => {
-      clientSocket.off('connect', onConnect);
-      clientSocket.off('disconnect', onDisconnect);
-      clientSocket.off('room_updated', onRoomUpdated);
-      clientSocket.off('next_round', onNextRound);
-      clientSocket.off('timer_updated', onTimerUpdated);
-      clientSocket.off('end_round', onEndRound);
-      clientSocket.disconnect();
-    };
-  }, []);
-
-  return {
-    socketId: clientSocket.id,
-    isConnected,
-    roundActive,
-    roomId,
-    canStartGame,
-    onStartGame,
-    users,
-    onHostRoom,
-    onJoinRoom,
-    teams,
-    players,
-    onGuess,
-    timeLeft,
-    validAnswers,
-  };
-};
-
-export default useMultiplayerSocket;
-````
-
-## File: apps/web/src/hooks/usePlayerSearch.ts
-````typescript
-'use client';
-
-import { Player } from '@dribblio/database';
-import { SearchResponse } from '@dribblio/types';
-import { AsyncListLoadOptions, useAsyncList } from '@react-stately/data';
-import { useEffect, useState } from 'react';
-
-const usePlayerSearch = () => {
-  const [playerCount, setPlayerCount] = useState<number>(0);
-
-  useEffect(() => {
-    fetch('/api/players/count')
-      .then((res) => res.json())
-      .then(setPlayerCount);
-  }, [setPlayerCount]);
-
-  const list = useAsyncList<Player>({
-    async load({ signal, filterText }: AsyncListLoadOptions<Player, string>) {
-      const res = await fetch(`/api/players/search?searchTerm=${filterText}`, {
-        signal,
-      });
-      const json: SearchResponse = await res.json();
-
-      return {
-        items: json.results,
-      };
-    },
-  });
-
-  return { playerCount, list };
-};
-
-export default usePlayerSearch;
-````
-
-## File: apps/web/src/hooks/useSinglePlayerSocket.ts
-````typescript
-'use client';
-
-import { clientSocket } from '@/lib/clientsocket';
-import { Player } from '@dribblio/database';
-import { HostRoomMessageBody, SinglePlayerConfig } from '@dribblio/types';
-import { useEffect, useState } from 'react';
-
-type ClientSocketProps = {
-  correctAction: (validAnswers: Player[]) => void;
-  incorrectAction: () => void;
-};
-
-type StateProps = {
-  gameActive?: string;
-};
-
-type RoundProps = {
-  score: number;
-  team_history: string[];
-  lives: number;
-};
-
-type CorrectGuessProps = {
-  validAnswers: Player[];
-};
-
-type IncorrectGuessProps = {
-  lives: number;
-};
-
-const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketProps) => {
-  const [isConnected, setIsConnected] = useState<boolean>(false);
-  const [isRoomConfigured, setIsRoomConfigured] = useState<boolean>(false);
-  const [canStartGame, setCanStartGame] = useState<boolean>(true);
-  const [machineState, setMachineState] = useState<string>('waitingForGameStart');
-
-  const [score, setScore] = useState<number>(0);
-  const [teams, setTeams] = useState<string[] | null>(null);
-  const [lives, setLives] = useState<number>(0);
-
-  // From Server
-  function onStateChange({ gameActive }: StateProps) {
-    setMachineState(gameActive ?? 'waitingForGameStart');
-  }
-  function onNextRound({ score, team_history, lives }: RoundProps) {
-    setScore(score);
-    setTeams(team_history);
-    setLives(lives);
-  }
-  function onSkipped({ lives }: IncorrectGuessProps) {
-    setLives(lives);
-  }
-  function onGameOver() {
-    setCanStartGame(true);
-    setScore(0);
-    setTeams(null);
-  }
-
-  // To Server
-  function onConnect() {
-    setIsConnected(true);
-    setCanStartGame(true);
-  }
-  function onDisconnect() {
-    setIsConnected(false);
-    setMachineState('waitingForGameStart');
-    setScore(0);
-    setTeams(null);
-  }
-  function onConfigureRoom(config: SinglePlayerConfig) {
-    const body: HostRoomMessageBody = { isMulti: false, userName: '', config };
-    clientSocket.emit('host_room', body);
-    setIsRoomConfigured(true);
-  }
-  function onStartGame() {
-    setCanStartGame(false);
-    clientSocket.emit('start_game');
-  }
-  function onGuess(playerId: number) {
-    clientSocket.emit('client_guess', playerId);
-  }
-  function onSkip() {
-    clientSocket.emit('skip_round');
-  }
-
-  useEffect(() => {
-    function onCorrectGuess({ validAnswers }: CorrectGuessProps) {
-      correctAction(validAnswers);
-    }
-    function onIncorrectGuess({ lives }: IncorrectGuessProps) {
-      setLives(lives);
-      incorrectAction();
-    }
-
-    setCanStartGame(false);
-
-    clientSocket.on('connect', onConnect);
-    clientSocket.on('disconnect', onDisconnect);
-    clientSocket.on('state_change', onStateChange);
-    clientSocket.on('correct_guess', onCorrectGuess);
-    clientSocket.on('incorrect_guess', onIncorrectGuess);
-    clientSocket.on('round_skipped', onSkipped);
-    clientSocket.on('next_round', onNextRound);
-    clientSocket.on('game_over', onGameOver);
-
-    clientSocket.connect();
-
-    return () => {
-      clientSocket.off('connect', onConnect);
-      clientSocket.off('disconnect', onDisconnect);
-      clientSocket.off('state_change', onStateChange);
-      clientSocket.off('correct_guess', onCorrectGuess);
-      clientSocket.off('incorrect_guess', onIncorrectGuess);
-      clientSocket.off('round_skipped', onSkipped);
-      clientSocket.off('next_round', onNextRound);
-      clientSocket.off('game_over', onGameOver);
-
-      clientSocket.disconnect();
-    };
-  }, []);
-
-  return {
-    isConnected,
-    canStartGame,
-    isRoomConfigured,
-    onConfigureRoom,
-    onStartGame,
-    machineState,
-    score,
-    teams,
-    lives,
-    onGuess,
-    onSkip,
-  };
-};
-
-export default useSinglePlayerSocket;
-````
-
-## File: apps/web/src/lib/utils.ts
-````typescript
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
-````
-
 ## File: apps/web/src/styles/globals.css
 ````css
 @tailwind base;
@@ -4064,53 +4538,6 @@ export function cn(...inputs: ClassValue[]) {
     @apply bg-background text-foreground;
   }
 }
-````
-
-## File: apps/web/src/middleware.ts
-````typescript
-import { auth0 } from '@/lib/auth0';
-import type { NextRequest } from 'next/server';
-
-export async function middleware(request: NextRequest) {
-  return await auth0.middleware(request);
-}
-
-export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)'],
-};
-````
-
-## File: apps/web/components.json
-````json
-{
-  "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "new-york",
-  "rsc": true,
-  "tsx": true,
-  "tailwind": {
-    "config": "tailwind.config.ts",
-    "css": "src/styles/globals.css",
-    "baseColor": "zinc",
-    "cssVariables": true,
-    "prefix": ""
-  },
-  "aliases": {
-    "components": "@/components",
-    "utils": "@/lib/utils",
-    "ui": "@/components/ui",
-    "lib": "@/lib",
-    "hooks": "@/hooks"
-  },
-  "iconLibrary": "lucide"
-}
-````
-
-## File: apps/web/eslint.config.js
-````javascript
-import { nextJsConfig } from '@dribblio/eslint-config/next-js';
-
-/** @type {import("eslint").Linter.Config} */
-export default nextJsConfig;
 ````
 
 ## File: apps/web/README.md
@@ -4357,18 +4784,40 @@ export default {
 };
 ````
 
-## File: packages/database/src/client.ts
+## File: apps/web/tsconfig.json
+````json
+{
+  "extends": "@dribblio/typescript-config/nextjs.json",
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "next-env.d.ts",
+    "next.config.mjs",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "public"
+  ]
+}
+````
+
+## File: packages/database/src/index.ts
 ````typescript
-import { PrismaClient as NBAPrismaClient } from '../generated/prisma-nba';
-import { PrismaClient as UsersPrismaClient } from '../generated/prisma-users';
+export { prisma } from './client.js';
+export * from '../generated/prisma/index.js';
 
-const globalForPrisma = global as unknown as {
-  users_prisma: UsersPrismaClient;
-  nba_prisma: NBAPrismaClient;
-};
-
-export const users_prisma = globalForPrisma.users_prisma || new UsersPrismaClient();
-export const nba_prisma = globalForPrisma.nba_prisma || new NBAPrismaClient();
+export * as runtime from '@prisma/client/runtime/library.js';
 ````
 
 ## File: packages/database/.gitignore
@@ -4378,202 +4827,105 @@ node_modules
 .env
 
 **/generated/
-**/src/generated/prisma
 ````
 
-## File: packages/eslint-config/package.json
-````json
-{
-  "name": "@dribblio/eslint-config",
-  "version": "0.0.0",
-  "type": "module",
-  "private": true,
-  "exports": {
-    "./base": "./base.js",
-    "./next-js": "./next.js",
-    "./react-internal": "./react-internal.js"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.25.0",
-    "@next/eslint-plugin-next": "^15.3.3",
-    "eslint": "^9.25.0",
-    "eslint-config-prettier": "^10.1.1",
-    "eslint-plugin-only-warn": "^1.1.0",
-    "eslint-plugin-react": "^7.37.4",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-turbo": "^2.5.0",
-    "globals": "^16.2.0",
-    "typescript": "^5.8.2",
-    "typescript-eslint": "^8.31.0"
-  }
+## File: packages/types/src/websocket/room.ts
+````typescript
+import { MultiplayerConfig } from '../statemachine/multiplayer/gamemachine.js';
+import { SinglePlayerConfig } from '../statemachine/singleplayer/gamemachine.js';
+import { Actor, AnyStateMachine } from 'xstate';
+
+export interface Room {
+  id: string;
+  statemachine: Actor<AnyStateMachine> | undefined;
+  users: User[];
+  config: SinglePlayerConfig | MultiplayerConfig;
+}
+
+export interface User {
+  id: string;
+  name: string;
 }
 ````
 
-## File: packages/types/src/statemachine/multiplayer/actions.ts
-````typescript
-import { AnyEventObject } from 'xstate';
-import { MultiplayerContext } from './gamemachine.js';
+## File: .gitignore
+````
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-type ActionProps = {
-  context: MultiplayerContext;
-  event: AnyEventObject;
-};
+# Dependencies
+node_modules
+/pnp
+.pnp.js
 
-export const sendPlayerToRoom = ({ context }: ActionProps) => {
-  try {
-    const { io, room, gameState } = context;
-    const { roundActive, timeLeft, users, validAnswers } = gameState;
+# Local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-    const team_history = validAnswers[0]?.team_history?.split(',');
+# Testing
+coverage
 
-    io?.to(room.id).emit('next_round', { roundActive, timeLeft, users, team_history });
-  } catch (err) {
-    throw Error(`Socket could not be found: ${err}`);
-  }
-};
+# Turbo
+.turbo
 
-export const sendTimerToRoom = ({ context }: ActionProps) => {
-  const { io, room, gameState } = context;
-  const { timeLeft } = gameState;
+# Vercel
+.vercel
 
-  io?.to(room.id).emit('timer_updated', { timeLeft });
-};
+# Build Outputs
+.next/
+out/
+build
+dist
 
-export const sendRoundInfoToRoom = ({ context }: ActionProps) => {
-  const { io, room, gameState } = context;
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-  io?.to(room.id).emit('end_round', gameState);
-};
+# Misc
+.DS_Store
+*.pem
+
+# production
+/build
+
+# next.js
+/.next/
+/out/
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
 ````
 
-## File: packages/types/src/statemachine/multiplayer/guards.ts
-````typescript
-import { AnyEventObject } from 'xstate';
-import { MultiplayerContext } from './gamemachine.js';
-
-type GuardProps = {
-  context: MultiplayerContext;
-  event: AnyEventObject;
-};
-
-export const isCorrectMultiplayer = ({ context, event }: GuardProps): boolean => {
-  const { guessId } = event.guess;
-  return !!context.gameState.validAnswers.find((player) => player.id === guessId);
-};
-
-export const timeExpired = ({ context }: GuardProps): boolean => {
-  const { timeLeft } = context.gameState;
-  return timeLeft <= 0;
-};
-````
-
-## File: packages/types/src/statemachine/multiplayer/index.ts
-````typescript
-export * from './actions.js';
-export * from './gamemachine.js';
-export * from './guards.js';
-````
-
-## File: packages/types/src/statemachine/singleplayer/actions.ts
-````typescript
-import { AnyEventObject } from 'xstate';
-import { SinglePlayerContext } from './gamemachine.js';
-
-type ActionProps = {
-  context: SinglePlayerContext;
-  event: AnyEventObject;
-};
-
-export const waitForUser = ({ context }: ActionProps) => {
-  try {
-    const { socket } = context;
-
-    socket?.emit('waiting_for_user');
-  } catch (err) {
-    throw Error(`Socket could not be found: ${err}`);
+## File: turbo.json
+````json
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "check-types": {
+      "dependsOn": ["^check-types"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "db:generate": {
+      "cache": false
+    }
   }
-};
-
-export const sendPlayerToClient = ({ context }: ActionProps) => {
-  try {
-    const { socket, gameState } = context;
-    const { score, validAnswers, lives } = gameState;
-
-    const team_history = validAnswers[0]?.team_history?.split(',');
-
-    socket?.emit('next_round', { score, team_history, lives: lives + 1 });
-  } catch (err) {
-    throw Error(`Socket could not be found: ${err}`);
-  }
-};
-
-export const notifyCorrectGuess = ({ context }: ActionProps) => {
-  try {
-    const { socket, gameState } = context;
-    const { validAnswers } = gameState;
-
-    socket?.emit('correct_guess', { validAnswers });
-  } catch (err) {
-    throw Error(`Socket could not be found: ${err}`);
-  }
-};
-
-export const notifyIncorrectGuess = ({ context }: ActionProps) => {
-  try {
-    const { socket, gameState } = context;
-    const { lives } = gameState;
-
-    socket?.emit('incorrect_guess', { lives: lives + 1 });
-  } catch (err) {
-    throw Error(`Socket could not be found: ${err}`);
-  }
-};
-
-export const notifySkipRound = ({ context }: ActionProps) => {
-  try {
-    const { socket, gameState } = context;
-    const { lives } = gameState;
-
-    socket?.emit('round_skipped', { lives: lives + 1 });
-  } catch (err) {
-    throw Error(`Socket could not be found: ${err}`);
-  }
-};
-
-export const notifyGameOver = ({ context }: ActionProps) => {
-  try {
-    const { socket } = context;
-
-    socket?.emit('game_over');
-  } catch (err) {
-    throw Error(`Socket could not be found: ${err}`);
-  }
-};
-````
-
-## File: packages/types/src/statemachine/singleplayer/guards.ts
-````typescript
-import { AnyEventObject } from 'xstate';
-import { SinglePlayerContext } from './gamemachine.js';
-
-type GuardProps = {
-  context: SinglePlayerContext;
-  event: AnyEventObject;
-};
-
-export const isCorrectSinglePlayer = ({ context, event }: GuardProps): boolean => {
-  const { guessId } = event.guess;
-  return !!context.gameState.validAnswers.find((player) => player.id === guessId);
-};
-
-export const hasLives = ({ context }: GuardProps): boolean => context.gameState.lives > 0;
-````
-
-## File: packages/types/src/statemachine/singleplayer/index.ts
-````typescript
-export * from './actions.js';
-export * from './gamemachine.js';
-export * from './guards.js';
+}
 ````
 
 ## File: .cursor/rules/clean-code.mdc
@@ -4888,293 +5240,128 @@ globs: **/*.ts, **/*.tsx, **/*.d.ts
 - Use the Module pattern for encapsulation
 ````
 
-## File: apps/api/src/database/database.module.ts
+## File: apps/api/src/nba/games/careerpath/room/factory.service.ts
 ````typescript
-import { NBAPrismaService } from '@/database/nba.prisma.service';
-import { UsersPrismaService } from '@/database/users.prisma.service';
-import { Global, Module } from '@nestjs/common';
-
-@Module({
-  providers: [UsersPrismaService, NBAPrismaService],
-  exports: [UsersPrismaService, NBAPrismaService],
-})
-@Global()
-export class DatabaseModule {}
-````
-
-## File: apps/api/src/nba/games/careerpath/room/room.service.ts
-````typescript
-import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
-import { RoomFactory } from '@/nba/games/careerpath/room/factory.service';
-import { MultiplayerConfig, Room, SinglePlayerConfig, User } from '@dribblio/types';
+import {
+  createMultiplayerMachine,
+  createSinglePlayerMachine,
+  MultiplayerConfig,
+  PlayerGuess,
+  Room,
+  SinglePlayerConfig,
+  User,
+} from '@dribblio/types';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import ShortUniqueId from 'short-unique-id';
 import { Socket } from 'socket.io';
-
-const uid = new ShortUniqueId({ length: 5, dictionary: 'alpha_upper' });
+import { GameService } from '../game.service';
+import { CareerPathGateway } from '../careerpath.gateway';
 
 @Injectable()
-export class RoomService {
-  private rooms: Record<string, Room> = {};
-
+export class RoomFactory {
   constructor(
     @Inject(forwardRef(() => CareerPathGateway))
     private gateway: CareerPathGateway,
-    private roomFactory: RoomFactory,
+    private gameService: GameService,
   ) {}
 
-  createRoom(
-    isMulti: boolean,
-    socket: Socket,
-    userName: string,
-    config: MultiplayerConfig | SinglePlayerConfig,
-  ): Room {
-    const roomId: string = this.generateUniqueCode();
-
-    if (!this.rooms[roomId]) {
-      this.rooms[roomId] = isMulti
-        ? this.roomFactory.createMultiplayerRoom(socket, roomId, config as MultiplayerConfig)
-        : this.roomFactory.createSinglePlayerRoom(socket, config as SinglePlayerConfig);
-    }
-
-    console.log(`Game machine created for room ${roomId}`);
-
-    this.joinRoom(socket, roomId, userName);
-
-    return this.rooms[roomId];
-  }
-
-  destroyRoom(id: string) {
-    delete this.rooms[id];
-    console.log(`Room destroyed for room ${id}`);
-  }
-
-  joinRoom(socket: Socket, id: string, userName: string): void {
-    if (!this.rooms[id]) return;
-
-    socket.join(id);
-
-    this.roomFactory.setUpListenersOnJoin(socket, this.rooms[id]);
-
-    this.rooms[id] = {
-      ...this.rooms[id],
-      users: [...this.rooms[id].users, { id: socket.id, name: userName }],
+  createSinglePlayerRoom(socket: Socket, config: SinglePlayerConfig): Room {
+    const room: Room = {
+      id: '',
+      statemachine: undefined,
+      users: [],
+      config,
     };
 
-    const { ...room } = this.rooms[id];
-
-    this.gateway.server.to(id).emit('room_updated', room);
-  }
-
-  leaveRoom(roomId: string, userId: string): void {
-    let room: Room = this.rooms[roomId];
-
-    if (room) {
-      room = {
-        ...room,
-        users: [...room.users.filter((user: User) => user.id !== userId)],
-      };
-
-      if (!room.users.some((user: User) => user)) {
-        this.destroyRoom(roomId);
-      } else {
-        this.gateway.server.to(roomId).emit('room_updated', room);
-      }
-    }
-  }
-
-  generateUniqueCode(): string {
-    const roomId = uid.randomUUID();
-    if (roomId in this.rooms) {
-      return this.generateUniqueCode();
-    }
-
-    return roomId;
-  }
-}
-````
-
-## File: apps/api/src/nba/games/careerpath/careerpath.gateway.ts
-````typescript
-import { RoomService } from '@/nba/games/careerpath/room/room.service';
-import { HostRoomMessageBody, JoinRoomMessageBody } from '@dribblio/types';
-import { forwardRef, Inject } from '@nestjs/common';
-import {
-  ConnectedSocket,
-  MessageBody,
-  OnGatewayDisconnect,
-  SubscribeMessage,
-  WebSocketGateway,
-  WebSocketServer,
-} from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
-
-@WebSocketGateway({ cors: true })
-export class CareerPathGateway implements OnGatewayDisconnect {
-  @WebSocketServer()
-  server: Server;
-
-  constructor(
-    @Inject(forwardRef(() => RoomService))
-    private roomService: RoomService,
-  ) {}
-
-  handleDisconnect(client: Socket) {
-    console.log(`Client socket ${client.id} disconnected`);
-  }
-
-  @SubscribeMessage('host_room')
-  handleHostRoom(@MessageBody() config: HostRoomMessageBody, @ConnectedSocket() client: Socket) {
-    this.roomService.createRoom(config.isMulti, client, config.userName, config.config);
-  }
-
-  @SubscribeMessage('join_room')
-  handleJoinRoom(@MessageBody() config: JoinRoomMessageBody, @ConnectedSocket() client: Socket) {
-    this.roomService.joinRoom(client, config.roomId, config.userName);
-  }
-
-  @SubscribeMessage('disconnecting')
-  handleDisconnecting(@ConnectedSocket() client: Socket) {
-    this.roomService.leaveRoom(Array.from(client.rooms)[1], client.id);
-  }
-}
-````
-
-## File: apps/api/src/nba/games/careerpath/game.service.ts
-````typescript
-import { PlayersService } from '@/nba/player/player.service';
-import { BaseGameService, GameDifficulty, RoundProps } from '@dribblio/types';
-import { Injectable } from '@nestjs/common';
-
-@Injectable()
-export class GameService implements BaseGameService {
-  constructor(private playerService: PlayersService) {}
-
-  async generateRound(difficulty: GameDifficulty): Promise<RoundProps> {
-    const player = await this.playerService.findRandom(difficulty.filter);
-
-    if (!player) {
-      throw new Error('No player found');
-    }
-
-    const validAnswers = await this.playerService.findAll({
-      where: { team_history: { equals: player.team_history } },
-    });
-
-    const players = await this.playerService.findAll({
-      orderBy: {
-        last_name: 'desc',
-      },
-    });
-
-    return { validAnswers, players };
-  }
-}
-````
-
-## File: apps/api/src/nba/player/player.module.ts
-````typescript
-import { PlayersController } from '@/nba/player/player.controller';
-import { PlayersService } from '@/nba/player/player.service';
-import { Module } from '@nestjs/common';
-
-@Module({
-  controllers: [PlayersController],
-  providers: [PlayersService],
-  exports: [PlayersService],
-})
-export class PlayersModule {}
-````
-
-## File: apps/api/src/nba/player/player.service.ts
-````typescript
-import { NBAPrismaService } from '@/database/nba.prisma.service';
-import { runtime } from '@dribblio/database';
-import { Prisma as NBAPrisma, Player } from '@dribblio/database/generated/prisma-nba';
-import { Injectable } from '@nestjs/common';
-
-import $Extensions = runtime.Types.Extensions;
-
-@Injectable()
-export class PlayersService {
-  constructor(private nba: NBAPrismaService) {}
-
-  async findAll<
-    T extends NBAPrisma.PlayerFindManyArgs,
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  >(args?: NBAPrisma.SelectSubset<T, NBAPrisma.PlayerFindManyArgs<ExtArgs>>) {
-    return await this.nba.player.findMany(args);
-  }
-
-  async findOne(id: number): Promise<Player | null> {
-    return await this.nba.player.findFirst({ where: { id: { equals: id } } });
-  }
-
-  async findRandom(where?: NBAPrisma.PlayerWhereInput): Promise<Player | null> {
-    const playerIds = (await this.findAll({ where: where, select: { id: true } })).map(
-      (player) => player.id,
+    room.statemachine = createSinglePlayerMachine(
+      socket,
+      room.config,
+      this.gameService,
     );
-    const randomId = playerIds[Math.floor(Math.random() * playerIds.length)];
-    return await this.findOne(randomId);
+
+    socket.on('start_game', () => {
+      room.statemachine?.subscribe((s) => {
+        socket.emit('state_change', s.value);
+      });
+
+      socket.on('skip_round', () => room.statemachine?.send({ type: 'SKIP' }));
+
+      socket.on('disconnect', () => {
+        room.statemachine?.stop();
+      });
+
+      room.statemachine?.send({ type: 'START_GAME', socket });
+    });
+
+    return room;
   }
 
-  async findCount(): Promise<number> {
-    return await this.nba.player.count();
+  createMultiplayerRoom(
+    socket: Socket,
+    roomId: string,
+    config: MultiplayerConfig,
+  ): Room {
+    const room: Room = {
+      id: roomId,
+      statemachine: undefined,
+      users: [],
+      config: config,
+    };
+
+    room.statemachine = createMultiplayerMachine(
+      this.gateway.server,
+      room,
+      this.gameService,
+    );
+
+    socket.on('start_game', (users: User[]) => {
+      room.statemachine?.subscribe((s) => {
+        this.gateway.server.to(room.id).emit('state_change', s.value);
+      });
+
+      room.statemachine?.send({ type: 'START_GAME', users });
+    });
+
+    return room;
+  }
+
+  setUpListenersOnJoin(socket: Socket, room: Room) {
+    socket.on('client_guess', (guessId: number) => {
+      const userId = socket.id;
+      const guess: PlayerGuess = { userId, guessId };
+      room.statemachine?.send({ type: 'CLIENT_GUESS', guess });
+    });
+
+    socket.on('disconnect', () => {
+      room.statemachine?.stop();
+    });
   }
 }
 ````
 
-## File: apps/api/src/nba/nba.module.ts
+## File: apps/api/src/app.module.ts
 ````typescript
-import { DatabaseModule } from '@/database/database.module';
-import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
-import { GameService } from '@/nba/games/careerpath/game.service';
-import { RoomFactory } from '@/nba/games/careerpath/room/factory.service';
-import { RoomService } from '@/nba/games/careerpath/room/room.service';
-import { PlayersModule } from '@/nba/player/player.module';
 import { Module } from '@nestjs/common';
+import { NBAModule } from './nba/nba.module';
 
 @Module({
-  imports: [PlayersModule, DatabaseModule],
+  imports: [NBAModule],
   controllers: [],
-  providers: [CareerPathGateway, RoomService, RoomFactory, GameService],
+  providers: [],
 })
-export class NBAModule {}
+export class AppModule {}
 ````
 
-## File: apps/web/src/config/site.ts
+## File: apps/api/src/main.ts
 ````typescript
-import { Gamepad2, House, LucideProps, Swords } from 'lucide-react';
-import { ForwardRefExoticComponent, RefAttributes } from 'react';
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
 
-export type SiteConfig = typeof siteConfig;
-
-type NavItem = {
-  label: string;
-  icon: ForwardRefExoticComponent<Omit<LucideProps, 'ref'> & RefAttributes<SVGSVGElement>>;
-  href: string;
-};
-
-export const siteConfig: { name: string; navItems: NavItem[] } = {
-  name: 'NBA Career Game',
-  navItems: [
-    {
-      label: 'Home',
-      icon: House,
-      href: '/',
-    },
-    {
-      label: 'Single Player',
-      icon: Gamepad2,
-      href: '/singleplayer',
-    },
-    {
-      label: 'Multiplayer',
-      icon: Swords,
-      href: '/multiplayer',
-    },
-  ],
-};
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.setGlobalPrefix('/api');
+  await app.listen(process.env.PORT ?? 3002);
+}
+bootstrap();
 ````
 
 ## File: apps/web/next.config.mjs
@@ -5210,498 +5397,11 @@ const nextConfig = {
 export default nextConfig;
 ````
 
-## File: apps/web/tsconfig.json
-````json
-{
-  "extends": "@dribblio/typescript-config/nextjs.json",
-  "compilerOptions": {
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  },
-  "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", "next.config.mjs", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "public"]
-}
-````
-
-## File: packages/eslint-config/base.js
-````javascript
-import js from '@eslint/js';
-import eslintConfigPrettier from 'eslint-config-prettier';
-import jest from 'eslint-plugin-jest';
-import turboPlugin from 'eslint-plugin-turbo';
-import globals from 'globals';
-import tseslint from 'typescript-eslint';
-
-/**
- * A shared ESLint configuration for the repository.
- *
- * @type {import("eslint").Linter.Config[]}
- * */
-export const baseConfig = [
-  js.configs.recommended,
-  eslintConfigPrettier,
-  ...tseslint.configs.recommended,
-  {
-    plugins: {
-      tseslint,
-      jest,
-      turbo: turboPlugin,
-    },
-    languageOptions: {
-      globals: {
-        ...globals.node,
-        ...jest.environments.globals.globals,
-      },
-      parser: tseslint.parser,
-    },
-    settings: {
-      'import/resolver': {
-        alias: {
-          map: [['#', '.src']],
-        },
-      },
-    },
-    rules: {
-      'turbo/no-undeclared-env-vars': 'warn',
-      '@typescript-eslint/no-namespace': 'off',
-      '@typescript-eslint/no-explicit-any': 'warn',
-    },
-  },
-  {
-    ignores: ['dist/**'],
-  },
-];
-````
-
-## File: packages/eslint-config/next.js
-````javascript
-import js from '@eslint/js';
-import { default as pluginNext } from '@next/eslint-plugin-next';
-import eslintConfigPrettier from 'eslint-config-prettier';
-import pluginReactHooks from 'eslint-plugin-react-hooks';
-import tseslint from 'typescript-eslint';
-import { baseConfig } from './base.js';
-
-/**
- * A custom ESLint configuration for libraries that use Next.js.
- *
- * @type {import("eslint").Linter.Config[]}
- * */
-export const nextJsConfig = [
-  ...baseConfig,
-  js.configs.recommended,
-  eslintConfigPrettier,
-  ...tseslint.configs.recommended,
-  {
-    plugins: {
-      '@next/next': pluginNext,
-    },
-    rules: {
-      ...pluginNext.configs.recommended.rules,
-      ...pluginNext.configs['core-web-vitals'].rules,
-    },
-  },
-  {
-    plugins: {
-      'react-hooks': pluginReactHooks,
-    },
-    settings: { react: { version: 'detect' } },
-    rules: {
-      ...pluginReactHooks.configs.recommended.rules,
-      // React scope no longer necessary with new JSX transform.
-      'react/react-in-jsx-scope': 'off',
-    },
-  },
-];
-````
-
-## File: packages/types/src/websocket/room.ts
-````typescript
-import { Actor, AnyStateMachine } from 'xstate';
-import { MultiplayerConfig } from '../statemachine/multiplayer/gamemachine.js';
-import { SinglePlayerConfig } from '../statemachine/singleplayer/gamemachine.js';
-
-export interface Room {
-  id: string;
-  statemachine: Actor<AnyStateMachine> | undefined;
-  users: User[];
-  config: SinglePlayerConfig | MultiplayerConfig;
-}
-
-export interface User {
-  id: string;
-  name: string;
-}
-````
-
-## File: packages/types/tsconfig.json
-````json
-{
-  "extends": "@dribblio/typescript-config/base.json",
-  "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": "src"
-  },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist"]
-}
-````
-
-## File: .gitignore
-````
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# Dependencies
-node_modules
-/pnp
-.pnp.js
-
-# Local env files
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Testing
-coverage
-
-# Turbo
-.turbo
-
-# Vercel
-.vercel
-
-# Build Outputs
-.next/
-out/
-build
-dist
-
-# Debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Misc
-.DS_Store
-*.pem
-
-# production
-/build
-
-# next.js
-/.next/
-/out/
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-**/*-lock.json
-````
-
-## File: turbo.json
-````json
-{
-  "$schema": "https://turborepo.com/schema.json",
-  "ui": "tui",
-  "tasks": {
-    "build": {
-      "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
-      "env": [
-        "DATABASE_URL",
-        "AUTH0_DOMAIN",
-        "AUTH0_AUDIENCE",
-        "AUTH0_CLIENT_ID",
-        "AUTH0_CLIENT_SECRET",
-        "AUTH0_SECRET",
-        "AUTH0_SCOPE",
-        "PORT"
-      ]
-    },
-    "lint": {
-      "dependsOn": ["^lint"]
-    },
-    "check-types": {
-      "dependsOn": ["^check-types"]
-    },
-    "dev": {
-      "cache": false,
-      "persistent": true
-    },
-    "db:generate": {
-      "cache": false
-    },
-    "db:migrate": {
-      "cache": false
-    }
-  }
-}
-````
-
-## File: apps/api/src/auth/jwt.strategy.ts
-````typescript
-import { Auth0JwtPayload } from '@/auth/payload.type';
-import { UsersPrismaService } from '@/database/users.prisma.service';
-import { Injectable } from '@nestjs/common';
-import { PassportStrategy } from '@nestjs/passport';
-import * as jwksRsa from 'jwks-rsa';
-import { ExtractJwt, Strategy, VerifiedCallback } from 'passport-jwt';
-
-@Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private readonly usersPrismaService: UsersPrismaService) {
-    super({
-      secretOrKeyProvider: jwksRsa.passportJwtSecret({
-        cache: true,
-        rateLimit: true,
-        jwksRequestsPerMinute: 5,
-        jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`,
-      }),
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      audience: process.env.AUTH0_AUDIENCE,
-      issuer: `https://${process.env.AUTH0_DOMAIN}/`,
-      algorithms: ['RS256'],
-    });
-  }
-
-  async validate(payload: Auth0JwtPayload, done: VerifiedCallback): Promise<unknown> {
-    let user = await this.usersPrismaService.user.findUnique({ where: { id: payload.sub } });
-    if (!user) {
-      user = await this.usersPrismaService.user.create({
-        data: {
-          id: payload.sub,
-          first_name: payload.name || '',
-          last_name: '',
-        },
-      });
-    }
-    return done(null, user);
-  }
-}
-````
-
-## File: apps/api/src/nba/games/careerpath/room/factory.service.ts
-````typescript
-import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
-import { GameService } from '@/nba/games/careerpath/game.service';
-import {
-  createMultiplayerMachine,
-  createSinglePlayerMachine,
-  MultiplayerConfig,
-  PlayerGuess,
-  Room,
-  SinglePlayerConfig,
-  User,
-} from '@dribblio/types';
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { Socket } from 'socket.io';
-
-@Injectable()
-export class RoomFactory {
-  constructor(
-    @Inject(forwardRef(() => CareerPathGateway))
-    private gateway: CareerPathGateway,
-    private gameService: GameService,
-  ) {}
-
-  createSinglePlayerRoom(socket: Socket, config: SinglePlayerConfig): Room {
-    const room: Room = {
-      id: '',
-      statemachine: undefined,
-      users: [],
-      config,
-    };
-
-    room.statemachine = createSinglePlayerMachine(socket, room.config, this.gameService);
-
-    socket.on('start_game', () => {
-      room.statemachine?.subscribe((s) => {
-        socket.emit('state_change', s.value);
-      });
-
-      socket.on('skip_round', () => room.statemachine?.send({ type: 'SKIP' }));
-
-      socket.on('disconnect', () => {
-        room.statemachine?.stop();
-      });
-
-      room.statemachine?.send({ type: 'START_GAME', socket });
-    });
-
-    return room;
-  }
-
-  createMultiplayerRoom(socket: Socket, roomId: string, config: MultiplayerConfig): Room {
-    const room: Room = {
-      id: roomId,
-      statemachine: undefined,
-      users: [],
-      config: config,
-    };
-
-    room.statemachine = createMultiplayerMachine(this.gateway.server, room, this.gameService);
-
-    socket.on('start_game', (users: User[]) => {
-      room.statemachine?.subscribe((s) => {
-        this.gateway.server.to(room.id).emit('state_change', s.value);
-      });
-
-      room.statemachine?.send({ type: 'START_GAME', users });
-    });
-
-    return room;
-  }
-
-  setUpListenersOnJoin(socket: Socket, room: Room) {
-    socket.on('client_guess', (guessId: number) => {
-      const userId = socket.id;
-      const guess: PlayerGuess = { userId, guessId };
-      room.statemachine?.send({ type: 'CLIENT_GUESS', guess });
-    });
-
-    socket.on('disconnect', () => {
-      room.statemachine?.stop();
-    });
-  }
-}
-````
-
-## File: apps/web/src/app/page.tsx
-````typescript
-'use client';
-
-import GameModeCard from '@/components/gamemodecard';
-
-export default function Home() {
-  return (
-    <div className="h-full flex flex-row justify-center space-x-8">
-      <GameModeCard
-        className="w-1/2"
-        title="Single Player"
-        description="Test your own knowledge, but you only have 5 lives."
-        href="/singleplayer"
-        imageHref="/images/jaylenbrown.jpg"
-      />
-      <GameModeCard
-        className="w-1/2"
-        title="Multiplayer"
-        description="Compete against friends and come out on top."
-        href="/multiplayer"
-        imageHref="/images/jaysontatum.webp"
-      />
-    </div>
-  );
-}
-````
-
-## File: apps/web/src/components/navbar/navbar.tsx
-````typescript
-'use client';
-
-import { Dock, DockIcon } from '@/components/magicui/dock';
-import ThemeSwitcher from '@/components/navbar/themeswitcher';
-import { buttonVariants } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { siteConfig } from '@/config/site';
-import { cn } from '@/lib/utils';
-import { useUser } from '@auth0/nextjs-auth0';
-import { LogIn, User } from 'lucide-react';
-import Image from 'next/image';
-import NextLink from 'next/link';
-
-export default function NBANavbar({ className }: Readonly<{ className?: string }>) {
-  const { user } = useUser();
-  return (
-    <div className={`${className}`}>
-      <TooltipProvider>
-        <Dock className="rounded-full" iconMagnification={60} iconDistance={25}>
-          <DockIcon>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                {user ? (
-                  <NextLink href="/profile">
-                    {user.picture ? (
-                      <Image
-                        src={user.picture}
-                        alt="Profile"
-                        width={32}
-                        height={32}
-                        className="rounded-full"
-                      />
-                    ) : (
-                      <User />
-                    )}
-                  </NextLink>
-                ) : (
-                  <a
-                    href="/auth/login"
-                    className={cn(
-                      buttonVariants({ variant: 'ghost', size: 'icon', className: 'rounded-full' }),
-                    )}
-                  >
-                    <LogIn />
-                  </a>
-                )}
-              </TooltipTrigger>
-              <TooltipContent>{user ? <p>Profile</p> : <p>Login</p>}</TooltipContent>
-            </Tooltip>
-          </DockIcon>
-          <Separator orientation="vertical" className="h-full py-2" />
-          {siteConfig.navItems.map((item) => (
-            <DockIcon key={item.label}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <NextLink
-                    href={item.href}
-                    className={cn(
-                      buttonVariants({ variant: 'ghost', size: 'icon', className: 'rounded-full' }),
-                    )}
-                  >
-                    <item.icon />
-                  </NextLink>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{item.label}</p>
-                </TooltipContent>
-              </Tooltip>
-            </DockIcon>
-          ))}
-          <Separator orientation="vertical" className="h-full py-2" />
-          <ThemeSwitcher />
-        </Dock>
-      </TooltipProvider>
-    </div>
-  );
-}
-````
-
-## File: packages/database/src/index.ts
-````typescript
-export * as nba from '../generated/prisma-nba/index.js';
-export * as users from '../generated/prisma-users/index.js';
-export * from './client.js';
-
-export * as runtime from '@prisma/client/runtime/library.js';
-````
-
 ## File: packages/types/src/statemachine/singleplayer/gamemachine.ts
 ````typescript
 import { Player } from '@dribblio/database';
 import { Socket } from 'socket.io';
 import { Actor, AnyStateMachine, assign, createActor, enqueueActions, setup } from 'xstate';
-import { generateRound } from '../actors.js';
-import { GameDifficulty } from '../gamedifficulties.js';
-import { BaseGameService } from '../gameservice.js';
 import {
   notifyCorrectGuess,
   notifyGameOver,
@@ -5711,6 +5411,9 @@ import {
   waitForUser,
 } from './actions.js';
 import { hasLives, isCorrectSinglePlayer } from './guards.js';
+import { GameDifficulty } from '../gamedifficulties.js';
+import { BaseGameService } from '../gameservice.js';
+import { generateRound } from '../actors.js';
 
 export type SinglePlayerConfig = {
   gameDifficulty: GameDifficulty;
@@ -5866,158 +5569,45 @@ export function createSinglePlayerMachine(
 
 ## File: packages/types/src/statemachine/index.ts
 ````typescript
-export * from './actors.js';
 export * from './gamedifficulties.js';
-export * from './gameservice.js';
 export * from './multiplayer/index.js';
 export * from './singleplayer/index.js';
+export * from './gameservice.js';
+export * from './actors.js';
 ````
 
 ## File: packages/types/src/websocket/index.ts
 ````typescript
-export * from './messagebodies.js';
-export * from './playerguess.js';
 export * from './room.js';
+export * from './playerguess.js';
+export * from './messagebodies.js';
 ````
 
-## File: packages/types/package.json
+## File: packages/types/tsconfig.json
 ````json
 {
-  "name": "@dribblio/types",
-  "type": "module",
-  "version": "1.0.0",
-  "description": "",
-  "main": "dist/index.js",
-  "scripts": {
-    "build": "tsc"
+  "extends": "@dribblio/typescript-config/base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src"
   },
-  "devDependencies": {
-    "@dribblio/typescript-config": "*",
-    "typescript": "latest"
-  },
-  "dependencies": {
-    "socket.io": "^4.8.1",
-    "xstate": "^5.19.2",
-    "zod": "^3.25.28"
-  }
-}
-````
-
-## File: apps/api/src/nba/player/player.controller.ts
-````typescript
-import { PlayersService } from '@/nba/player/player.service';
-import { Controller, Get, Param, Query } from '@nestjs/common';
-
-@Controller('players')
-export class PlayersController {
-  constructor(private readonly playerService: PlayersService) {}
-
-  @Get()
-  findAll() {
-    return this.playerService.findAll();
-  }
-
-  @Get('random')
-  async findRandom() {
-    return await this.playerService.findRandom();
-  }
-
-  @Get('count')
-  async findCount() {
-    return await this.playerService.findCount();
-  }
-
-  @Get('search')
-  async search(@Query('searchTerm') searchTerm: string) {
-    const results = await this.playerService.findAll({
-      orderBy: {
-        last_name: 'asc',
-      },
-      where: {
-        display_first_last: {
-          contains: searchTerm,
-          mode: 'insensitive',
-        },
-      },
-    });
-
-    return {
-      results,
-    };
-  }
-
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return await this.playerService.findOne(+id);
-  }
-}
-````
-
-## File: apps/api/src/main.ts
-````typescript
-import { AppModule } from '@/app.module';
-import { NestFactory } from '@nestjs/core';
-import * as dotenv from 'dotenv';
-
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  app.setGlobalPrefix('/api');
-  await app.listen(process.env.PORT ?? 3002);
-}
-dotenv.config();
-bootstrap();
-````
-
-## File: apps/web/src/app/profile/page.tsx
-````typescript
-'use client';
-
-import { Button } from '@/components/ui/button';
-import { getAccessToken } from '@auth0/nextjs-auth0';
-import { User } from '@dribblio/database/generated/prisma-users';
-import NextLink from 'next/link';
-import { useEffect, useState } from 'react';
-
-export default function ProfilePage() {
-  const [user, setUser] = useState<User | undefined>(undefined);
-
-  useEffect(() => {
-    getAccessToken().then((token) => {
-      fetch('/api/me', { headers: { Authorization: `Bearer ${token}` } })
-        .then((res) => res.json())
-        .then(setUser);
-    });
-  }, []);
-
-  return (
-    <div className="flex flex-col h-full space-y-8">
-      {user && (
-        <div>
-          <p>Hello {user.first_name}!</p>
-        </div>
-      )}
-      <div>
-        <Button asChild>
-          <NextLink href="/auth/logout">Logout</NextLink>
-        </Button>
-      </div>
-    </div>
-  );
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
 }
 ````
 
 ## File: packages/types/src/statemachine/multiplayer/gamemachine.ts
 ````typescript
+import { GameDifficulty } from '../gamedifficulties.js';
+import { PlayerGuess } from '../../websocket/playerguess.js';
+import { Room, User } from '../../websocket/room.js';
+import { sendPlayerToRoom, sendRoundInfoToRoom, sendTimerToRoom } from './actions.js';
+import { isCorrectMultiplayer, timeExpired } from './guards.js';
 import { Player } from '@dribblio/database';
 import { Server } from 'socket.io';
 import { Actor, AnyStateMachine, assign, createActor, enqueueActions, setup } from 'xstate';
-import { PlayerGuess } from '../../websocket/playerguess.js';
-import { Room, User } from '../../websocket/room.js';
-import { generateRound } from '../actors.js';
-import { GameDifficulty } from '../gamedifficulties.js';
 import { BaseGameService } from '../gameservice.js';
-import { sendPlayerToRoom, sendRoundInfoToRoom, sendTimerToRoom } from './actions.js';
-import { isCorrectMultiplayer, timeExpired } from './guards.js';
+import { generateRound } from '../actors.js';
 
 export type UserGameInfo = {
   info: User;
@@ -6194,8 +5784,8 @@ export function createMultiplayerMachine(
 ````typescript
 import { fromPromise } from 'xstate';
 
-import { Player } from '@dribblio/database';
 import { GameDifficulty } from './gamedifficulties.js';
+import { Player } from '@dribblio/database';
 import { BaseGameService } from './gameservice.js';
 
 type RoundInput = {
@@ -6218,24 +5808,33 @@ export const generateRound = fromPromise(async ({ input }: RoundInput): Promise<
 
 ## File: packages/types/src/index.ts
 ````typescript
-export * from './responses/index.js';
+export * from './websocket/index.js';
 export * from './statemachine/index.js';
 export * from './websocket/index.js';
+export * from './responses/index.js';
 ````
 
-## File: apps/api/src/app.module.ts
-````typescript
-import { AuthModule } from '@/auth/auth.module';
-import { NBAModule } from '@/nba/nba.module';
-import { Module } from '@nestjs/common';
-import { UsersModule } from './users/users.module';
-
-@Module({
-  imports: [NBAModule, AuthModule, UsersModule],
-  controllers: [],
-  providers: [],
-})
-export class AppModule {}
+## File: packages/types/package.json
+````json
+{
+  "name": "@dribblio/types",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@dribblio/typescript-config": "*",
+    "typescript": "latest"
+  },
+  "dependencies": {
+    "socket.io": "^4.8.1",
+    "xstate": "^5.19.2",
+    "zod": "^3.25.28"
+  }
+}
 ````
 
 ## File: apps/api/package.json
@@ -6254,7 +5853,7 @@ export class AppModule {}
     "dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "lint": "jest --config=jest.lint.config.ts",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
@@ -6266,17 +5865,11 @@ export class AppModule {}
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/mapped-types": "*",
-    "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/platform-socket.io": "^11.1.2",
     "@nestjs/websockets": "^11.1.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
-    "dotenv": "^16.5.0",
-    "eslint-plugin-jest": "^28.13.0",
-    "jwks-rsa": "^3.2.0",
-    "passport": "^0.7.0",
-    "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
@@ -6292,14 +5885,12 @@ export class AppModule {}
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.7",
-    "@types/passport-jwt": "^4.0.1",
     "@types/supertest": "^6.0.2",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",
     "globals": "^16.0.0",
     "jest": "^29.7.0",
-    "jest-runner-eslint": "^2.2.1",
     "prettier": "^3.4.2",
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
@@ -6340,11 +5931,10 @@ export class AppModule {}
     "dev": "next dev --turbopack --port 3000",
     "build": "next build",
     "start": "next start",
-    "lint": "jest --config=jest.lint.config.ts",
+    "lint": "next lint --max-warnings 0",
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
-    "@auth0/nextjs-auth0": "^4.6.1",
     "@dribblio/database": "*",
     "@hookform/resolvers": "^5.0.1",
     "@radix-ui/react-dialog": "^1.1.14",
@@ -6361,7 +5951,6 @@ export class AppModule {}
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
-    "eslint-plugin-jest": "^28.13.0",
     "lucide-react": "^0.511.0",
     "motion": "^12.15.0",
     "next": "^15.3.0",
@@ -6386,7 +5975,6 @@ export class AppModule {}
     "@types/react-dom": "19.1.1",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.25.0",
-    "jest-runner-eslint": "^2.2.1",
     "postcss": "^8",
     "tailwind-variants": "^0.3.1",
     "tailwindcss": "^3.4.17",
@@ -6561,6 +6149,7 @@ Learn more about the power of Turborepo:
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
+    "db:generate": "turbo run db:generate",
     "pack": "repomix"
   },
   "devDependencies": {
