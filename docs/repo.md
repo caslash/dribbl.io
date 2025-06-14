@@ -227,102 +227,6 @@ turbo.json
 
 # Files
 
-## File: .repomixignore
-````
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# Dependencies
-node_modules
-/pnp
-.pnp.js
-
-# Local env files
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Testing
-coverage
-
-# Turbo
-.turbo
-
-# Vercel
-.vercel
-
-# Build Outputs
-.next/
-out/
-build
-dist
-
-# Debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Misc
-.DS_Store
-*.pem
-
-# production
-/build
-
-# next.js
-/.next/
-/out/
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-**/*-lock.json
-
-*.svg
-````
-
-## File: repomix.config.json
-````json
-{
-  "$schema": "https://repomix.com/schemas/latest/schema.json",
-  "input": {
-    "maxFileSize": 52428800
-  },
-  "output": {
-    "filePath": "docs/repo.md",
-    "style": "markdown",
-    "parsableStyle": false,
-    "fileSummary": true,
-    "directoryStructure": true,
-    "files": true,
-    "removeComments": false,
-    "removeEmptyLines": false,
-    "compress": false,
-    "topFilesLength": 5,
-    "showLineNumbers": false,
-    "copyToClipboard": false,
-    "git": {
-      "sortByChanges": true,
-      "sortByChangesMaxCommits": 100,
-      "includeDiffs": false
-    }
-  },
-  "include": [],
-  "ignore": {
-    "useGitignore": true,
-    "useDefaultPatterns": true,
-    "customPatterns": []
-  },
-  "security": {
-    "enableSecurityCheck": true
-  },
-  "tokenCount": {
-    "encoding": "o200k_base"
-  }
-}
-````
-
 ## File: .cursor/rules/nestjs.mdc
 ````
 ---
@@ -2279,27 +2183,6 @@ model User {
 }
 ````
 
-## File: packages/database/package.json
-````json
-{
-  "name": "@dribblio/database",
-  "version": "1.0.0",
-  "main": "dist/index.js",
-  "scripts": {
-    "build": "tsc",
-    "db:generate": "prisma generate --schema ./prisma-users/schema.prisma && prisma generate --schema ./prisma-nba/schema.prisma",
-    "db:migrate": "prisma migrate dev --schema ./prisma-users/schema.prisma"
-  },
-  "devDependencies": {
-    "prisma": "^6.7.0"
-  },
-  "dependencies": {
-    "@prisma/client": "^6.6.0",
-    "prisma-json-types-generator": "^3.3.1"
-  }
-}
-````
-
 ## File: packages/database/tsconfig.json
 ````json
 {
@@ -2594,6 +2477,102 @@ printWidth: 100
 trailingComma: all
 endOfLine: auto
 tabWidth: 2
+````
+
+## File: .repomixignore
+````
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# Dependencies
+node_modules
+/pnp
+.pnp.js
+
+# Local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Testing
+coverage
+
+# Turbo
+.turbo
+
+# Vercel
+.vercel
+
+# Build Outputs
+.next/
+out/
+build
+dist
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Misc
+.DS_Store
+*.pem
+
+# production
+/build
+
+# next.js
+/.next/
+/out/
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+**/*-lock.json
+
+*.svg
+````
+
+## File: repomix.config.json
+````json
+{
+  "$schema": "https://repomix.com/schemas/latest/schema.json",
+  "input": {
+    "maxFileSize": 52428800
+  },
+  "output": {
+    "filePath": "docs/repo.md",
+    "style": "markdown",
+    "parsableStyle": false,
+    "fileSummary": true,
+    "directoryStructure": true,
+    "files": true,
+    "removeComments": false,
+    "removeEmptyLines": false,
+    "compress": false,
+    "topFilesLength": 5,
+    "showLineNumbers": false,
+    "copyToClipboard": false,
+    "git": {
+      "sortByChanges": true,
+      "sortByChangesMaxCommits": 100,
+      "includeDiffs": false
+    }
+  },
+  "include": [],
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": []
+  },
+  "security": {
+    "enableSecurityCheck": true
+  },
+  "tokenCount": {
+    "encoding": "o200k_base"
+  }
+}
 ````
 
 ## File: apps/api/src/auth/auth.module.ts
@@ -4371,16 +4350,6 @@ export const users_prisma = globalForPrisma.users_prisma || new UsersPrismaClien
 export const nba_prisma = globalForPrisma.nba_prisma || new NBAPrismaClient();
 ````
 
-## File: packages/database/.gitignore
-````
-node_modules
-# Keep environment variables out of version control
-.env
-
-**/generated/
-**/src/generated/prisma
-````
-
 ## File: packages/eslint-config/package.json
 ````json
 {
@@ -5229,6 +5198,36 @@ export default nextConfig;
 }
 ````
 
+## File: packages/database/.gitignore
+````
+node_modules
+# Keep environment variables out of version control
+.env
+
+/generated
+````
+
+## File: packages/database/package.json
+````json
+{
+  "name": "@dribblio/database",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "db:generate": "prisma generate --schema ./prisma-users/schema.prisma && prisma generate --schema ./prisma-nba/schema.prisma",
+    "db:migrate": "prisma migrate dev --schema ./prisma-users/schema.prisma"
+  },
+  "devDependencies": {
+    "prisma": "^6.7.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.6.0",
+    "prisma-json-types-generator": "^3.3.1"
+  }
+}
+````
+
 ## File: packages/eslint-config/base.js
 ````javascript
 import js from '@eslint/js';
@@ -5404,47 +5403,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 **/*-lock.json
-````
-
-## File: turbo.json
-````json
-{
-  "$schema": "https://turborepo.com/schema.json",
-  "ui": "tui",
-  "tasks": {
-    "build": {
-      "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
-      "env": [
-        "DATABASE_URL",
-        "AUTH0_DOMAIN",
-        "AUTH0_AUDIENCE",
-        "AUTH0_CLIENT_ID",
-        "AUTH0_CLIENT_SECRET",
-        "AUTH0_SECRET",
-        "AUTH0_SCOPE",
-        "PORT"
-      ]
-    },
-    "lint": {
-      "dependsOn": ["^lint"]
-    },
-    "check-types": {
-      "dependsOn": ["^check-types"]
-    },
-    "dev": {
-      "cache": false,
-      "persistent": true
-    },
-    "db:generate": {
-      "cache": false
-    },
-    "db:migrate": {
-      "cache": false
-    }
-  }
-}
 ````
 
 ## File: apps/api/src/auth/jwt.strategy.ts
@@ -5899,6 +5857,47 @@ export * from './room.js';
     "socket.io": "^4.8.1",
     "xstate": "^5.19.2",
     "zod": "^3.25.28"
+  }
+}
+````
+
+## File: turbo.json
+````json
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": [
+        "DATABASE_URL",
+        "AUTH0_DOMAIN",
+        "AUTH0_AUDIENCE",
+        "AUTH0_CLIENT_ID",
+        "AUTH0_CLIENT_SECRET",
+        "AUTH0_SECRET",
+        "AUTH0_SCOPE",
+        "PORT"
+      ]
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "check-types": {
+      "dependsOn": ["^check-types"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "db:generate": {
+      "cache": false
+    },
+    "db:migrate": {
+      "cache": false
+    }
   }
 }
 ````
@@ -6561,6 +6560,8 @@ Learn more about the power of Turborepo:
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
+    "db:migrate": "turbo run db:migrate --",
+    "db:generate": "turbo run db:generate",
     "pack": "repomix"
   },
   "devDependencies": {
