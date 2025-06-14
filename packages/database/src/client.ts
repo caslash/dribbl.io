@@ -1,7 +1,10 @@
-import { PrismaClient } from '../generated/prisma';
+import { PrismaClient as NBAPrismaClient } from '../generated/prisma-nba';
+import { PrismaClient as UsersPrismaClient } from '../generated/prisma-users';
 
-const globalForPrisma = global as unknown as { prisma: PrismaClient };
+const globalForPrisma = global as unknown as {
+  users_prisma: UsersPrismaClient;
+  nba_prisma: NBAPrismaClient;
+};
 
-export const prisma = globalForPrisma.prisma || new PrismaClient();
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+export const users_prisma = globalForPrisma.users_prisma || new UsersPrismaClient();
+export const nba_prisma = globalForPrisma.nba_prisma || new NBAPrismaClient();

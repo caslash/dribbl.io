@@ -1,4 +1,5 @@
 import { Auth0JwtPayload } from '@/auth/payload.type';
+import { UsersPrismaService } from '@/database/users.prisma.service';
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import * as jwksRsa from 'jwks-rsa';
@@ -6,7 +7,7 @@ import { ExtractJwt, Strategy, VerifiedCallback } from 'passport-jwt';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor() {
+  constructor(private readonly usersPrismaService: UsersPrismaService) {
     super({
       secretOrKeyProvider: jwksRsa.passportJwtSecret({
         cache: true,
@@ -21,7 +22,17 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  validate(payload: Auth0JwtPayload, done: VerifiedCallback): unknown {
-    return done(null, payload);
+  async validate(payload: Auth0JwtPayload, done: VerifiedCallback): Promise<unknown> {
+    let user = await this.usersPrismaService.user.findUnique({ where: { id: payload.sub } });
+    if (!user) {
+      user = await this.usersPrismaService.user.create({
+        data: {
+          id: payload.sub,
+          first_name: payload.name || '',
+          last_name: '',
+        },
+      });
+    }
+    return done(null, user);
   }
 }

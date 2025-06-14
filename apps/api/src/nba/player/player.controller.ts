@@ -1,12 +1,10 @@
 import { PlayersService } from '@/nba/player/player.service';
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 
 @Controller('players')
 export class PlayersController {
   constructor(private readonly playerService: PlayersService) {}
 
-  @UseGuards(AuthGuard('jwt'))
   @Get()
   findAll() {
     return this.playerService.findAll();
