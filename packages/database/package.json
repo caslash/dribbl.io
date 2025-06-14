@@ -4,7 +4,8 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "db:generate": "npx prisma generate --schema ./prisma-users/schema.prisma && npx prisma generate --schema ./prisma-nba/schema.prisma"
+    "db:generate": "prisma generate --schema ./prisma-users/schema.prisma && prisma generate --schema ./prisma-nba/schema.prisma",
+    "db:migrate": "prisma migrate dev --schema ./prisma-users/schema.prisma"
   },
   "devDependencies": {
     "prisma": "^6.7.0"
