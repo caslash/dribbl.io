@@ -1,4 +1,4 @@
-import { Player } from '@dribblio/database';
+import { nba } from '@dribblio/database';
 import { Server } from 'socket.io';
 import { Actor, AnyStateMachine, assign, createActor, enqueueActions, setup } from 'xstate';
 import { PlayerGuess } from '../../websocket/playerguess.js';
@@ -19,7 +19,7 @@ export type GameState = {
   timeLeft: number;
   currentRound: number;
   users: UserGameInfo[];
-  validAnswers: Player[];
+  validAnswers: nba.Player[];
 };
 
 export type MultiplayerConfig = {

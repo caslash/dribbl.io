@@ -1,4 +1,4 @@
-import { Player } from '@dribblio/database';
+import { nba } from '@dribblio/database';
 import { Socket } from 'socket.io';
 import { Actor, AnyStateMachine, assign, createActor, enqueueActions, setup } from 'xstate';
 import { generateRound } from '../actors.js';
@@ -23,7 +23,7 @@ export type SinglePlayerContext = {
   config: SinglePlayerConfig;
   gameState: {
     score: number;
-    validAnswers: Player[];
+    validAnswers: nba.Player[];
     lives: number;
   };
 };

@@ -6,7 +6,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import { Player } from '@dribblio/database';
+import { nba } from '@dribblio/database';
 import { useEffect, useState } from 'react';
 
 export default function PlayerSearchBar({
@@ -15,17 +15,17 @@ export default function PlayerSearchBar({
   onSelect,
 }: Readonly<{
   className?: string;
-  playerList?: Player[];
+  playerList?: nba.Player[];
   onSelect?: (id: number) => void;
 }>) {
   const [search, setSearch] = useState<string>('');
-  const [players, setPlayers] = useState<Player[]>([]);
+  const [players, setPlayers] = useState<nba.Player[]>([]);
 
   useEffect(() => {
     if (!playerList) {
       fetch('/api/players')
         .then((res) => res.json())
-        .then((list: Player[]) =>
+        .then((list: nba.Player[]) =>
           setPlayers(list.sort((a, b) => a.last_name!.localeCompare(b.last_name!))),
         );
     } else {

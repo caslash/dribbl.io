@@ -1,12 +1,12 @@
 'use client';
 
 import { clientSocket } from '@/lib/clientsocket';
-import { Player } from '@dribblio/database';
+import { nba } from '@dribblio/database';
 import { HostRoomMessageBody, SinglePlayerConfig } from '@dribblio/types';
 import { useEffect, useState } from 'react';
 
 type ClientSocketProps = {
-  correctAction: (validAnswers: Player[]) => void;
+  correctAction: (validAnswers: nba.Player[]) => void;
   incorrectAction: () => void;
 };
 
@@ -21,7 +21,7 @@ type RoundProps = {
 };
 
 type CorrectGuessProps = {
-  validAnswers: Player[];
+  validAnswers: nba.Player[];
 };
 
 type IncorrectGuessProps = {

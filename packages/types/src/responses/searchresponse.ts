@@ -1,5 +1,5 @@
-import { Player } from '@dribblio/database';
+import { nba } from '@dribblio/database';
 
 export interface SearchResponse {
-  results: Player[];
+  results: nba.Player[];
 }

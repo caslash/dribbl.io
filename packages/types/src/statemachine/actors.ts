@@ -1,6 +1,6 @@
 import { fromPromise } from 'xstate';
 
-import { Player } from '@dribblio/database';
+import { nba } from '@dribblio/database';
 import { GameDifficulty } from './gamedifficulties.js';
 import { BaseGameService } from './gameservice.js';
 
@@ -12,8 +12,8 @@ type RoundInput = {
 };
 
 export type RoundProps = {
-  validAnswers: Player[];
-  players: Player[];
+  validAnswers: nba.Player[];
+  players: nba.Player[];
 };
 
 export const generateRound = fromPromise(async ({ input }: RoundInput): Promise<RoundProps> => {

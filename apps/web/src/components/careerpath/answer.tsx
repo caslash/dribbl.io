@@ -1,12 +1,12 @@
 'use client';
 
-import { Player } from '@dribblio/database';
+import { nba } from '@dribblio/database';
 import NextImage from 'next/image';
 
 const CorrectAnswer = ({
   correctPlayer,
   validAnswers,
-}: Readonly<{ correctPlayer?: Player; validAnswers?: Player[] }>) => {
+}: Readonly<{ correctPlayer?: nba.Player; validAnswers?: nba.Player[] }>) => {
   return (
     <div className="flex flex-col items-center">
       {correctPlayer && (
@@ -46,7 +46,7 @@ const CorrectAnswer = ({
   );
 };
 
-const IncorrectAnswer = ({ possibleAnswers }: Readonly<{ possibleAnswers: Player[] }>) => {
+const IncorrectAnswer = ({ possibleAnswers }: Readonly<{ possibleAnswers: nba.Player[] }>) => {
   return (
     <div className="flex flex-col items-center">
       <p className="text-center">Incorrect, the possible answers were:</p>
