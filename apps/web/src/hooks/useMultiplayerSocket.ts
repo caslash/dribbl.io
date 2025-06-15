@@ -1,7 +1,7 @@
 'use client';
 
 import { clientSocket } from '@/lib/clientsocket';
-import { Player } from '@dribblio/database';
+import { nba } from '@dribblio/database';
 import {
   GameState,
   HostRoomMessageBody,
@@ -22,7 +22,7 @@ type RoundProps = {
   timeLeft: number;
   users: UserGameInfo[];
   team_history: string[];
-  players: Player[];
+  players: nba.Player[];
 };
 
 const useMultiplayerSocket = () => {
@@ -32,11 +32,11 @@ const useMultiplayerSocket = () => {
   const [roundActive, setRoundActive] = useState<boolean>(false);
   const [users, setUsers] = useState<UserGameInfo[]>([]);
   const [roomId, setRoomId] = useState<string | undefined>(undefined);
-  const [validAnswers, setValidAnswers] = useState<Player[]>([]);
+  const [validAnswers, setValidAnswers] = useState<nba.Player[]>([]);
 
   const [teams, setTeams] = useState<string[] | null>(null);
 
-  const [players, setPlayers] = useState<Player[]>([]);
+  const [players, setPlayers] = useState<nba.Player[]>([]);
 
   const [timeLeft, setTimeLeft] = useState<number>(0);
 

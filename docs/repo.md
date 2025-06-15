@@ -538,13 +538,13 @@ export function Providers({ children, themeProps }: ProvidersProps) {
 ````typescript
 'use client';
 
-import { Player } from '@dribblio/database';
+import { nba } from '@dribblio/database';
 import NextImage from 'next/image';
 
 const CorrectAnswer = ({
   correctPlayer,
   validAnswers,
-}: Readonly<{ correctPlayer?: Player; validAnswers?: Player[] }>) => {
+}: Readonly<{ correctPlayer?: nba.Player; validAnswers?: nba.Player[] }>) => {
   return (
     <div className="flex flex-col items-center">
       {correctPlayer && (
@@ -584,7 +584,7 @@ const CorrectAnswer = ({
   );
 };
 
-const IncorrectAnswer = ({ possibleAnswers }: Readonly<{ possibleAnswers: Player[] }>) => {
+const IncorrectAnswer = ({ possibleAnswers }: Readonly<{ possibleAnswers: nba.Player[] }>) => {
   return (
     <div className="flex flex-col items-center">
       <p className="text-center">Incorrect, the possible answers were:</p>
@@ -1116,9 +1116,9 @@ export default function ThemeSwitcher() {
 
 ## File: apps/web/src/components/search/playersearchresult.tsx
 ````typescript
-import { Player } from '@dribblio/database';
+import { nba } from '@dribblio/database';
 
-export default function PlayerSearchResult({ player }: Readonly<{ player: Player }>) {
+export default function PlayerSearchResult({ player }: Readonly<{ player: nba.Player }>) {
   return (
     <div className="flex flex-col justify-start gap-1 py-2">
       <p className="text-base">{player.display_first_last}</p>
@@ -2210,19 +2210,19 @@ export * from './searchresponse.js';
 
 ## File: packages/types/src/responses/searchresponse.ts
 ````typescript
-import { Player } from '@dribblio/database';
+import { nba } from '@dribblio/database';
 
 export interface SearchResponse {
-  results: Player[];
+  results: nba.Player[];
 }
 ````
 
 ## File: packages/types/src/statemachine/gamedifficulties.ts
 ````typescript
-import { Prisma } from '@dribblio/database';
+import { nba } from '@dribblio/database';
 import { z } from 'zod';
 
-const firstAllNBA: Prisma.PlayerWhereInput = {
+const firstAllNBA: nba.Prisma.PlayerWhereInput = {
   AND: [
     {
       team_history: {
@@ -2254,7 +2254,7 @@ const firstAllNBA: Prisma.PlayerWhereInput = {
   ],
 };
 
-const allNBA: Prisma.PlayerWhereInput = {
+const allNBA: nba.Prisma.PlayerWhereInput = {
   AND: [
     {
       team_history: {
@@ -2312,7 +2312,7 @@ const allNBA: Prisma.PlayerWhereInput = {
   ],
 };
 
-const currentPlayers: Prisma.PlayerWhereInput = {
+const currentPlayers: nba.Prisma.PlayerWhereInput = {
   is_active: {
     equals: true,
   },
@@ -2359,7 +2359,7 @@ export interface GameDifficulty {
   name: string;
   display_name: string;
   description: string;
-  filter: Prisma.PlayerWhereInput;
+  filter: nba.Prisma.PlayerWhereInput;
 }
 
 export const GameDifficultyNames = GameDifficulties.allModes.map((mode) => mode.name);
@@ -2994,7 +2994,7 @@ import PlayerSearchBar from '@/components/search/playersearchbar';
 import { Button } from '@/components/ui/button';
 import useConfetti from '@/hooks/useConfetti';
 import useSinglePlayerSocket from '@/hooks/useSinglePlayerSocket';
-import { Player } from '@dribblio/database';
+import { nba } from '@dribblio/database';
 import { useTheme } from 'next-themes';
 import { toast } from 'react-toastify';
 
@@ -3002,7 +3002,7 @@ export default function SinglePlayer() {
   const { theme } = useTheme();
   const { onConfetti } = useConfetti();
 
-  const correctAction = (validAnswers: Player[]) => {
+  const correctAction = (validAnswers: nba.Player[]) => {
     toast(<CorrectAnswer validAnswers={validAnswers} />, { theme });
     onConfetti();
   };
@@ -3201,7 +3201,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import { Player } from '@dribblio/database';
+import { nba } from '@dribblio/database';
 import { useEffect, useState } from 'react';
 
 export default function PlayerSearchBar({
@@ -3210,17 +3210,17 @@ export default function PlayerSearchBar({
   onSelect,
 }: Readonly<{
   className?: string;
-  playerList?: Player[];
+  playerList?: nba.Player[];
   onSelect?: (id: number) => void;
 }>) {
   const [search, setSearch] = useState<string>('');
-  const [players, setPlayers] = useState<Player[]>([]);
+  const [players, setPlayers] = useState<nba.Player[]>([]);
 
   useEffect(() => {
     if (!playerList) {
       fetch('/api/players')
         .then((res) => res.json())
-        .then((list: Player[]) =>
+        .then((list: nba.Player[]) =>
           setPlayers(list.sort((a, b) => a.last_name!.localeCompare(b.last_name!))),
         );
     } else {
@@ -3657,7 +3657,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
 'use client';
 
 import { clientSocket } from '@/lib/clientsocket';
-import { Player } from '@dribblio/database';
+import { nba } from '@dribblio/database';
 import {
   GameState,
   HostRoomMessageBody,
@@ -3678,7 +3678,7 @@ type RoundProps = {
   timeLeft: number;
   users: UserGameInfo[];
   team_history: string[];
-  players: Player[];
+  players: nba.Player[];
 };
 
 const useMultiplayerSocket = () => {
@@ -3688,11 +3688,11 @@ const useMultiplayerSocket = () => {
   const [roundActive, setRoundActive] = useState<boolean>(false);
   const [users, setUsers] = useState<UserGameInfo[]>([]);
   const [roomId, setRoomId] = useState<string | undefined>(undefined);
-  const [validAnswers, setValidAnswers] = useState<Player[]>([]);
+  const [validAnswers, setValidAnswers] = useState<nba.Player[]>([]);
 
   const [teams, setTeams] = useState<string[] | null>(null);
 
-  const [players, setPlayers] = useState<Player[]>([]);
+  const [players, setPlayers] = useState<nba.Player[]>([]);
 
   const [timeLeft, setTimeLeft] = useState<number>(0);
 
@@ -3789,7 +3789,7 @@ export default useMultiplayerSocket;
 ````typescript
 'use client';
 
-import { Player } from '@dribblio/database';
+import { nba } from '@dribblio/database';
 import { SearchResponse } from '@dribblio/types';
 import { AsyncListLoadOptions, useAsyncList } from '@react-stately/data';
 import { useEffect, useState } from 'react';
@@ -3803,8 +3803,8 @@ const usePlayerSearch = () => {
       .then(setPlayerCount);
   }, [setPlayerCount]);
 
-  const list = useAsyncList<Player>({
-    async load({ signal, filterText }: AsyncListLoadOptions<Player, string>) {
+  const list = useAsyncList<nba.Player>({
+    async load({ signal, filterText }: AsyncListLoadOptions<nba.Player, string>) {
       const res = await fetch(`/api/players/search?searchTerm=${filterText}`, {
         signal,
       });
@@ -3827,12 +3827,12 @@ export default usePlayerSearch;
 'use client';
 
 import { clientSocket } from '@/lib/clientsocket';
-import { Player } from '@dribblio/database';
+import { nba } from '@dribblio/database';
 import { HostRoomMessageBody, SinglePlayerConfig } from '@dribblio/types';
 import { useEffect, useState } from 'react';
 
 type ClientSocketProps = {
-  correctAction: (validAnswers: Player[]) => void;
+  correctAction: (validAnswers: nba.Player[]) => void;
   incorrectAction: () => void;
 };
 
@@ -3847,7 +3847,7 @@ type RoundProps = {
 };
 
 type CorrectGuessProps = {
-  validAnswers: Player[];
+  validAnswers: nba.Player[];
 };
 
 type IncorrectGuessProps = {
@@ -5654,7 +5654,7 @@ export * as runtime from '@prisma/client/runtime/library.js';
 
 ## File: packages/types/src/statemachine/singleplayer/gamemachine.ts
 ````typescript
-import { Player } from '@dribblio/database';
+import { nba } from '@dribblio/database';
 import { Socket } from 'socket.io';
 import { Actor, AnyStateMachine, assign, createActor, enqueueActions, setup } from 'xstate';
 import { generateRound } from '../actors.js';
@@ -5679,7 +5679,7 @@ export type SinglePlayerContext = {
   config: SinglePlayerConfig;
   gameState: {
     score: number;
-    validAnswers: Player[];
+    validAnswers: nba.Player[];
     lives: number;
   };
 };
@@ -6007,7 +6007,7 @@ export default function ProfilePage() {
 
 ## File: packages/types/src/statemachine/multiplayer/gamemachine.ts
 ````typescript
-import { Player } from '@dribblio/database';
+import { nba } from '@dribblio/database';
 import { Server } from 'socket.io';
 import { Actor, AnyStateMachine, assign, createActor, enqueueActions, setup } from 'xstate';
 import { PlayerGuess } from '../../websocket/playerguess.js';
@@ -6028,7 +6028,7 @@ export type GameState = {
   timeLeft: number;
   currentRound: number;
   users: UserGameInfo[];
-  validAnswers: Player[];
+  validAnswers: nba.Player[];
 };
 
 export type MultiplayerConfig = {
@@ -6193,7 +6193,7 @@ export function createMultiplayerMachine(
 ````typescript
 import { fromPromise } from 'xstate';
 
-import { Player } from '@dribblio/database';
+import { nba } from '@dribblio/database';
 import { GameDifficulty } from './gamedifficulties.js';
 import { BaseGameService } from './gameservice.js';
 
@@ -6205,8 +6205,8 @@ type RoundInput = {
 };
 
 export type RoundProps = {
-  validAnswers: Player[];
-  players: Player[];
+  validAnswers: nba.Player[];
+  players: nba.Player[];
 };
 
 export const generateRound = fromPromise(async ({ input }: RoundInput): Promise<RoundProps> => {
