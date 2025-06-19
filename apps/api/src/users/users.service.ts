@@ -7,17 +7,20 @@ export class UsersService {
   constructor(private readonly userPrisma: UsersPrismaService) {}
 
   async get(id: string) {
-    return await this.userPrisma.user.findUnique({
+    const user = await this.userPrisma.user.findUnique({
       where: { id },
     });
+
+    return user;
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
     return await this.userPrisma.user.update({
       where: { id: id },
       data: {
-        first_name: updateUserDto.first_name ?? '',
-        last_name: updateUserDto.last_name ?? '',
+        display_name: updateUserDto.display_name ?? '',
+        name: updateUserDto.name ?? '',
+        profile_url: updateUserDto.profile_url ?? '',
       },
     });
   }

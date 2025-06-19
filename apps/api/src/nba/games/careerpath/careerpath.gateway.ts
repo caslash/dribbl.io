@@ -22,21 +22,22 @@ export class CareerPathGateway implements OnGatewayDisconnect {
   ) {}
 
   handleDisconnect(client: Socket) {
-    console.log(`Client socket ${client.id} disconnected`);
+    this.roomService.leaveRoom(Array.from(client.rooms)[1], client.id);
   }
 
   @SubscribeMessage('host_room')
-  handleHostRoom(@MessageBody() config: HostRoomMessageBody, @ConnectedSocket() client: Socket) {
-    this.roomService.createRoom(config.isMulti, client, config.userName, config.config);
+  async handleHostRoom(
+    @MessageBody() config: HostRoomMessageBody,
+    @ConnectedSocket() client: Socket,
+  ) {
+    await this.roomService.createRoom(client, config);
   }
 
   @SubscribeMessage('join_room')
-  handleJoinRoom(@MessageBody() config: JoinRoomMessageBody, @ConnectedSocket() client: Socket) {
-    this.roomService.joinRoom(client, config.roomId, config.userName);
-  }
-
-  @SubscribeMessage('disconnecting')
-  handleDisconnecting(@ConnectedSocket() client: Socket) {
-    this.roomService.leaveRoom(Array.from(client.rooms)[1], client.id);
+  async handleJoinRoom(
+    @MessageBody() config: JoinRoomMessageBody,
+    @ConnectedSocket() client: Socket,
+  ) {
+    await this.roomService.joinRoom(client, config);
   }
 }
