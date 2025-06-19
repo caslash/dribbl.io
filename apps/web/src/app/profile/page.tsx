@@ -21,7 +21,7 @@ export default function ProfilePage() {
     <div className="flex flex-col h-full space-y-8">
       {user && (
         <div>
-          <p>Hello {user.first_name}!</p>
+          <p>Hello {user.name}!</p>
         </div>
       )}
       <div>

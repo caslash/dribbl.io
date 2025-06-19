@@ -1,4 +1,5 @@
 export interface UpdateUserDto {
-  first_name?: string;
-  last_name?: string;
+  display_name?: string;
+  name?: string;
+  profile_url?: string;
 }

@@ -68,7 +68,7 @@ const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketP
     setTeams(null);
   }
   function onConfigureRoom(config: SinglePlayerConfig) {
-    const body: HostRoomMessageBody = { isMulti: false, userName: '', config };
+    const body: HostRoomMessageBody = { isMulti: false, userId: '', config };
     clientSocket.emit('host_room', body);
     setIsRoomConfigured(true);
   }

@@ -1,5 +1,6 @@
 import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
 import { GameService } from '@/nba/games/careerpath/game.service';
+import { users } from '@dribblio/database';
 import {
   createMultiplayerMachine,
   createSinglePlayerMachine,
@@ -7,7 +8,6 @@ import {
   PlayerGuess,
   Room,
   SinglePlayerConfig,
-  User,
 } from '@dribblio/types';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io';
@@ -26,6 +26,7 @@ export class RoomFactory {
       statemachine: undefined,
       users: [],
       config,
+      isMulti: false,
     };
 
     room.statemachine = createSinglePlayerMachine(socket, room.config, this.gameService);
@@ -53,11 +54,12 @@ export class RoomFactory {
       statemachine: undefined,
       users: [],
       config: config,
+      isMulti: true,
     };
 
     room.statemachine = createMultiplayerMachine(this.gateway.server, room, this.gameService);
 
-    socket.on('start_game', (users: User[]) => {
+    socket.on('start_game', (users: users.User[]) => {
       room.statemachine?.subscribe((s) => {
         this.gateway.server.to(room.id).emit('state_change', s.value);
       });
@@ -69,9 +71,7 @@ export class RoomFactory {
   }
 
   setUpListenersOnJoin(socket: Socket, room: Room) {
-    socket.on('client_guess', (guessId: number) => {
-      const userId = socket.id;
-      const guess: PlayerGuess = { userId, guessId };
+    socket.on('client_guess', (guess: PlayerGuess) => {
       room.statemachine?.send({ type: 'CLIENT_GUESS', guess });
     });
 
