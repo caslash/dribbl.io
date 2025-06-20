@@ -3,21 +3,25 @@ This file is a merged representation of the entire codebase, combined into a sin
 # File Summary
 
 ## Purpose
+
 This file contains a packed representation of the entire repository's contents.
 It is designed to be easily consumable by AI systems for analysis, code review,
 or other automated processes.
 
 ## File Format
+
 The content is organized as follows:
+
 1. This summary section
 2. Repository information
 3. Directory structure
 4. Repository files (if enabled)
 5. Multiple file entries, each consisting of:
-  a. A header with the file path (## File: path/to/file)
-  b. The full contents of the file in a code block
+   a. A header with the file path (## File: path/to/file)
+   b. The full contents of the file in a code block
 
 ## Usage Guidelines
+
 - This file should be treated as read-only. Any changes should be made to the
   original repository files, not this packed version.
 - When processing this file, use the file path to distinguish
@@ -26,6 +30,7 @@ The content is organized as follows:
   the same level of security as you would the original repository.
 
 ## Notes
+
 - Some files may have been excluded based on .gitignore rules and Repomix's configuration
 - Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
 - Files matching patterns in .gitignore are excluded
@@ -33,6 +38,7 @@ The content is organized as follows:
 - Files are sorted by Git change count (files with more changes are at the bottom)
 
 # Directory Structure
+
 ```
 .cursor/
   rules/
@@ -229,9 +235,10 @@ turbo.json
 # Files
 
 ## File: .cursor/rules/nestjs.mdc
-````
+
+```
 ---
-description: 
+description:
 globs: apps/api/**/*.ts
 alwaysApply: false
 ---
@@ -353,10 +360,11 @@ You are a senior TypeScript programmer with experience in the NestJS framework a
 - Write tests for each controller and service.
 - Write end to end tests for each api module.
 - Add a admin/test method to each controller as a smoke test.
-````
+```
 
 ## File: apps/api/src/auth/userinfo.type.ts
-````typescript
+
+```typescript
 export type UserInfo = {
   sub: string;
   given_name: string;
@@ -365,10 +373,11 @@ export type UserInfo = {
   picture: string;
   updated_at: string;
 };
-````
+```
 
 ## File: apps/api/src/database/nba.prisma.service.ts
-````typescript
+
+```typescript
 import { nba } from '@dribblio/database';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 
@@ -378,10 +387,11 @@ export class NBAPrismaService extends nba.PrismaClient implements OnModuleInit {
     await this.$connect();
   }
 }
-````
+```
 
 ## File: apps/api/src/database/users.prisma.service.ts
-````typescript
+
+```typescript
 import { users } from '@dribblio/database';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 
@@ -391,10 +401,11 @@ export class UsersPrismaService extends users.PrismaClient implements OnModuleIn
     await this.$connect();
   }
 }
-````
+```
 
 ## File: apps/api/src/users/users.controller.ts
-````typescript
+
+```typescript
 import { UpdateUserDto } from '@/users/dto/update-user.dto';
 import { UsersService } from '@/users/users.service';
 import { Body, Controller, Get, Patch, Request, UseGuards } from '@nestjs/common';
@@ -415,10 +426,11 @@ export class UsersController {
     return await this.usersService.update(req.user.id, updateUserDto);
   }
 }
-````
+```
 
 ## File: apps/api/test/jest-e2e.json
-````json
+
+```json
 {
   "moduleFileExtensions": ["js", "json", "ts"],
   "rootDir": ".",
@@ -428,10 +440,11 @@ export class UsersController {
     "^.+\\.(t|j)s$": "ts-jest"
   }
 }
-````
+```
 
 ## File: apps/api/jest.lint.config.ts
-````typescript
+
+```typescript
 const config = {
   runner: 'jest-runner-eslint',
   displayName: 'lint',
@@ -439,10 +452,11 @@ const config = {
 };
 
 export default config;
-````
+```
 
 ## File: apps/api/nest-cli.json
-````json
+
+```json
 {
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
@@ -451,18 +465,20 @@ export default config;
     "deleteOutDir": true
   }
 }
-````
+```
 
 ## File: apps/api/tsconfig.build.json
-````json
+
+```json
 {
   "extends": "./tsconfig.json",
   "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
 }
-````
+```
 
 ## File: apps/web/src/app/providers.tsx
-````typescript
+
+```typescript
 'use client';
 
 import type { ThemeProviderProps } from 'next-themes';
@@ -478,10 +494,11 @@ export interface ProvidersProps {
 export function Providers({ children, themeProps }: ProvidersProps) {
   return <NextThemesProvider {...themeProps}>{children}</NextThemesProvider>;
 }
-````
+```
 
 ## File: apps/web/src/components/careerpath/careerpathview.tsx
-````typescript
+
+```typescript
 'use client';
 import Image from 'next/image';
 
@@ -505,10 +522,11 @@ export function CareerPath({ teams }: Readonly<{ teams?: string[] }>) {
     </div>
   );
 }
-````
+```
 
 ## File: apps/web/src/components/magicui/dock.tsx
-````typescript
+
+```typescript
 'use client';
 
 import { cva, type VariantProps } from 'class-variance-authority';
@@ -650,10 +668,11 @@ const DockIcon = ({
 DockIcon.displayName = 'DockIcon';
 
 export { Dock, DockIcon, dockVariants };
-````
+```
 
 ## File: apps/web/src/components/navbar/themeswitcher.tsx
-````typescript
+
+```typescript
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -679,10 +698,11 @@ export default function ThemeSwitcher() {
     </Button>
   );
 }
-````
+```
 
 ## File: apps/web/src/components/ui/button.tsx
-````typescript
+
+```typescript
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 import * as React from 'react';
@@ -733,10 +753,11 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = 'Button';
 
 export { Button, buttonVariants };
-````
+```
 
 ## File: apps/web/src/components/ui/command.tsx
-````typescript
+
+```typescript
 'use client';
 
 import { type DialogProps } from '@radix-ui/react-dialog';
@@ -880,10 +901,11 @@ export {
   CommandSeparator,
   CommandShortcut,
 };
-````
+```
 
 ## File: apps/web/src/components/ui/dialog.tsx
-````typescript
+
+```typescript
 'use client';
 
 import * as DialogPrimitive from '@radix-ui/react-dialog';
@@ -988,10 +1010,11 @@ export {
   DialogTitle,
   DialogTrigger,
 };
-````
+```
 
 ## File: apps/web/src/components/ui/form.tsx
-````typescript
+
+```typescript
 'use client';
 
 import * as LabelPrimitive from '@radix-ui/react-label';
@@ -1161,10 +1184,11 @@ export {
   FormMessage,
   useFormField,
 };
-````
+```
 
 ## File: apps/web/src/components/ui/input.tsx
-````typescript
+
+```typescript
 import * as React from 'react';
 
 import { cn } from '@/lib/utils';
@@ -1187,10 +1211,11 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<'input'>>(
 Input.displayName = 'Input';
 
 export { Input };
-````
+```
 
 ## File: apps/web/src/components/ui/label.tsx
-````typescript
+
+```typescript
 'use client';
 
 import * as LabelPrimitive from '@radix-ui/react-label';
@@ -1212,10 +1237,11 @@ function Label({ className, ...props }: React.ComponentProps<typeof LabelPrimiti
 }
 
 export { Label };
-````
+```
 
 ## File: apps/web/src/components/ui/separator.tsx
-````typescript
+
+```typescript
 'use client';
 
 import * as SeparatorPrimitive from '@radix-ui/react-separator';
@@ -1242,10 +1268,11 @@ const Separator = React.forwardRef<
 Separator.displayName = SeparatorPrimitive.Root.displayName;
 
 export { Separator };
-````
+```
 
 ## File: apps/web/src/components/ui/tooltip.tsx
-````typescript
+
+```typescript
 'use client';
 
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
@@ -1278,10 +1305,11 @@ const TooltipContent = React.forwardRef<
 TooltipContent.displayName = TooltipPrimitive.Content.displayName;
 
 export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger };
-````
+```
 
 ## File: apps/web/src/components/gamemodecard.tsx
-````typescript
+
+```typescript
 import { Button } from '@/components/ui/button';
 import { StaticImport } from 'next/dist/shared/lib/get-img-props';
 import { Url } from 'next/dist/shared/lib/router/router';
@@ -1322,10 +1350,11 @@ export default function GameModeCard({
     </div>
   );
 }
-````
+```
 
 ## File: apps/web/src/components/teamlogo.tsx
-````typescript
+
+```typescript
 'use client';
 import Image from 'next/image';
 
@@ -1350,10 +1379,11 @@ export default function TeamLogo({
     </div>
   );
 }
-````
+```
 
 ## File: apps/web/src/hooks/useConfetti.ts
-````typescript
+
+```typescript
 import confetti from 'canvas-confetti';
 
 const useConfetti = () => {
@@ -1391,10 +1421,11 @@ const useConfetti = () => {
 };
 
 export default useConfetti;
-````
+```
 
 ## File: apps/web/src/hooks/useUnveilLogos.ts
-````typescript
+
+```typescript
 import { useState } from 'react';
 
 const useUnveilLogos = (teamHistory: string[]) => {
@@ -1421,19 +1452,21 @@ const useUnveilLogos = (teamHistory: string[]) => {
 };
 
 export default useUnveilLogos;
-````
+```
 
 ## File: apps/web/src/icons/iconsvgprops.tsx
-````typescript
+
+```typescript
 import { SVGProps } from 'react';
 
 export type IconSvgProps = SVGProps<SVGSVGElement> & {
   size?: number;
 };
-````
+```
 
 ## File: apps/web/src/icons/themes.tsx
-````typescript
+
+```typescript
 'use client';
 
 import { IconSvgProps } from '@/icons/iconsvgprops';
@@ -1475,10 +1508,11 @@ export const SunIcon = (props: IconSvgProps) => {
     </svg>
   );
 };
-````
+```
 
 ## File: apps/web/src/lib/auth0.ts
-````typescript
+
+```typescript
 import { Auth0Client } from '@auth0/nextjs-auth0/server';
 
 export const auth0 = new Auth0Client({
@@ -1487,10 +1521,11 @@ export const auth0 = new Auth0Client({
     scope: process.env.AUTH0_SCOPE,
   },
 });
-````
+```
 
 ## File: apps/web/src/lib/clientsocket.ts
-````typescript
+
+```typescript
 'use client';
 
 import { io } from 'socket.io-client';
@@ -1498,10 +1533,11 @@ import { io } from 'socket.io-client';
 export const clientSocket = io(`http://localhost:3002`, {
   autoConnect: false,
 });
-````
+```
 
 ## File: apps/web/src/styles/sfFont.ts
-````typescript
+
+```typescript
 import localFont from 'next/font/local';
 
 export const sfFont = localFont({
@@ -1600,10 +1636,11 @@ export const sfFont = localFont({
   display: 'swap',
   variable: '--font-sf',
 });
-````
+```
 
 ## File: apps/web/jest.lint.config.ts
-````typescript
+
+```typescript
 const config = {
   runner: 'jest-runner-eslint',
   displayName: 'lint',
@@ -1611,20 +1648,22 @@ const config = {
 };
 
 export default config;
-````
+```
 
 ## File: apps/web/postcss.config.js
-````javascript
+
+```javascript
 module.exports = {
   plugins: {
     tailwindcss: {},
     autoprefixer: {},
   },
 };
-````
+```
 
 ## File: apps/web/postcss.config.mjs
-````
+
+```
 /** @type {import('postcss-load-config').Config} */
 const config = {
   plugins: {
@@ -1633,10 +1672,11 @@ const config = {
 };
 
 export default config;
-````
+```
 
 ## File: packages/database/prisma-nba/schema.prisma
-````
+
+```
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -1690,10 +1730,11 @@ model player_accolades {
   accolades Json?
   player    Player @relation(fields: [player_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
-````
+```
 
 ## File: packages/database/prisma-users/migrations/20250618014712_add_users_table/migration.sql
-````sql
+
+```sql
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
@@ -1703,17 +1744,19 @@ CREATE TABLE "User" (
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
-````
+```
 
 ## File: packages/database/prisma-users/migrations/migration_lock.toml
-````toml
+
+```toml
 # Please do not edit this file manually
 # It should be added in your version-control system (e.g., Git)
 provider = "postgresql"
-````
+```
 
 ## File: packages/database/tsconfig.json
-````json
+
+```json
 {
   "extends": "@dribblio/typescript-config/base.json",
   "compilerOptions": {
@@ -1723,40 +1766,45 @@ provider = "postgresql"
   "include": ["src"],
   "exclude": ["node_modules", "dist"]
 }
-````
+```
 
 ## File: packages/eslint-config/README.md
-````markdown
+
+```markdown
 # `@turbo/eslint-config`
 
 Collection of internal eslint configurations.
-````
+```
 
 ## File: packages/types/src/responses/index.ts
-````typescript
+
+```typescript
 export * from './searchresponse.js';
-````
+```
 
 ## File: packages/types/src/statemachine/gameservice.ts
-````typescript
+
+```typescript
 import { RoundProps } from './actors.js';
 import { GameDifficulty } from './gamedifficulties.js';
 
 export interface BaseGameService {
   generateRound: (difficulty: GameDifficulty) => Promise<RoundProps>;
 }
-````
+```
 
 ## File: packages/types/src/websocket/playerguess.ts
-````typescript
+
+```typescript
 export type PlayerGuess = {
   userId: string;
   guessId: number;
 };
-````
+```
 
 ## File: packages/typescript-config/base.json
-````json
+
+```json
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
@@ -1776,10 +1824,11 @@ export type PlayerGuess = {
     "target": "ES2022"
   }
 }
-````
+```
 
 ## File: packages/typescript-config/nextjs.json
-````json
+
+```json
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "./base.json",
@@ -1792,10 +1841,11 @@ export type PlayerGuess = {
     "noEmit": true
   }
 }
-````
+```
 
 ## File: packages/typescript-config/package.json
-````json
+
+```json
 {
   "name": "@dribblio/typescript-config",
   "version": "0.0.0",
@@ -1805,10 +1855,11 @@ export type PlayerGuess = {
     "access": "public"
   }
 }
-````
+```
 
 ## File: packages/typescript-config/react-library.json
-````json
+
+```json
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "./base.json",
@@ -1816,19 +1867,21 @@ export type PlayerGuess = {
     "jsx": "react-jsx"
   }
 }
-````
+```
 
 ## File: .prettierrc
-````
+
+```
 singleQuote: true
 printWidth: 100
 trailingComma: all
 endOfLine: auto
 tabWidth: 2
-````
+```
 
 ## File: .repomixignore
-````
+
+```
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # Dependencies
@@ -1880,10 +1933,11 @@ next-env.d.ts
 **/*-lock.json
 
 *.svg
-````
+```
 
 ## File: repomix.config.json
-````json
+
+```json
 {
   "$schema": "https://repomix.com/schemas/latest/schema.json",
   "input": {
@@ -1921,10 +1975,11 @@ next-env.d.ts
     "encoding": "o200k_base"
   }
 }
-````
+```
 
 ## File: apps/api/src/auth/auth.module.ts
-````typescript
+
+```typescript
 import { JwtStrategy } from '@/auth/jwt.strategy';
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
@@ -1935,10 +1990,11 @@ import { PassportModule } from '@nestjs/passport';
   exports: [PassportModule],
 })
 export class AuthModule {}
-````
+```
 
 ## File: apps/api/src/auth/payload.type.ts
-````typescript
+
+```typescript
 export type Auth0JwtPayload = {
   aud: string; // Audience (API identifier)
   azp?: string; // Authorized party
@@ -1948,10 +2004,11 @@ export type Auth0JwtPayload = {
   scope?: string; // Scopes granted
   sub: string; // Subject (user ID)
 };
-````
+```
 
 ## File: apps/api/src/nba/games/careerpath/room/room.service.spec.ts
-````typescript
+
+```typescript
 import { RoomService } from '@/nba/games/careerpath/room/room.service';
 import { Test, TestingModule } from '@nestjs/testing';
 
@@ -1970,19 +2027,21 @@ describe('RoomService', () => {
     expect(service).toBeDefined();
   });
 });
-````
+```
 
 ## File: apps/api/src/users/dto/update-user.dto.ts
-````typescript
+
+```typescript
 export interface UpdateUserDto {
   display_name?: string;
   name?: string;
   profile_url?: string;
 }
-````
+```
 
 ## File: apps/api/src/users/users.module.ts
-````typescript
+
+```typescript
 import { Module } from '@nestjs/common';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
@@ -1993,10 +2052,11 @@ import { UsersService } from './users.service';
   exports: [UsersService],
 })
 export class UsersModule {}
-````
+```
 
 ## File: apps/api/src/users/users.service.ts
-````typescript
+
+```typescript
 import { UsersPrismaService } from '@/database/users.prisma.service';
 import { Injectable } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -2024,10 +2084,11 @@ export class UsersService {
     });
   }
 }
-````
+```
 
 ## File: apps/api/test/app.e2e-spec.ts
-````typescript
+
+```typescript
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
@@ -2050,17 +2111,19 @@ describe('AppController (e2e)', () => {
     return request(app.getHttpServer()).get('/').expect(200).expect('Hello World!');
   });
 });
-````
+```
 
 ## File: apps/api/eslint.config.mjs
-````
+
+```
 import { baseConfig } from '@dribblio/eslint-config/base';
 
 /** @type {import("eslint").Linter.Config} */
 export default baseConfig;
-````
+```
 
 ## File: apps/api/README.md
+
 ````markdown
 # Dribbl.io API
 
@@ -2254,7 +2317,8 @@ Any unauthorized use, reproduction, or distribution of the Software is strictly 
 ````
 
 ## File: apps/api/tsconfig.json
-````json
+
+```json
 {
   "compilerOptions": {
     "module": "commonjs",
@@ -2279,10 +2343,11 @@ Any unauthorized use, reproduction, or distribution of the Software is strictly 
     }
   }
 }
-````
+```
 
 ## File: apps/web/src/app/login/page.tsx
-````typescript
+
+```typescript
 import { GalleryVerticalEnd } from 'lucide-react';
 
 import { LoginForm } from '@/components/login-form';
@@ -2302,10 +2367,11 @@ export default function LoginPage() {
     </div>
   );
 }
-````
+```
 
 ## File: apps/web/src/app/layout.tsx
-````typescript
+
+```typescript
 import '@/styles/globals.css';
 
 import { Providers } from '@/app/providers';
@@ -2340,10 +2406,11 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
     </html>
   );
 }
-````
+```
 
 ## File: apps/web/src/components/careerpath/answer.tsx
-````typescript
+
+```typescript
 'use client';
 
 import { nba } from '@dribblio/database';
@@ -2414,10 +2481,11 @@ const IncorrectAnswer = ({ possibleAnswers }: Readonly<{ possibleAnswers: nba.Pl
 };
 
 export { CorrectAnswer, IncorrectAnswer };
-````
+```
 
 ## File: apps/web/src/components/config/multiplayer/joinhostmodal.tsx
-````typescript
+
+```typescript
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -2678,10 +2746,11 @@ function HostForm({
     </Form>
   );
 }
-````
+```
 
 ## File: apps/web/src/components/config/singleplayer/configmodal.tsx
-````typescript
+
+```typescript
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -2777,10 +2846,11 @@ function SinglePlayerForm({
     </Form>
   );
 }
-````
+```
 
 ## File: apps/web/src/components/search/playersearchresult.tsx
-````typescript
+
+```typescript
 import { nba } from '@dribblio/database';
 
 export default function PlayerSearchResult({ player }: Readonly<{ player: nba.Player }>) {
@@ -2791,10 +2861,11 @@ export default function PlayerSearchResult({ player }: Readonly<{ player: nba.Pl
     </div>
   );
 }
-````
+```
 
 ## File: apps/web/src/components/ui/card.tsx
-````typescript
+
+```typescript
 import * as React from 'react';
 
 import { cn } from '@/lib/utils';
@@ -2850,10 +2921,11 @@ const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
 CardFooter.displayName = 'CardFooter';
 
 export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle };
-````
+```
 
 ## File: apps/web/src/components/ui/select.tsx
-````typescript
+
+```typescript
 'use client';
 
 import * as SelectPrimitive from '@radix-ui/react-select';
@@ -3006,10 +3078,11 @@ export {
   SelectTrigger,
   SelectValue,
 };
-````
+```
 
 ## File: apps/web/src/components/ui/switch.tsx
-````typescript
+
+```typescript
 'use client';
 
 import * as SwitchPrimitives from '@radix-ui/react-switch';
@@ -3039,10 +3112,11 @@ const Switch = React.forwardRef<
 Switch.displayName = SwitchPrimitives.Root.displayName;
 
 export { Switch };
-````
+```
 
 ## File: apps/web/src/components/ui/tabs.tsx
-````typescript
+
+```typescript
 'use client';
 
 import * as TabsPrimitive from '@radix-ui/react-tabs';
@@ -3098,10 +3172,11 @@ const TabsContent = React.forwardRef<
 TabsContent.displayName = TabsPrimitive.Content.displayName;
 
 export { Tabs, TabsContent, TabsList, TabsTrigger };
-````
+```
 
 ## File: apps/web/src/components/login-form.tsx
-````typescript
+
+```typescript
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -3179,20 +3254,22 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
     </div>
   );
 }
-````
+```
 
 ## File: apps/web/src/lib/utils.ts
-````typescript
+
+```typescript
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
-````
+```
 
 ## File: apps/web/src/styles/globals.css
-````css
+
+```css
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -3261,10 +3338,11 @@ export function cn(...inputs: ClassValue[]) {
     @apply bg-background text-foreground;
   }
 }
-````
+```
 
 ## File: apps/web/src/middleware.ts
-````typescript
+
+```typescript
 import { auth0 } from '@/lib/auth0';
 import type { NextRequest } from 'next/server';
 
@@ -3275,10 +3353,11 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)'],
 };
-````
+```
 
 ## File: apps/web/components.json
-````json
+
+```json
 {
   "$schema": "https://ui.shadcn.com/schema.json",
   "style": "new-york",
@@ -3300,17 +3379,19 @@ export const config = {
   },
   "iconLibrary": "lucide"
 }
-````
+```
 
 ## File: apps/web/eslint.config.js
-````javascript
+
+```javascript
 import { nextJsConfig } from '@dribblio/eslint-config/next-js';
 
 /** @type {import("eslint").Linter.Config} */
 export default nextJsConfig;
-````
+```
 
 ## File: apps/web/README.md
+
 ````markdown
 # Dribbl.io Web Application
 
@@ -3485,7 +3566,8 @@ Any unauthorized use, reproduction, or distribution of the Software is strictly 
 ````
 
 ## File: apps/web/tailwind.config.ts
-````typescript
+
+```typescript
 export default {
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
@@ -3552,10 +3634,11 @@ export default {
   darkMode: ['class'],
   plugins: [require('tailwindcss-animate')],
 };
-````
+```
 
 ## File: packages/database/prisma-users/schema.prisma
-````
+
+```
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -3578,10 +3661,11 @@ model User {
   name String?
   profile_url String?
 }
-````
+```
 
 ## File: packages/database/src/client.ts
-````typescript
+
+```typescript
 import { PrismaClient as NBAPrismaClient } from '../generated/prisma-nba';
 import { PrismaClient as UsersPrismaClient } from '../generated/prisma-users';
 
@@ -3592,10 +3676,11 @@ const globalForPrisma = global as unknown as {
 
 export const users_prisma = globalForPrisma.users_prisma || new UsersPrismaClient();
 export const nba_prisma = globalForPrisma.nba_prisma || new NBAPrismaClient();
-````
+```
 
 ## File: packages/eslint-config/package.json
-````json
+
+```json
 {
   "name": "@dribblio/eslint-config",
   "version": "0.0.0",
@@ -3620,19 +3705,21 @@ export const nba_prisma = globalForPrisma.nba_prisma || new NBAPrismaClient();
     "typescript-eslint": "^8.31.0"
   }
 }
-````
+```
 
 ## File: packages/types/src/responses/searchresponse.ts
-````typescript
+
+```typescript
 import { nba } from '@dribblio/database';
 
 export interface SearchResponse {
   results: nba.Player[];
 }
-````
+```
 
 ## File: packages/types/src/statemachine/multiplayer/actions.ts
-````typescript
+
+```typescript
 import { AnyEventObject } from 'xstate';
 import { MultiplayerContext } from './gamemachine.js';
 
@@ -3666,10 +3753,11 @@ export const sendRoundInfoToRoom = ({ context }: ActionProps) => {
 
   io?.to(room.id).emit('end_round', gameState);
 };
-````
+```
 
 ## File: packages/types/src/statemachine/multiplayer/guards.ts
-````typescript
+
+```typescript
 import { AnyEventObject } from 'xstate';
 import { MultiplayerContext } from './gamemachine.js';
 
@@ -3687,17 +3775,19 @@ export const timeExpired = ({ context }: GuardProps): boolean => {
   const { timeLeft } = context.gameState;
   return timeLeft <= 0;
 };
-````
+```
 
 ## File: packages/types/src/statemachine/multiplayer/index.ts
-````typescript
+
+```typescript
 export * from './actions.js';
 export * from './gamemachine.js';
 export * from './guards.js';
-````
+```
 
 ## File: packages/types/src/statemachine/singleplayer/actions.ts
-````typescript
+
+```typescript
 import { AnyEventObject } from 'xstate';
 import { SinglePlayerContext } from './gamemachine.js';
 
@@ -3771,10 +3861,11 @@ export const notifyGameOver = ({ context }: ActionProps) => {
     throw Error(`Socket could not be found: ${err}`);
   }
 };
-````
+```
 
 ## File: packages/types/src/statemachine/singleplayer/guards.ts
-````typescript
+
+```typescript
 import { AnyEventObject } from 'xstate';
 import { SinglePlayerContext } from './gamemachine.js';
 
@@ -3789,17 +3880,19 @@ export const isCorrectSinglePlayer = ({ context, event }: GuardProps): boolean =
 };
 
 export const hasLives = ({ context }: GuardProps): boolean => context.gameState.lives > 0;
-````
+```
 
 ## File: packages/types/src/statemachine/singleplayer/index.ts
-````typescript
+
+```typescript
 export * from './actions.js';
 export * from './gamemachine.js';
 export * from './guards.js';
-````
+```
 
 ## File: packages/types/src/statemachine/gamedifficulties.ts
-````typescript
+
+```typescript
 import { nba } from '@dribblio/database';
 import { z } from 'zod';
 
@@ -3951,10 +4044,11 @@ export const GameDifficultySchema = z
     const difficulty = GameDifficulties.allModes.find((mode) => mode.name === val);
     return difficulty!;
   });
-````
+```
 
 ## File: packages/types/src/websocket/messagebodies.ts
-````typescript
+
+```typescript
 import { MultiplayerConfig } from '../statemachine/multiplayer/gamemachine.js';
 import { SinglePlayerConfig } from '../statemachine/singleplayer/gamemachine.js';
 
@@ -3968,13 +4062,14 @@ export interface JoinRoomMessageBody {
   roomId: string;
   userId: string;
 }
-````
+```
 
 ## File: .cursor/rules/clean-code.mdc
-````
+
+```
 ---
 description: Guidelines for writing clean, maintainable, and human-readable code. Apply these rules when writing or reviewing code to ensure consistency and quality.
-globs: 
+globs:
 ---
 # Clean Code Guidelines
 
@@ -4027,13 +4122,14 @@ globs:
 - Write clear commit messages
 - Make small, focused commits
 - Use meaningful branch names
-````
+```
 
 ## File: .cursor/rules/codequality.mdc
-````
+
+```
 ---
 description: Code Quality Guidelines
-globs: 
+globs:
 ---
 # Code Quality Guidelines
 
@@ -4078,10 +4174,11 @@ Always provide links to the real files, not x.md.
 
 ## No Current Implementation
 Don't show or discuss the current implementation unless specifically requested.
-````
+```
 
 ## File: .cursor/rules/nextjs.mdc
-````
+
+```
 ---
 description: Next.js with TypeScript and Tailwind UI best practices
 globs: apps/web/*.ts,apps/web/**/*.tsx
@@ -4136,10 +4233,11 @@ alwaysApply: false
 - Use React Context sparingly
 - Prefer server state when possible
 - Implement proper loading states
-````
+```
 
 ## File: .cursor/rules/tailwind.mdc
-````
+
+```
 ---
 description: Tailwind CSS and UI component best practices for modern web applications
 globs: **/*.css,apps/web/**/*.tsx,apps/web/tailwind.config.ts
@@ -4219,10 +4317,11 @@ alwaysApply: false
 - Implement proper testing
 - Follow accessibility guidelines
 - Use proper version control
-````
+```
 
 ## File: .cursor/rules/typescript.mdc
-````
+
+```
 ---
 description: TypeScript coding standards and best practices for modern web development
 globs: **/*.ts, **/*.tsx, **/*.d.ts
@@ -4280,10 +4379,11 @@ globs: **/*.ts, **/*.tsx, **/*.d.ts
 - Use the Factory pattern for object creation
 - Leverage dependency injection
 - Use the Module pattern for encapsulation
-````
+```
 
 ## File: apps/api/src/database/database.module.ts
-````typescript
+
+```typescript
 import { NBAPrismaService } from '@/database/nba.prisma.service';
 import { UsersPrismaService } from '@/database/users.prisma.service';
 import { Global, Module } from '@nestjs/common';
@@ -4294,10 +4394,11 @@ import { Global, Module } from '@nestjs/common';
 })
 @Global()
 export class DatabaseModule {}
-````
+```
 
 ## File: apps/api/src/nba/games/careerpath/careerpath.module.ts
-````typescript
+
+```typescript
 import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
 import { UsersModule } from '@/users/users.module';
 import { Module } from '@nestjs/common';
@@ -4309,10 +4410,11 @@ import { PlayersModule } from 'src/nba/player/player.module';
   providers: [CareerPathGateway],
 })
 export class CareerPathModule {}
-````
+```
 
 ## File: apps/api/src/nba/games/careerpath/game.service.ts
-````typescript
+
+```typescript
 import { PlayersService } from '@/nba/player/player.service';
 import { BaseGameService, GameDifficulty, RoundProps } from '@dribblio/types';
 import { Injectable } from '@nestjs/common';
@@ -4341,10 +4443,11 @@ export class GameService implements BaseGameService {
     return { validAnswers, players };
   }
 }
-````
+```
 
 ## File: apps/api/src/nba/player/player.module.ts
-````typescript
+
+```typescript
 import { PlayersController } from '@/nba/player/player.controller';
 import { PlayersService } from '@/nba/player/player.service';
 import { Module } from '@nestjs/common';
@@ -4355,10 +4458,11 @@ import { Module } from '@nestjs/common';
   exports: [PlayersService],
 })
 export class PlayersModule {}
-````
+```
 
 ## File: apps/api/src/nba/player/player.service.ts
-````typescript
+
+```typescript
 import { NBAPrismaService } from '@/database/nba.prisma.service';
 import { runtime } from '@dribblio/database';
 import { Prisma as NBAPrisma, Player } from '@dribblio/database/generated/prisma-nba';
@@ -4393,10 +4497,11 @@ export class PlayersService {
     return await this.nba.player.count();
   }
 }
-````
+```
 
 ## File: apps/web/src/app/multiplayer/page.tsx
-````typescript
+
+```typescript
 'use client';
 
 import { CareerPath } from '@/components/careerpath/careerpathview';
@@ -4485,10 +4590,11 @@ export default function Game() {
     </div>
   );
 }
-````
+```
 
 ## File: apps/web/src/app/singleplayer/page.tsx
-````typescript
+
+```typescript
 'use client';
 
 import { CorrectAnswer } from '@/components/careerpath/answer';
@@ -4556,10 +4662,11 @@ export default function SinglePlayer() {
     </div>
   );
 }
-````
+```
 
 ## File: apps/web/src/components/search/playersearchbar.tsx
-````typescript
+
+```typescript
 import PlayerSearchResult from '@/components/search/playersearchresult';
 import {
   Command,
@@ -4629,10 +4736,11 @@ export default function PlayerSearchBar({
     </div>
   );
 }
-````
+```
 
 ## File: apps/web/src/config/site.ts
-````typescript
+
+```typescript
 import { Gamepad2, House, LucideProps, Swords } from 'lucide-react';
 import { ForwardRefExoticComponent, RefAttributes } from 'react';
 
@@ -4664,10 +4772,11 @@ export const siteConfig: { name: string; navItems: NavItem[] } = {
     },
   ],
 };
-````
+```
 
 ## File: apps/web/src/hooks/usePlayerSearch.ts
-````typescript
+
+```typescript
 'use client';
 
 import { nba } from '@dribblio/database';
@@ -4701,10 +4810,11 @@ const usePlayerSearch = () => {
 };
 
 export default usePlayerSearch;
-````
+```
 
 ## File: apps/web/next.config.mjs
-````
+
+```
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   rewrites() {
@@ -4734,10 +4844,11 @@ const nextConfig = {
 };
 
 export default nextConfig;
-````
+```
 
 ## File: apps/web/tsconfig.json
-````json
+
+```json
 {
   "extends": "@dribblio/typescript-config/nextjs.json",
   "compilerOptions": {
@@ -4753,19 +4864,21 @@ export default nextConfig;
   "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", "next.config.mjs", ".next/types/**/*.ts"],
   "exclude": ["node_modules", "public"]
 }
-````
+```
 
 ## File: packages/database/.gitignore
-````
+
+```
 node_modules
 # Keep environment variables out of version control
 .env
 
 /generated
-````
+```
 
 ## File: packages/eslint-config/base.js
-````javascript
+
+```javascript
 import js from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import jest from 'eslint-plugin-jest';
@@ -4812,10 +4925,11 @@ export const baseConfig = [
     ignores: ['dist/**'],
   },
 ];
-````
+```
 
 ## File: packages/eslint-config/next.js
-````javascript
+
+```javascript
 import js from '@eslint/js';
 import { default as pluginNext } from '@next/eslint-plugin-next';
 import eslintConfigPrettier from 'eslint-config-prettier';
@@ -4854,10 +4968,11 @@ export const nextJsConfig = [
     },
   },
 ];
-````
+```
 
 ## File: packages/types/tsconfig.json
-````json
+
+```json
 {
   "extends": "@dribblio/typescript-config/base.json",
   "compilerOptions": {
@@ -4867,10 +4982,11 @@ export const nextJsConfig = [
   "include": ["src"],
   "exclude": ["node_modules", "dist"]
 }
-````
+```
 
 ## File: .gitignore
-````
+
+```
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # Dependencies
@@ -4920,10 +5036,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 **/*-lock.json
-````
+```
 
 ## File: apps/api/src/nba/games/careerpath/room/room.service.ts
-````typescript
+
+```typescript
 import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
 import { RoomFactory } from '@/nba/games/careerpath/room/factory.service';
 import { UsersService } from '@/users/users.service';
@@ -5033,10 +5150,11 @@ export class RoomService {
     return roomId;
   }
 }
-````
+```
 
 ## File: apps/api/src/nba/games/careerpath/careerpath.gateway.ts
-````typescript
+
+```typescript
 import { RoomService } from '@/nba/games/careerpath/room/room.service';
 import { HostRoomMessageBody, JoinRoomMessageBody } from '@dribblio/types';
 import { forwardRef, Inject } from '@nestjs/common';
@@ -5080,10 +5198,11 @@ export class CareerPathGateway implements OnGatewayDisconnect {
     await this.roomService.joinRoom(client, config);
   }
 }
-````
+```
 
 ## File: apps/api/src/nba/nba.module.ts
-````typescript
+
+```typescript
 import { DatabaseModule } from '@/database/database.module';
 import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
 import { GameService } from '@/nba/games/careerpath/game.service';
@@ -5099,10 +5218,11 @@ import { Module } from '@nestjs/common';
   providers: [CareerPathGateway, RoomService, RoomFactory, GameService],
 })
 export class NBAModule {}
-````
+```
 
 ## File: apps/web/src/app/page.tsx
-````typescript
+
+```typescript
 'use client';
 
 import GameModeCard from '@/components/gamemodecard';
@@ -5127,10 +5247,11 @@ export default function Home() {
     </div>
   );
 }
-````
+```
 
 ## File: apps/web/src/components/navbar/navbar.tsx
-````typescript
+
+```typescript
 'use client';
 
 import { Dock, DockIcon } from '@/components/magicui/dock';
@@ -5209,10 +5330,11 @@ export default function NBANavbar({ className }: Readonly<{ className?: string }
     </div>
   );
 }
-````
+```
 
 ## File: apps/web/src/hooks/useMultiplayerSocket.ts
-````typescript
+
+```typescript
 'use client';
 
 import { clientSocket } from '@/lib/clientsocket';
@@ -5350,10 +5472,11 @@ const useMultiplayerSocket = () => {
 };
 
 export default useMultiplayerSocket;
-````
+```
 
 ## File: apps/web/src/hooks/useSinglePlayerSocket.ts
-````typescript
+
+```typescript
 'use client';
 
 import { clientSocket } from '@/lib/clientsocket';
@@ -5491,19 +5614,21 @@ const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketP
 };
 
 export default useSinglePlayerSocket;
-````
+```
 
 ## File: packages/database/src/index.ts
-````typescript
+
+```typescript
 export * as nba from '../generated/prisma-nba/index.js';
 export * as users from '../generated/prisma-users/index.js';
 export * from './client.js';
 
 export * as runtime from '@prisma/client/runtime/library.js';
-````
+```
 
 ## File: packages/database/package.json
-````json
+
+```json
 {
   "name": "@dribblio/database",
   "version": "1.0.0",
@@ -5526,26 +5651,29 @@ export * as runtime from '@prisma/client/runtime/library.js';
     "prisma-json-types-generator": "^3.3.1"
   }
 }
-````
+```
 
 ## File: packages/types/src/statemachine/index.ts
-````typescript
+
+```typescript
 export * from './actors.js';
 export * from './gamedifficulties.js';
 export * from './gameservice.js';
 export * from './multiplayer/index.js';
 export * from './singleplayer/index.js';
-````
+```
 
 ## File: packages/types/src/websocket/index.ts
-````typescript
+
+```typescript
 export * from './messagebodies.js';
 export * from './playerguess.js';
 export * from './room.js';
-````
+```
 
 ## File: packages/types/src/websocket/room.ts
-````typescript
+
+```typescript
 import { users } from '@dribblio/database';
 import { Actor, AnyStateMachine } from 'xstate';
 import { MultiplayerConfig } from '../statemachine/multiplayer/gamemachine.js';
@@ -5558,10 +5686,11 @@ export interface Room {
   config: SinglePlayerConfig | MultiplayerConfig;
   isMulti: boolean;
 }
-````
+```
 
 ## File: packages/types/package.json
-````json
+
+```json
 {
   "name": "@dribblio/types",
   "type": "module",
@@ -5581,10 +5710,11 @@ export interface Room {
     "zod": "^3.25.28"
   }
 }
-````
+```
 
 ## File: turbo.json
-````json
+
+```json
 {
   "$schema": "https://turborepo.com/schema.json",
   "ui": "tui",
@@ -5637,10 +5767,11 @@ export interface Room {
     }
   }
 }
-````
+```
 
 ## File: apps/api/src/auth/jwt.strategy.ts
-````typescript
+
+```typescript
 import { Auth0JwtPayload } from '@/auth/payload.type';
 import { UserInfo } from '@/auth/userinfo.type';
 import { UsersPrismaService } from '@/database/users.prisma.service';
@@ -5699,10 +5830,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     return done(null, user);
   }
 }
-````
+```
 
 ## File: apps/api/src/nba/games/careerpath/room/factory.service.ts
-````typescript
+
+```typescript
 import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
 import { GameService } from '@/nba/games/careerpath/game.service';
 import { users } from '@dribblio/database';
@@ -5785,10 +5917,11 @@ export class RoomFactory {
     });
   }
 }
-````
+```
 
 ## File: apps/api/src/nba/player/player.controller.ts
-````typescript
+
+```typescript
 import { PlayersService } from '@/nba/player/player.service';
 import { Controller, Get, Param, Query } from '@nestjs/common';
 
@@ -5835,10 +5968,11 @@ export class PlayersController {
     return await this.playerService.findOne(+id);
   }
 }
-````
+```
 
 ## File: apps/api/src/main.ts
-````typescript
+
+```typescript
 import { AppModule } from '@/app.module';
 import { NestFactory } from '@nestjs/core';
 import * as dotenv from 'dotenv';
@@ -5850,10 +5984,11 @@ async function bootstrap() {
 }
 dotenv.config();
 bootstrap();
-````
+```
 
 ## File: packages/types/src/statemachine/singleplayer/gamemachine.ts
-````typescript
+
+```typescript
 import { nba } from '@dribblio/database';
 import { Socket } from 'socket.io';
 import { Actor, AnyStateMachine, assign, createActor, enqueueActions, setup } from 'xstate';
@@ -6020,17 +6155,19 @@ export function createSinglePlayerMachine(
 
   return createActor(gameMachine).start();
 }
-````
+```
 
 ## File: packages/types/src/index.ts
-````typescript
+
+```typescript
 export * from './responses/index.js';
 export * from './statemachine/index.js';
 export * from './websocket/index.js';
-````
+```
 
 ## File: apps/api/src/app.module.ts
-````typescript
+
+```typescript
 import { AuthModule } from '@/auth/auth.module';
 import { NBAModule } from '@/nba/nba.module';
 import { Module } from '@nestjs/common';
@@ -6042,10 +6179,11 @@ import { UsersModule } from './users/users.module';
   providers: [],
 })
 export class AppModule {}
-````
+```
 
 ## File: apps/web/src/app/profile/page.tsx
-````typescript
+
+```typescript
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -6080,10 +6218,11 @@ export default function ProfilePage() {
     </div>
   );
 }
-````
+```
 
 ## File: packages/types/src/statemachine/actors.ts
-````typescript
+
+```typescript
 import { fromPromise } from 'xstate';
 
 import { nba } from '@dribblio/database';
@@ -6106,10 +6245,11 @@ export const generateRound = fromPromise(async ({ input }: RoundInput): Promise<
   const { difficulty, gameService } = input;
   return await gameService.generateRound(difficulty);
 });
-````
+```
 
 ## File: packages/types/src/statemachine/multiplayer/gamemachine.ts
-````typescript
+
+```typescript
 import { nba, users } from '@dribblio/database';
 import { Server } from 'socket.io';
 import { Actor, AnyStateMachine, assign, createActor, enqueueActions, setup } from 'xstate';
@@ -6290,10 +6430,11 @@ export function createMultiplayerMachine(
 
   return createActor(gameMachine).start();
 }
-````
+```
 
 ## File: apps/api/package.json
-````json
+
+```json
 {
   "name": "api",
   "version": "0.0.1",
@@ -6365,27 +6506,22 @@ export function createMultiplayerMachine(
     "typescript-eslint": "^8.20.0"
   },
   "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
+    "moduleFileExtensions": ["js", "json", "ts"],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
+    "collectCoverageFrom": ["**/*.(t|j)s"],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
   }
 }
-````
+```
 
 ## File: apps/web/package.json
-````json
+
+```json
 {
   "name": "web",
   "version": "0.1.0",
@@ -6447,9 +6583,10 @@ export function createMultiplayerMachine(
     "typescript": "5.8.2"
   }
 }
-````
+```
 
 ## File: README.md
+
 ````markdown
 # dribbl.io
 
@@ -6605,7 +6742,8 @@ Learn more about the power of Turborepo:
 ````
 
 ## File: package.json
-````json
+
+```json
 {
   "name": "dribbl.io",
   "private": true,
@@ -6629,9 +6767,6 @@ Learn more about the power of Turborepo:
     "node": ">=18"
   },
   "packageManager": "npm@11.2.0",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ]
+  "workspaces": ["apps/*", "packages/*"]
 }
-````
+```
