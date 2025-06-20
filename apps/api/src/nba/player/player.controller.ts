@@ -1,15 +1,5 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  NotFoundException,
-  Query,
-} from '@nestjs/common';
-import { PlayersService } from './player.service';
+import { PlayersService } from '@/nba/player/player.service';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 
 @Controller('players')
 export class PlayersController {

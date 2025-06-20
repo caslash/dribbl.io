@@ -1,6 +1,9 @@
-import { Player } from '@dribblio/database';
+import { nba } from '@dribblio/database';
 import { Socket } from 'socket.io';
 import { Actor, AnyStateMachine, assign, createActor, enqueueActions, setup } from 'xstate';
+import { generateRound } from '../actors.js';
+import { GameDifficulty } from '../gamedifficulties.js';
+import { BaseGameService } from '../gameservice.js';
 import {
   notifyCorrectGuess,
   notifyGameOver,
@@ -10,9 +13,6 @@ import {
   waitForUser,
 } from './actions.js';
 import { hasLives, isCorrectSinglePlayer } from './guards.js';
-import { GameDifficulty } from '../gamedifficulties.js';
-import { BaseGameService } from '../gameservice.js';
-import { generateRound } from '../actors.js';
 
 export type SinglePlayerConfig = {
   gameDifficulty: GameDifficulty;
@@ -23,7 +23,7 @@ export type SinglePlayerContext = {
   config: SinglePlayerConfig;
   gameState: {
     score: number;
-    validAnswers: Player[];
+    validAnswers: nba.Player[];
     lives: number;
   };
 };

@@ -4,10 +4,16 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "db:generate": "prisma generate"
+    "db:generate": "prisma generate --schema ./prisma-users/schema.prisma && prisma generate --schema ./prisma-nba/schema.prisma",
+    "db:migrate": "prisma migrate dev --schema ./prisma-users/schema.prisma",
+    "data-migration:add-display-name-and-profile-url": "tsx ./prisma-users/migrations/20250616000523_add_display_name_and_profile_url/data-migration.ts"
   },
   "devDependencies": {
-    "prisma": "^6.7.0"
+    "@types/node": "^24.0.1",
+    "prisma": "^6.7.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
   },
   "dependencies": {
     "@prisma/client": "^6.6.0",

@@ -1,5 +1,5 @@
+import { RoomService } from '@/nba/games/careerpath/room/room.service';
 import { Test, TestingModule } from '@nestjs/testing';
-import { RoomService } from './room.service';
 
 describe('RoomService', () => {
   let service: RoomService;

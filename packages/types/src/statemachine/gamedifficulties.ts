@@ -1,7 +1,7 @@
-import { Prisma } from '@dribblio/database';
+import { nba } from '@dribblio/database';
 import { z } from 'zod';
 
-const firstAllNBA: Prisma.PlayerWhereInput = {
+const firstAllNBA: nba.Prisma.PlayerWhereInput = {
   AND: [
     {
       team_history: {
@@ -33,7 +33,7 @@ const firstAllNBA: Prisma.PlayerWhereInput = {
   ],
 };
 
-const allNBA: Prisma.PlayerWhereInput = {
+const allNBA: nba.Prisma.PlayerWhereInput = {
   AND: [
     {
       team_history: {
@@ -91,7 +91,7 @@ const allNBA: Prisma.PlayerWhereInput = {
   ],
 };
 
-const currentPlayers: Prisma.PlayerWhereInput = {
+const currentPlayers: nba.Prisma.PlayerWhereInput = {
   is_active: {
     equals: true,
   },
@@ -138,7 +138,7 @@ export interface GameDifficulty {
   name: string;
   display_name: string;
   description: string;
-  filter: Prisma.PlayerWhereInput;
+  filter: nba.Prisma.PlayerWhereInput;
 }
 
 export const GameDifficultyNames = GameDifficulties.allModes.map((mode) => mode.name);

@@ -1,18 +1,15 @@
+import { RoomService } from '@/nba/games/careerpath/room/room.service';
+import { HostRoomMessageBody, JoinRoomMessageBody } from '@dribblio/types';
+import { forwardRef, Inject } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
   OnGatewayDisconnect,
-  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { HostRoomMessageBody, JoinRoomMessageBody } from '@dribblio/types';
-import { RoomService } from './room/room.service';
-import { RoomFactory } from './room/factory.service';
-import { forwardRef } from '@nestjs/common';
-import { Inject } from '@nestjs/common';
 
 @WebSocketGateway({ cors: true })
 export class CareerPathGateway implements OnGatewayDisconnect {
@@ -25,32 +22,22 @@ export class CareerPathGateway implements OnGatewayDisconnect {
   ) {}
 
   handleDisconnect(client: Socket) {
-    console.log(`Client socket ${client.id} disconnected`);
+    this.roomService.leaveRoom(Array.from(client.rooms)[1], client.id);
   }
 
   @SubscribeMessage('host_room')
-  handleHostRoom(
+  async handleHostRoom(
     @MessageBody() config: HostRoomMessageBody,
     @ConnectedSocket() client: Socket,
   ) {
-    this.roomService.createRoom(
-      config.isMulti,
-      client,
-      config.userName,
-      config.config,
-    );
+    await this.roomService.createRoom(client, config);
   }
 
   @SubscribeMessage('join_room')
-  handleJoinRoom(
+  async handleJoinRoom(
     @MessageBody() config: JoinRoomMessageBody,
     @ConnectedSocket() client: Socket,
   ) {
-    this.roomService.joinRoom(client, config.roomId, config.userName);
-  }
-
-  @SubscribeMessage('disconnecting')
-  handleDisconnecting(@ConnectedSocket() client: Socket) {
-    this.roomService.leaveRoom(Array.from(client.rooms)[1], client.id);
+    await this.roomService.joinRoom(client, config);
   }
 }

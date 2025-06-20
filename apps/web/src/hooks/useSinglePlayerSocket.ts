@@ -1,12 +1,12 @@
 'use client';
 
 import { clientSocket } from '@/lib/clientsocket';
+import { nba } from '@dribblio/database';
 import { HostRoomMessageBody, SinglePlayerConfig } from '@dribblio/types';
-import { Player } from '@dribblio/database';
 import { useEffect, useState } from 'react';
 
 type ClientSocketProps = {
-  correctAction: (validAnswers: Player[]) => void;
+  correctAction: (validAnswers: nba.Player[]) => void;
   incorrectAction: () => void;
 };
 
@@ -21,7 +21,7 @@ type RoundProps = {
 };
 
 type CorrectGuessProps = {
-  validAnswers: Player[];
+  validAnswers: nba.Player[];
 };
 
 type IncorrectGuessProps = {
@@ -68,7 +68,7 @@ const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketP
     setTeams(null);
   }
   function onConfigureRoom(config: SinglePlayerConfig) {
-    const body: HostRoomMessageBody = { isMulti: false, userName: '', config };
+    const body: HostRoomMessageBody = { isMulti: false, userId: '', config };
     clientSocket.emit('host_room', body);
     setIsRoomConfigured(true);
   }
@@ -76,8 +76,8 @@ const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketP
     setCanStartGame(false);
     clientSocket.emit('start_game');
   }
-  function onGuess(playerId: number) {
-    clientSocket.emit('client_guess', playerId);
+  function onGuess(guessId: number) {
+    clientSocket.emit('client_guess', { userId: '', guessId });
   }
   function onSkip() {
     clientSocket.emit('skip_round');

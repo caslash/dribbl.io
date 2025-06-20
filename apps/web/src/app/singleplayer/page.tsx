@@ -7,7 +7,7 @@ import PlayerSearchBar from '@/components/search/playersearchbar';
 import { Button } from '@/components/ui/button';
 import useConfetti from '@/hooks/useConfetti';
 import useSinglePlayerSocket from '@/hooks/useSinglePlayerSocket';
-import { Player } from '@dribblio/database';
+import { nba } from '@dribblio/database';
 import { useTheme } from 'next-themes';
 import { toast } from 'react-toastify';
 
@@ -15,7 +15,7 @@ export default function SinglePlayer() {
   const { theme } = useTheme();
   const { onConfetti } = useConfetti();
 
-  const correctAction = (validAnswers: Player[]) => {
+  const correctAction = (validAnswers: nba.Player[]) => {
     toast(<CorrectAnswer validAnswers={validAnswers} />, { theme });
     onConfetti();
   };
@@ -39,7 +39,7 @@ export default function SinglePlayer() {
   } = useSinglePlayerSocket({ correctAction, incorrectAction });
 
   return (
-    <div className="flex flex-col h-full m-16 space-y-8">
+    <div className="flex flex-col h-full space-y-8">
       <SinglePlayerConfigModal isOpen={!isRoomConfigured} onConfigureRoom={onConfigureRoom} />
       <div className="justify-start">
         <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
