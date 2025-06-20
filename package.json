@@ -2,6 +2,8 @@
   "name": "dribbl.io",
   "private": true,
   "scripts": {
+    "ios:build": "xcodebuild -project apps/ios/dribblio.xcodeproj -scheme dribblio -configuration Debug -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 16 Pro Max' clean build",
+    "ios:run": "npm run ios:build && xcrun simctl install booted build/Debug-iphonesimulator/dribblio.app && xcrun simctl launch booted com.yourOrg.dribblio",
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",

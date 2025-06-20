@@ -44,6 +44,9 @@ This Turborepo includes the following packages/apps:
   - Interactive game interface
   - Real-time multiplayer functionality
   - Responsive design
+- `ios`: a [SwiftUI](https://developer.apple.com/documentation/swiftui/) app that provides:
+  - Interactive game inteface
+  - Real-time multiplayer functionality
 - `@dribblio/database`: a Prisma ORM types library shared by both `web` and `api` applications
 - `@dribblio/types`: a Typescript types library shared by both `web` and `api` applications
 - `@dribblio/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
