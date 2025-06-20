@@ -1,6 +1,6 @@
 # Dribbl.io API
 
-A NestJS-based API service for Dribbl.io, providing NBA player data and real-time game functionality.
+A NestJS-based API service for Dribbl.io, providing NBA player data, real-time game functionality, and user authentication.
 
 ## Architecture
 
@@ -10,7 +10,14 @@ The API is built using NestJS and follows a modular architecture:
   - `PlayersModule`: Manages NBA player data and statistics
   - `GamesModule`: Handles game-related functionality
     - `CareerPath`: Real-time game implementation using WebSockets
+- `AuthModule`: Authentication and authorization using Auth0
+  - `JwtStrategy`: JWT token validation and user authentication
+- `UsersModule`: User management and profile functionality
+  - `UsersController`: User profile endpoints
+  - `UsersService`: User data management
 - `DatabaseModule`: Database integration using Prisma with PostgreSQL
+  - NBA database for player data
+  - Users database for authentication and user profiles
 
 ## Tech Stack
 
@@ -20,12 +27,17 @@ The API is built using NestJS and follows a modular architecture:
 - PostgreSQL database
 - TypeScript
 - Jest for testing
+- **Auth0 for authentication and authorization**
+- **Passport.js for JWT strategy**
+- **JWKS-RSA for token validation**
 
 ## Database Schema
 
-The API uses a PostgreSQL database with the following main models:
+The API uses PostgreSQL databases with the following main models:
 
-### Player Model
+### NBA Database
+
+#### Player Model
 
 ```prisma
 model Player {
@@ -54,7 +66,7 @@ model Player {
 }
 ```
 
-### Player Accolades Model
+#### Player Accolades Model
 
 ```prisma
 model player_accolades {
@@ -62,6 +74,43 @@ model player_accolades {
   accolades Json?
   player    Player @relation(fields: [player_id], references: [id])
 }
+```
+
+### Users Database
+
+#### User Model
+
+```prisma
+model User {
+  id String @id
+  display_name String?
+  name String?
+  profile_url String?
+}
+```
+
+## Authentication
+
+The API implements secure authentication using Auth0:
+
+### JWT Strategy
+
+- **Token Validation**: Validates JWT tokens using Auth0's JWKS endpoint
+- **User Creation**: Automatically creates user profiles on first authentication
+- **Profile Sync**: Fetches user profile information from Auth0
+- **Protected Routes**: Uses `@UseGuards(AuthGuard('jwt'))` decorator
+
+### Environment Variables
+
+Required Auth0 configuration:
+
+```bash
+AUTH0_DOMAIN="your-domain.auth0.com"
+AUTH0_AUDIENCE="your-api-identifier"
+AUTH0_CLIENT_ID="your-client-id"
+AUTH0_CLIENT_SECRET="your-client-secret"
+AUTH0_SECRET="your-secret"
+AUTH0_SCOPE="openid profile email"
 ```
 
 ## API Endpoints
@@ -77,6 +126,15 @@ Base URL: `/players`
 | GET    | `/count`                   | Get total player count |
 | GET    | `/search?searchTerm=:term` | Search players by name |
 | GET    | `/:id`                     | Get player by ID       |
+
+### Users API
+
+Base URL: `/me` (Protected routes requiring authentication)
+
+| Method | Endpoint | Description                 |
+| ------ | -------- | --------------------------- |
+| GET    | `/`      | Get current user profile    |
+| PATCH  | `/`      | Update current user profile |
 
 ## CareerPath Game
 
@@ -130,16 +188,39 @@ The CareerPath game is a real-time multiplayer/singleplayer game where players m
 2. Set up environment variables:
 
    ```bash
+   # Database URLs
    DATABASE_URL="postgresql://user:password@localhost:5432/dribblio"
+   USERS_DATABASE_URL="postgresql://user:password@localhost:5432/dribblio_users"
+
+   # Auth0 Configuration
+   AUTH0_DOMAIN="your-domain.auth0.com"
+   AUTH0_AUDIENCE="your-api-identifier"
+   AUTH0_CLIENT_ID="your-client-id"
+   AUTH0_CLIENT_SECRET="your-client-secret"
+   AUTH0_SECRET="your-secret"
+   AUTH0_SCOPE="openid profile email"
+
+   # Server Configuration
+   PORT=3002
    ```
 
-3. Start the development server:
+3. Set up databases:
+
+   ```bash
+   # Generate Prisma clients
+   npm run db:generate
+
+   # Run database migrations
+   npm run db:migrate
+   ```
+
+4. Start the development server:
 
    ```bash
    npm run dev
    ```
 
-4. Run tests:
+5. Run tests:
    ```bash
    npm test
    ```
@@ -152,6 +233,8 @@ The CareerPath game is a real-time multiplayer/singleplayer game where players m
 - `npm run test`: Run unit tests
 - `npm run test:e2e`: Run end-to-end tests
 - `npm run test:cov`: Generate test coverage report
+- `npm run db:generate`: Generate Prisma clients
+- `npm run db:migrate`: Run database migrations
 
 ## WebSocket Events
 
@@ -164,13 +247,22 @@ The CareerPath game uses WebSocket connections for real-time gameplay. The follo
 - `game_state`: Receive game state updates
 - `score_update`: Receive score updates
 
+## Security Features
+
+- **JWT Token Validation**: Secure token-based authentication
+- **CORS Protection**: Configured for secure cross-origin requests
+- **Rate Limiting**: Built-in protection against abuse
+- **Input Validation**: Comprehensive request validation using class-validator
+- **Error Handling**: Secure error responses without sensitive information
+
 ## Future Enhancements
 
-- Authentication system for user management
-- Persistent user profiles and statistics
-- Additional game modes and difficulties
-- Leaderboards and achievements
-- Cloud deployment
+- **Enhanced User Profiles**: Additional user statistics and preferences
+- **Leaderboards**: Global and friend-based leaderboards
+- **Achievement System**: Gamification with achievements and badges
+- **Social Features**: Friend system and social interactions
+- **Advanced Analytics**: Detailed game statistics and insights
+- **Cloud Deployment**: Production-ready deployment configuration
 
 ## License
 
