@@ -30,6 +30,14 @@ This is a NBA career path guessing game. Guess the NBA player based on the prese
 - Live score updates
 - Competitive gameplay
 
+### Authentication
+
+- **Auth0 Integration**: Secure user authentication and authorization
+- **User Profiles**: Personalized user experience with profile management
+- **Protected Routes**: Secure access to user-specific features
+- **Social Login**: Support for Google and other social providers
+- **JWT Tokens**: Secure API access with JWT-based authentication
+
 ## What's inside?
 
 This Turborepo includes the following packages/apps:
@@ -40,11 +48,18 @@ This Turborepo includes the following packages/apps:
   - NBA player data API
   - Real-time game functionality via WebSockets
   - PostgreSQL database integration
+  - **Auth0 JWT authentication and authorization**
+  - **User management and profile endpoints**
 - `web`: a [Next.js](https://nextjs.org/) app that provides:
   - Interactive game interface
   - Real-time multiplayer functionality
   - Responsive design
+  - **Auth0 authentication integration**
+  - **User profile management**
+  - **Protected routes and middleware**
 - `@dribblio/database`: a Prisma ORM types library shared by both `web` and `api` applications
+  - **NBA database schema** for player data
+  - **Users database schema** for authentication and user profiles
 - `@dribblio/types`: a Typescript types library shared by both `web` and `api` applications
 - `@dribblio/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
 - `@dribblio/typescript-config`: `tsconfig.json`s used throughout the monorepo
@@ -66,6 +81,7 @@ This Turborepo has some additional tools already setup for you:
 - Node.js (Latest LTS version recommended)
 - PostgreSQL database
 - npm or yarn package manager
+- **Auth0 account and application setup**
 
 ### Setup
 
@@ -83,9 +99,56 @@ This Turborepo has some additional tools already setup for you:
    ```
 
 3. Set up environment variables:
+
+   **API Environment Variables** (create `.env` file in the `api` directory):
+
    ```bash
-   # Create .env file in the api directory
+   # Database URLs
    DATABASE_URL="postgresql://user:password@localhost:5432/dribblio"
+   USERS_DATABASE_URL="postgresql://user:password@localhost:5432/dribblio_users"
+
+   # Auth0 Configuration
+   AUTH0_DOMAIN="your-domain.auth0.com"
+   AUTH0_AUDIENCE="your-api-identifier"
+   AUTH0_CLIENT_ID="your-client-id"
+   AUTH0_CLIENT_SECRET="your-client-secret"
+   AUTH0_SECRET="your-secret"
+   AUTH0_SCOPE="openid profile email"
+
+   # Server Configuration
+   PORT=3002
+   ```
+
+   **Web Environment Variables** (create `.env.local` file in the `web` directory):
+
+   ```bash
+   # Auth0 Configuration
+   AUTH0_SECRET="your-secret"
+   AUTH0_BASE_URL="http://localhost:3000"
+   AUTH0_ISSUER_BASE_URL="https://your-domain.auth0.com"
+   AUTH0_CLIENT_ID="your-client-id"
+   AUTH0_CLIENT_SECRET="your-client-secret"
+   AUTH0_AUDIENCE="your-api-identifier"
+   AUTH0_SCOPE="openid profile email"
+   ```
+
+4. **Set up Auth0 Application**:
+
+   - Create an Auth0 account at [auth0.com](https://auth0.com)
+   - Create a new application (Regular Web Application)
+   - Configure callback URLs: `http://localhost:3000/api/auth/callback`
+   - Configure logout URLs: `http://localhost:3000`
+   - Create an API with appropriate scopes
+   - Update the environment variables with your Auth0 configuration
+
+5. **Set up Databases**:
+
+   ```bash
+   # Generate Prisma clients
+   npm run db:generate
+
+   # Run database migrations
+   npm run db:migrate
    ```
 
 ### Build

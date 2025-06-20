@@ -76,8 +76,8 @@ const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketP
     setCanStartGame(false);
     clientSocket.emit('start_game');
   }
-  function onGuess(playerId: number) {
-    clientSocket.emit('client_guess', playerId);
+  function onGuess(guessId: number) {
+    clientSocket.emit('client_guess', { userId: '', guessId });
   }
   function onSkip() {
     clientSocket.emit('skip_round');
