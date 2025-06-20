@@ -20,15 +20,15 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { HostFormValues, hostSchema, JoinFormValues, joinSchema } from '@/lib/schemas';
 import {
   GameDifficulties,
   GameDifficultyNames,
   GameDifficultySchema,
   MultiplayerConfig,
 } from '@dribblio/types';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { joiResolver } from '@hookform/resolvers/joi';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 
 export default function JoinHostModal({
   isOpen,
@@ -71,18 +71,14 @@ function JoinForm({
 }: Readonly<{
   onJoinRoom: (roomId: string) => void;
 }>) {
-  const formSchema = z.object({
-    roomId: z.string().max(5),
-  });
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<JoinFormValues>({
+    resolver: joiResolver(joinSchema),
     defaultValues: {
       roomId: '',
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: JoinFormValues) {
     onJoinRoom(values.roomId);
   }
 
@@ -117,34 +113,8 @@ function HostForm({
 }: Readonly<{
   onHostRoom: (config: MultiplayerConfig) => void;
 }>) {
-  const formSchema = z
-    .object({
-      isRoundLimit: z.boolean(),
-      config: z.object({
-        scoreLimit: z.coerce.number().optional(),
-        roundLimit: z.coerce.number().optional(),
-        roundTimeLimit: z.coerce.number(),
-        gameDifficulty: z.enum(GameDifficultyNames as [string, ...string[]]),
-      }),
-    })
-    .superRefine((data, ctx) => {
-      if (data.isRoundLimit && !data.config.roundLimit) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Round Limit is required when Round Limit mode is selected',
-          path: ['config.roundLimit'],
-        });
-      } else if (!data.isRoundLimit && !data.config.scoreLimit) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Score Limit is required when Score Limit mode is selected',
-          path: ['config.scoreLimit'],
-        });
-      }
-    });
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<HostFormValues>({
+    resolver: joiResolver(hostSchema),
     defaultValues: {
       isRoundLimit: false,
       config: {
@@ -156,7 +126,7 @@ function HostForm({
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: HostFormValues) {
     const config = {
       ...values.config,
       scoreLimit: values.isRoundLimit ? undefined : values.config.scoreLimit,
