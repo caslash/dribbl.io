@@ -1,14 +1,17 @@
+import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
+import { RoomFactory } from '@/nba/games/careerpath/room/factory.service';
+import { UsersService } from '@/users/users.service';
+import { users } from '@dribblio/database';
 import {
+  HostRoomMessageBody,
+  JoinRoomMessageBody,
   MultiplayerConfig,
   Room,
   SinglePlayerConfig,
-  User,
 } from '@dribblio/types';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { Server, Socket } from 'socket.io';
-import { RoomFactory } from './factory.service';
 import ShortUniqueId from 'short-unique-id';
-import { CareerPathGateway } from '../careerpath.gateway';
+import { Socket } from 'socket.io';
 
 const uid = new ShortUniqueId({ length: 5, dictionary: 'alpha_upper' });
 
@@ -20,32 +23,24 @@ export class RoomService {
     @Inject(forwardRef(() => CareerPathGateway))
     private gateway: CareerPathGateway,
     private roomFactory: RoomFactory,
+    private usersService: UsersService,
   ) {}
 
-  createRoom(
-    isMulti: boolean,
+  async createRoom(
     socket: Socket,
-    userName: string,
-    config: MultiplayerConfig | SinglePlayerConfig,
-  ): Room {
+    { isMulti, userId, config }: HostRoomMessageBody,
+  ): Promise<Room> {
     const roomId: string = this.generateUniqueCode();
 
     if (!this.rooms[roomId]) {
       this.rooms[roomId] = isMulti
-        ? this.roomFactory.createMultiplayerRoom(
-            socket,
-            roomId,
-            config as MultiplayerConfig,
-          )
-        : this.roomFactory.createSinglePlayerRoom(
-            socket,
-            config as SinglePlayerConfig,
-          );
+        ? this.roomFactory.createMultiplayerRoom(socket, roomId, config as MultiplayerConfig)
+        : this.roomFactory.createSinglePlayerRoom(socket, config as SinglePlayerConfig);
     }
 
     console.log(`Game machine created for room ${roomId}`);
 
-    this.joinRoom(socket, roomId, userName);
+    await this.joinRoom(socket, { roomId, userId });
 
     return this.rooms[roomId];
   }
@@ -55,21 +50,35 @@ export class RoomService {
     console.log(`Room destroyed for room ${id}`);
   }
 
-  joinRoom(socket: Socket, id: string, userName: string): void {
-    if (!this.rooms[id]) return;
+  async joinRoom(socket: Socket, { roomId, userId }: JoinRoomMessageBody): Promise<void> {
+    if (!this.rooms[roomId]) return;
 
-    socket.join(id);
+    socket.join(roomId);
 
-    this.roomFactory.setUpListenersOnJoin(socket, this.rooms[id]);
+    this.roomFactory.setUpListenersOnJoin(socket, this.rooms[roomId]);
 
-    this.rooms[id] = {
-      ...this.rooms[id],
-      users: [...this.rooms[id].users, { id: socket.id, name: userName }],
-    };
+    if (this.rooms[roomId].isMulti) {
+      const user = await this.usersService.get(userId);
 
-    const { ...room } = this.rooms[id];
+      if (!user) throw new Error('User not found');
 
-    this.gateway.server.to(id).emit('room_updated', room);
+      this.rooms[roomId] = {
+        ...this.rooms[roomId],
+        users: [...this.rooms[roomId].users, user],
+      };
+    } else {
+      this.rooms[roomId] = {
+        ...this.rooms[roomId],
+        users: [
+          ...this.rooms[roomId].users,
+          { id: socket.id, name: 'Guest', display_name: 'Guest', profile_url: '' },
+        ],
+      };
+    }
+
+    const { ...room } = this.rooms[roomId];
+
+    this.gateway.server.to(roomId).emit('room_updated', room);
   }
 
   leaveRoom(roomId: string, userId: string): void {
@@ -78,10 +87,10 @@ export class RoomService {
     if (room) {
       room = {
         ...room,
-        users: [...room.users.filter((user: User) => user.id !== userId)],
+        users: [...room.users.filter((user: users.User) => user.id !== userId)],
       };
 
-      if (!room.users.some((user: User) => user)) {
+      if (!room.users.some((user: users.User) => user)) {
         this.destroyRoom(roomId);
       } else {
         this.gateway.server.to(roomId).emit('room_updated', room);

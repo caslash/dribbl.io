@@ -1,20 +1,20 @@
 'use client';
 
 import { clientSocket } from '@/lib/clientsocket';
+import { useUser } from '@auth0/nextjs-auth0';
+import { nba, users } from '@dribblio/database';
 import {
-  User,
   GameState,
-  MultiplayerConfig,
-  UserGameInfo,
   HostRoomMessageBody,
   JoinRoomMessageBody,
+  MultiplayerConfig,
+  UserGameInfo,
 } from '@dribblio/types';
-import { Player } from '@dribblio/database';
 import { useEffect, useState } from 'react';
 
 type RoomProps = {
   id: string;
-  users: User[];
+  users: users.User[];
 };
 
 type RoundProps = {
@@ -22,7 +22,7 @@ type RoundProps = {
   timeLeft: number;
   users: UserGameInfo[];
   team_history: string[];
-  players: Player[];
+  players: nba.Player[];
 };
 
 const useMultiplayerSocket = () => {
@@ -32,18 +32,20 @@ const useMultiplayerSocket = () => {
   const [roundActive, setRoundActive] = useState<boolean>(false);
   const [users, setUsers] = useState<UserGameInfo[]>([]);
   const [roomId, setRoomId] = useState<string | undefined>(undefined);
-  const [validAnswers, setValidAnswers] = useState<Player[]>([]);
+  const [validAnswers, setValidAnswers] = useState<nba.Player[]>([]);
 
   const [teams, setTeams] = useState<string[] | null>(null);
 
-  const [players, setPlayers] = useState<Player[]>([]);
+  const [players, setPlayers] = useState<nba.Player[]>([]);
 
   const [timeLeft, setTimeLeft] = useState<number>(0);
+
+  const { user } = useUser();
 
   // From Server
   function onRoomUpdated({ id, users }: RoomProps) {
     setRoomId(id);
-    setUsers(users.map((user: User) => ({ info: user, score: 0 })));
+    setUsers(users.map((user: users.User) => ({ info: user, score: 0 })));
   }
   function onNextRound({ roundActive, timeLeft, team_history, users, players }: RoundProps) {
     setRoundActive(roundActive);
@@ -68,21 +70,27 @@ const useMultiplayerSocket = () => {
   function onDisconnect() {
     setIsConnected(false);
   }
-  function onHostRoom(userName: string, config: MultiplayerConfig) {
-    const body: HostRoomMessageBody = { isMulti: true, userName, config };
+  function onHostRoom(config: MultiplayerConfig) {
+    if (!user) return;
+
+    const body: HostRoomMessageBody = { isMulti: true, userId: user.sub, config };
     clientSocket.emit('host_room', body);
     setCanStartGame(true);
   }
-  function onJoinRoom(roomId: string, userName: string) {
-    const body: JoinRoomMessageBody = { roomId, userName };
+  function onJoinRoom(roomId: string) {
+    if (!user) return;
+
+    const body: JoinRoomMessageBody = { roomId, userId: user.sub };
     clientSocket.emit('join_room', body);
   }
   function onStartGame() {
     setCanStartGame(false);
     clientSocket.emit('start_game', users);
   }
-  function onGuess(playerId: number) {
-    clientSocket.emit('client_guess', playerId);
+  function onGuess(guessId: number) {
+    if (!user) return;
+
+    clientSocket.emit('client_guess', { userId: user.sub, guessId });
   }
 
   useEffect(() => {

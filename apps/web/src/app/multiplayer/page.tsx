@@ -6,6 +6,8 @@ import PlayerSearchBar from '@/components/search/playersearchbar';
 import { Button } from '@/components/ui/button';
 import useMultiplayerSocket from '@/hooks/useMultiplayerSocket';
 import { UserGameInfo } from '@dribblio/types';
+import { User } from 'lucide-react';
+import Image from 'next/image';
 
 export default function Game() {
   const {
@@ -25,7 +27,7 @@ export default function Game() {
   } = useMultiplayerSocket();
 
   return (
-    <div className="flex flex-col h-full m-16 space-y-8">
+    <div className="flex flex-col h-full space-y-8">
       <JoinHostModal isOpen={!roomId} onJoinRoom={onJoinRoom} onHostRoom={onHostRoom} />
       <div className="justify-start">
         <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
@@ -36,7 +38,17 @@ export default function Game() {
             <ul>
               {users.map((user: UserGameInfo) => (
                 <li key={user.info.id}>
-                  <div className="flex flex-row space-x-2">
+                  <div className="flex flex-row space-x-2 items-center">
+                    {user.info.profile_url ? (
+                      <Image
+                        src={user.info.profile_url}
+                        alt={user.info.name ?? ''}
+                        width={24}
+                        height={24}
+                      />
+                    ) : (
+                      <User />
+                    )}
                     <p>{user.info.name}</p>
                     <p>{user.score}</p>
                   </div>

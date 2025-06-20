@@ -1,8 +1,10 @@
+import { AuthModule } from '@/auth/auth.module';
+import { NBAModule } from '@/nba/nba.module';
 import { Module } from '@nestjs/common';
-import { NBAModule } from './nba/nba.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
-  imports: [NBAModule],
+  imports: [NBAModule, AuthModule, UsersModule],
   controllers: [],
   providers: [],
 })

@@ -28,7 +28,6 @@ import {
 } from '@dribblio/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { generateUsername } from 'unique-username-generator';
 import { z } from 'zod';
 
 export default function JoinHostModal({
@@ -37,8 +36,8 @@ export default function JoinHostModal({
   onHostRoom,
 }: Readonly<{
   isOpen: boolean;
-  onJoinRoom: (roomId: string, name: string) => void;
-  onHostRoom: (name: string, config: MultiplayerConfig) => void;
+  onJoinRoom: (roomId: string) => void;
+  onHostRoom: (config: MultiplayerConfig) => void;
 }>) {
   return (
     <Dialog open={isOpen}>
@@ -70,47 +69,27 @@ export default function JoinHostModal({
 function JoinForm({
   onJoinRoom,
 }: Readonly<{
-  onJoinRoom: (roomId: string, name: string) => void;
+  onJoinRoom: (roomId: string) => void;
 }>) {
   const formSchema = z.object({
-    name: z
-      .string()
-      .nonempty({
-        message: 'Must enter a name.',
-      })
-      .max(16),
     roomId: z.string().max(5),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: generateUsername('', 0, 16),
       roomId: '',
     },
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    onJoinRoom(values.roomId, values.name);
+    onJoinRoom(values.roomId);
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex flex-col space-y-4">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>User Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          ></FormField>
           <FormField
             control={form.control}
             name="roomId"
@@ -136,16 +115,10 @@ function JoinForm({
 function HostForm({
   onHostRoom,
 }: Readonly<{
-  onHostRoom: (name: string, config: MultiplayerConfig) => void;
+  onHostRoom: (config: MultiplayerConfig) => void;
 }>) {
   const formSchema = z
     .object({
-      name: z
-        .string()
-        .nonempty({
-          message: 'Must enter a name.',
-        })
-        .max(16),
       isRoundLimit: z.boolean(),
       config: z.object({
         scoreLimit: z.coerce.number().optional(),
@@ -173,7 +146,6 @@ function HostForm({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: generateUsername('', 0, 16),
       isRoundLimit: false,
       config: {
         scoreLimit: undefined,
@@ -191,25 +163,12 @@ function HostForm({
       roundLimit: values.isRoundLimit ? values.config.roundLimit : undefined,
       gameDifficulty: GameDifficultySchema.parse(values.config.gameDifficulty),
     };
-    onHostRoom(values.name, config);
+    onHostRoom(config);
   }
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex flex-col space-y-4">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>User Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          ></FormField>
           <div className="flex flex-row space-x-4 self-center">
             <p>Score Limit</p>
             <FormField

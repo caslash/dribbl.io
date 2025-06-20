@@ -3,11 +3,11 @@ import { SinglePlayerConfig } from '../statemachine/singleplayer/gamemachine.js'
 
 export interface HostRoomMessageBody {
   isMulti: boolean;
-  userName: string;
+  userId: string;
   config: MultiplayerConfig | SinglePlayerConfig;
 }
 
 export interface JoinRoomMessageBody {
   roomId: string;
-  userName: string;
+  userId: string;
 }
