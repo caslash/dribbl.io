@@ -1,4 +1,5 @@
 import { UsersPrismaService } from '@/database/users.prisma.service';
+import { AvatarService } from '@/users/avatar.service';
 import { S3Service } from '@/users/s3.service';
 import { Injectable } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -8,6 +9,7 @@ export class UsersService {
   constructor(
     private readonly userPrisma: UsersPrismaService,
     private readonly s3Service: S3Service,
+    private readonly avatarService: AvatarService,
   ) {}
 
   async get(id: string) {
@@ -30,6 +32,11 @@ export class UsersService {
   }
 
   async uploadProfileImage(userId: string, file: Express.Multer.File) {
-    await this.s3Service.uploadFile(userId, file.buffer);
+    const profile_url = await this.avatarService.uploadAvatar(userId, file);
+
+    return await this.userPrisma.user.update({
+      where: { id: userId },
+      data: { profile_url },
+    });
   }
 }

@@ -7,16 +7,20 @@ export class S3Service {
   constructor(private readonly s3: S3Client) {}
 
   async uploadFile(userId: string, file: Buffer) {
-    console.log(file);
     try {
       const parallelUploads3 = new Upload({
         client: this.s3,
-        params: { Bucket: 'dribblio', Key: userId, Body: file },
+        params: {
+          Bucket: process.env.AWS_S3_BUCKET_NAME,
+          Key: `avatars/${userId}.jpg`,
+          Body: file,
+        },
       });
 
       await parallelUploads3.done();
-    } catch (e) {
-      console.log(e);
+    } catch (error) {
+      console.log(error);
+      throw error;
     }
   }
 }
