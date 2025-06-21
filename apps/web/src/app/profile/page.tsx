@@ -11,6 +11,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     getAccessToken().then((token) => {
+      console.log(token);
       fetch('/api/me', { headers: { Authorization: `Bearer ${token}` } })
         .then((res) => res.json())
         .then(setUser);

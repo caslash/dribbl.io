@@ -1,10 +1,14 @@
 import { UsersPrismaService } from '@/database/users.prisma.service';
+import { S3Service } from '@/users/s3.service';
 import { Injectable } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly userPrisma: UsersPrismaService) {}
+  constructor(
+    private readonly userPrisma: UsersPrismaService,
+    private readonly s3Service: S3Service,
+  ) {}
 
   async get(id: string) {
     const user = await this.userPrisma.user.findUnique({
@@ -23,5 +27,9 @@ export class UsersService {
         profile_url: updateUserDto.profile_url ?? '',
       },
     });
+  }
+
+  async uploadProfileImage(userId: string, file: Express.Multer.File) {
+    await this.s3Service.uploadFile(userId, file.buffer);
   }
 }
