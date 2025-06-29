@@ -1,5 +1,6 @@
 'use client';
 
+import { AvatarEditor } from '@/components/avatar-editor';
 import EditProfileModal from '@/components/editprofilemodal';
 import { Button } from '@/components/ui/button';
 import { useDBUser } from '@/context/dbusercontext';
@@ -23,14 +24,11 @@ export default function ProfilePage() {
               className="rounded-full"
             />
             <div className="absolute bottom-0 right-0">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => {}}
-                className="rounded-full size-8"
-              >
-                <Pencil />
-              </Button>
+              <AvatarEditor>
+                <Button variant="outline" size="icon" className="rounded-full size-8">
+                  <Pencil />
+                </Button>
+              </AvatarEditor>
             </div>
           </div>
 

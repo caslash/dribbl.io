@@ -2,7 +2,7 @@
 
 import { Dock, DockIcon } from '@/components/magicui/dock';
 import ThemeSwitcher from '@/components/navbar/themeswitcher';
-import { Avatar, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { buttonVariants } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -33,6 +33,7 @@ export default function NBANavbar({ className }: Readonly<{ className?: string }
                           height={32}
                           className="rounded-full"
                         />
+                        <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
                       </Avatar>
                     ) : (
                       <UserIcon />

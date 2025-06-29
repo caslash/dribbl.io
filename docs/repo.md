@@ -134,9 +134,9 @@ apps/
           switch.tsx
           tabs.tsx
           tooltip.tsx
+        avatar-editor.tsx
         editprofilemodal.tsx
         gamemodecard.tsx
-        image-cropper.tsx
         login-form.tsx
         teamlogo.tsx
       config/
@@ -243,231 +243,67 @@ turbo.json
 
 # Files
 
-## File: .cursor/rules/reference-file.mdc
-````
----
-description: 
-globs: 
-alwaysApply: true
----
-Reference the summary of the repo in the `docs/repo.md` file before responding to every prompt. This file will provide all context of the current state of the project. Read and analyze the file before responding, then respond using the knowledge and context acquired from the markdown file.
-````
-
-## File: apps/api/src/users/signedurl.inteceptor.ts
+## File: apps/web/src/components/avatar-editor.tsx
 ````typescript
-import { AvatarService } from '@/users/avatar.service';
-import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
-import { from, map, mergeMap, Observable, of } from 'rxjs';
-
-@Injectable()
-export class SignedUrlInterceptor implements NestInterceptor {
-  constructor(private readonly avatarService: AvatarService) {}
-
-  intercept(_context: ExecutionContext, next: CallHandler): Observable<any> {
-    return next.handle().pipe(
-      mergeMap((user) => {
-        if (!user || !user.profile_url) {
-          return of(user);
-        }
-
-        return from(this.avatarService.getSignedUrl(user.profile_url)).pipe(
-          map((signedUrl) => ({ ...user, profile_url: signedUrl })),
-        );
-      }),
-    );
-  }
-}
-````
-
-## File: apps/web/src/components/ui/avatar.tsx
-````typescript
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
-import * as AvatarPrimitive from '@radix-ui/react-avatar';
-import * as React from 'react';
-
-import { cn } from '@/lib/utils';
-
-const Avatar = React.forwardRef<
-  React.ElementRef<typeof AvatarPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Root
-    ref={ref}
-    className={cn('relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full', className)}
-    {...props}
-  />
-));
-Avatar.displayName = AvatarPrimitive.Root.displayName;
-
-const AvatarImage = React.forwardRef<
-  React.ElementRef<typeof AvatarPrimitive.Image>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Image
-    ref={ref}
-    className={cn('aspect-square h-full w-full', className)}
-    {...props}
-  />
-));
-AvatarImage.displayName = AvatarPrimitive.Image.displayName;
-
-const AvatarFallback = React.forwardRef<
-  React.ElementRef<typeof AvatarPrimitive.Fallback>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Fallback
-    ref={ref}
-    className={cn(
-      'flex h-full w-full items-center justify-center rounded-full bg-muted',
-      className,
-    )}
-    {...props}
-  />
-));
-AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName;
-
-export { Avatar, AvatarFallback, AvatarImage };
-````
-
-## File: apps/web/src/components/editprofilemodal.tsx
-````typescript
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { useDBUser } from '@/context/dbusercontext';
-import { updateUserSchema } from '@/lib/schemas';
-import { UpdateUserDto } from '@dribblio/types';
-import { joiResolver } from '@hookform/resolvers/joi';
-import { DialogTrigger } from '@radix-ui/react-dialog';
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-
-export default function EditProfileModal() {
-  const { user, updateUser } = useDBUser();
-
-  const form = useForm<UpdateUserDto>({
-    resolver: joiResolver(updateUserSchema),
-    defaultValues: {
-      display_name: user?.display_name ?? '',
-      name: user?.name ?? '',
-    },
-  });
-
-  useEffect(() => {
-    form.reset({
-      display_name: user?.display_name ?? '',
-      name: user?.name ?? '',
-    });
-  }, [user, form]);
-
-  return (
-    <Dialog>
-      <Form {...form}>
-        <DialogTrigger asChild>
-          <Button variant="ghost">Edit Profile</Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Profile</DialogTitle>
-          </DialogHeader>
-          <form
-            onSubmit={form.handleSubmit((values: UpdateUserDto) => {
-              console.log('values', values);
-              updateUser(values);
-            })}
-          >
-            <div className="flex flex-col space-y-4 mb-4">
-              <FormField
-                control={form.control}
-                name="display_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Display Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
-            <div className="flex justify-end">
-              <Button type="submit">Save</Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Form>
-    </Dialog>
-  );
-}
-````
-
-## File: apps/web/src/components/image-cropper.tsx
-````typescript
-'use client';
-
-import React, { type SyntheticEvent } from 'react';
-
+import React, { useCallback, useState } from 'react';
+import { FileWithPath, useDropzone } from 'react-dropzone';
 import ReactCrop, { centerCrop, makeAspectCrop, type Crop, type PixelCrop } from 'react-image-crop';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
-  DialogClose,
   DialogContent,
-  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-
-// import { FileWithPreview } from '@/app/page';
-import { CropIcon, Trash2Icon } from 'lucide-react';
-import { FileWithPath } from 'react-dropzone';
+import { useDBUser } from '@/context/dbusercontext';
+import { Crop as CropIcon, Upload, X } from 'lucide-react';
 import 'react-image-crop/dist/ReactCrop.css';
 
 export type FileWithPreview = FileWithPath & {
   preview: string;
 };
 
-interface ImageCropperProps {
-  dialogOpen: boolean;
-  setDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  selectedFile: FileWithPreview | null;
-  setSelectedFile: React.Dispatch<React.SetStateAction<FileWithPreview | null>>;
+interface AvatarEditorProps {
+  children: React.ReactNode;
 }
 
-export function ImageCropper({
-  dialogOpen,
-  setDialogOpen,
-  selectedFile,
-  setSelectedFile,
-}: ImageCropperProps) {
-  const aspect = 1;
+export function AvatarEditor({ children }: AvatarEditorProps) {
+  const { uploadAvatar } = useDBUser();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<FileWithPreview | null>(null);
+  const [crop, setCrop] = useState<Crop>();
+  const [croppedImageUrl, setCroppedImageUrl] = useState<string>('');
+  const [isUploading, setIsUploading] = useState(false);
 
   const imgRef = React.useRef<HTMLImageElement | null>(null);
 
-  const [crop, setCrop] = React.useState<Crop>();
-  const [croppedImageUrl, setCroppedImageUrl] = React.useState<string>('');
-  const [croppedImage, setCroppedImage] = React.useState<string>('');
-
-  function onImageLoad(e: SyntheticEvent<HTMLImageElement>) {
-    if (aspect) {
-      const { width, height } = e.currentTarget;
-      setCrop(centerAspectCrop(width, height, aspect));
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    if (file) {
+      const fileWithPreview = Object.assign(file, {
+        preview: URL.createObjectURL(file),
+      });
+      setSelectedFile(fileWithPreview);
     }
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp'],
+    },
+    maxFiles: 1,
+    maxSize: 5 * 1024 * 1024,
+  });
+
+  function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
+    const { width, height } = e.currentTarget;
+    setCrop(centerAspectCrop(width, height, 1));
   }
 
   function onCropComplete(crop: PixelCrop) {
@@ -506,73 +342,124 @@ export function ImageCropper({
     return canvas.toDataURL('image/png', 1.0);
   }
 
-  async function onCrop() {
+  async function handleCropAndUpload() {
+    if (!croppedImageUrl) return;
+
     try {
-      setCroppedImage(croppedImageUrl);
+      setIsUploading(true);
+
+      const response = await fetch(croppedImageUrl);
+      const blob = await response.blob();
+      const file = new File([blob], 'avatar.png', { type: 'image/png' });
+
+      await uploadAvatar(file);
+
       setDialogOpen(false);
-    } catch {
-      alert('Something went wrong!');
+      setSelectedFile(null);
+      setCroppedImageUrl('');
+      setCrop(undefined);
+
+      if (selectedFile?.preview) {
+        URL.revokeObjectURL(selectedFile.preview);
+      }
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      alert('Failed to upload avatar. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
+  function handleCancel() {
+    setDialogOpen(false);
+    setSelectedFile(null);
+    setCroppedImageUrl('');
+    setCrop(undefined);
+
+    if (selectedFile?.preview) {
+      URL.revokeObjectURL(selectedFile.preview);
     }
   }
 
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-      <DialogTrigger>
-        <Avatar className="size-36 cursor-pointer ring-offset-2 ring-2 ring-slate-200">
-          <AvatarImage src={croppedImage ? croppedImage : selectedFile?.preview} alt="@shadcn" />
-          <AvatarFallback>CN</AvatarFallback>
-        </Avatar>
-      </DialogTrigger>
-      <DialogContent className="p-0 gap-0">
-        <div className="p-6 size-full">
-          <ReactCrop
-            crop={crop}
-            onChange={(_, percentCrop) => setCrop(percentCrop)}
-            onComplete={(c) => onCropComplete(c)}
-            aspect={aspect}
-            className="w-full"
-          >
-            <Avatar className="size-full rounded-none">
-              <AvatarImage
-                ref={imgRef}
-                className="size-full rounded-none "
-                alt="Image Cropper Shell"
-                src={selectedFile?.preview}
-                onLoad={onImageLoad}
-              />
-              <AvatarFallback className="size-full min-h-[460px] rounded-none">
-                Loading...
-              </AvatarFallback>
-            </Avatar>
-          </ReactCrop>
-        </div>
-        <DialogFooter className="p-6 pt-0 justify-center ">
-          <DialogClose asChild>
-            <Button
-              size={'sm'}
-              type="reset"
-              className="w-fit"
-              variant={'outline'}
-              onClick={() => {
-                setSelectedFile(null);
-              }}
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Edit Avatar</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {!selectedFile ? (
+            <div
+              {...getRootProps()}
+              className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+                isDragActive
+                  ? 'border-primary bg-primary/5'
+                  : 'border-muted-foreground/25 hover:border-primary/50'
+              }`}
             >
-              <Trash2Icon className="mr-1.5 size-4" />
+              <input {...getInputProps()} />
+              <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              {isDragActive ? (
+                <p className="text-sm text-muted-foreground">Drop the image here...</p>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Upload an image</p>
+                  <p className="text-xs text-muted-foreground">
+                    Drag and drop an image here, or click to select
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Supports: JPG, PNG, GIF, WebP (max 5MB)
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="relative">
+                <ReactCrop
+                  crop={crop}
+                  onChange={(_, percentCrop) => setCrop(percentCrop)}
+                  onComplete={onCropComplete}
+                  aspect={1}
+                  className="w-full"
+                >
+                  <img
+                    ref={imgRef}
+                    src={selectedFile.preview}
+                    alt="Crop preview"
+                    className="max-h-96 w-full object-contain"
+                    onLoad={onImageLoad}
+                  />
+                </ReactCrop>
+              </div>
+
+              <div className="text-xs text-muted-foreground text-center">
+                Drag to move, resize corners to crop. The image will be cropped to a 100x100 square.
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={handleCancel} disabled={isUploading}>
+              <X className="mr-2 h-4 w-4" />
               Cancel
             </Button>
-          </DialogClose>
-          <Button type="submit" size={'sm'} className="w-fit" onClick={onCrop}>
-            <CropIcon className="mr-1.5 size-4" />
-            Crop
-          </Button>
-        </DialogFooter>
+            {selectedFile && (
+              <Button onClick={handleCropAndUpload} disabled={!croppedImageUrl || isUploading}>
+                <CropIcon className="mr-2 h-4 w-4" />
+                {isUploading ? 'Uploading...' : 'Save Avatar'}
+              </Button>
+            )}
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
 }
 
-// Helper function to center the crop
-export function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: number): Crop {
+function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: number): Crop {
   return centerCrop(
     makeAspectCrop(
       {
@@ -588,143 +475,6 @@ export function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect
     mediaHeight,
   );
 }
-````
-
-## File: apps/web/src/context/dbusercontext.tsx
-````typescript
-'use client';
-
-import { getAccessToken } from '@auth0/nextjs-auth0';
-import { User } from '@dribblio/database/generated/prisma-users/client';
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-
-interface DBUserContextType {
-  user: User | undefined;
-
-  /**
-   * Update user fields in the database and sync local state.
-   * @param user - Partial user object with fields to update.
-   */
-  updateUser: (user: Partial<User>) => void;
-
-  /**
-   * Upload a new avatar image to the database and sync local state.
-   * @param avatar - The avatar image file to upload.
-   */
-  uploadAvatar: (avatar: File) => void;
-}
-
-const defaultUserContext: DBUserContextType = {
-  user: undefined,
-  updateUser: () => {},
-  uploadAvatar: () => {},
-};
-
-const DBUserContext = createContext<DBUserContextType | undefined>(undefined);
-export const useDBUser = () => useContext(DBUserContext) ?? defaultUserContext;
-
-export function DBUserProvider({ children }: { children: React.ReactNode | React.ReactNode[] }) {
-  const [user, setUser] = useState<User | undefined>(undefined);
-
-  useEffect(() => {
-    getAccessToken().then((accessToken) => {
-      if (!accessToken) return;
-
-      fetch('/api/me', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      })
-        .then((res) => res.json())
-        .then(setUser);
-    });
-  }, []);
-
-  const updateUser = useCallback((user: Partial<User>) => {
-    getAccessToken().then((accessToken) => {
-      if (!accessToken) return;
-
-      fetch('/api/me', {
-        method: 'PATCH',
-        body: JSON.stringify(user),
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-      })
-        .then((res) => res.json())
-        .then(setUser);
-    });
-  }, []);
-
-  const uploadAvatar = useCallback((avatar: File) => {
-    getAccessToken().then((accessToken) => {
-      if (!accessToken) return;
-
-      const formData = new FormData();
-      formData.append('avatar', avatar);
-
-      fetch('/api/me/avatar', {
-        method: 'POST',
-        body: formData,
-      })
-        .then((res) => res.json())
-        .then(setUser);
-    });
-  }, []);
-
-  return (
-    <DBUserContext.Provider value={{ user, updateUser, uploadAvatar }}>
-      {children}
-    </DBUserContext.Provider>
-  );
-}
-````
-
-## File: packages/types/src/dtos/index.ts
-````typescript
-export * from './updateuser.dto.js';
-````
-
-## File: packages/types/src/dtos/updateuser.dto.ts
-````typescript
-import { IsOptional, IsString } from 'class-validator';
-
-export class UpdateUserDto {
-  @IsOptional()
-  @IsString()
-  display_name?: string;
-
-  @IsOptional()
-  @IsString()
-  name?: string;
-}
-````
-
-## File: packages/types/src/forms/hostform.ts
-````typescript
-export type HostFormValues = {
-  isRoundLimit: boolean;
-  config: {
-    scoreLimit?: number;
-    roundLimit?: number;
-    roundTimeLimit: number;
-    gameDifficulty: string;
-  };
-};
-````
-
-## File: packages/types/src/forms/index.ts
-````typescript
-export * from './hostform.js';
-export * from './joinform.js';
-````
-
-## File: packages/types/src/forms/joinform.ts
-````typescript
-export type JoinFormValues = {
-  roomId: string;
-};
 ````
 
 ## File: .cursor/rules/nestjs.mdc
@@ -854,6 +604,16 @@ You are a senior TypeScript programmer with experience in the NestJS framework a
 - Add a admin/test method to each controller as a smoke test.
 ````
 
+## File: .cursor/rules/reference-file.mdc
+````
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Reference the summary of the repo in the `docs/repo.md` file before responding to every prompt. This file will provide all context of the current state of the project. Read and analyze the file before responding, then respond using the knowledge and context acquired from the markdown file.
+````
+
 ## File: apps/api/src/auth/userinfo.type.ts
 ````typescript
 export type UserInfo = {
@@ -892,67 +652,28 @@ export class UsersPrismaService extends users.PrismaClient implements OnModuleIn
 }
 ````
 
-## File: apps/api/src/users/avatar.service.ts
+## File: apps/api/src/users/signedurl.inteceptor.ts
 ````typescript
-import { S3Service } from '@/users/s3.service';
-import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
-import { getSignedUrl } from '@aws-sdk/cloudfront-signer';
-import { Injectable } from '@nestjs/common';
+import { AvatarService } from '@/users/avatar.service';
+import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
+import { from, map, mergeMap, Observable, of } from 'rxjs';
 
 @Injectable()
-export class AvatarService {
-  private readonly urlExpirySeconds = 15 * 60;
+export class SignedUrlInterceptor implements NestInterceptor {
+  constructor(private readonly avatarService: AvatarService) {}
 
-  constructor(private readonly s3Service: S3Service) {}
+  intercept(_context: ExecutionContext, next: CallHandler): Observable<any> {
+    return next.handle().pipe(
+      mergeMap((user) => {
+        if (!user || !user.profile_url) {
+          return of(user);
+        }
 
-  private async getCloudFrontPrivateKey() {
-    const secret_name = process.env.AWS_CLOUDFRONT_PRIVATE_KEY_SECRET_NAME;
-
-    const client = new SecretsManagerClient({ region: 'us-east-2' });
-
-    let response;
-
-    try {
-      response = await client.send(new GetSecretValueCommand({ SecretId: secret_name }));
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-
-    if ('SecretString' in response) {
-      return response.SecretString;
-    }
-
-    throw new Error('Failed to get CloudFront private key');
-  }
-
-  // TODO: Move signed url logic to controller with a interceptor
-  async uploadAvatar(userId: string, file: Express.Multer.File) {
-    const now = new Date().toISOString();
-    await this.s3Service.uploadFile(`${userId}-${now}`, file.buffer);
-
-    const encodedUserId = encodeURIComponent(userId);
-    const encodedDate = encodeURIComponent(now);
-
-    const unsignedUrl = `https://${process.env.AWS_CLOUDFRONT_CNAME}/${encodedUserId}-${encodedDate}.jpg`;
-
-    return unsignedUrl;
-  }
-
-  async getSignedUrl(unsignedUrl: string) {
-    const nowMs = Date.now();
-    const expiryDate = new Date(nowMs + this.urlExpirySeconds * 1000);
-
-    const privateKey = await this.getCloudFrontPrivateKey();
-
-    const signedUrl = getSignedUrl({
-      url: unsignedUrl,
-      keyPairId: process.env.AWS_CLOUDFRONT_KEY_PAIR_ID ?? '',
-      dateLessThan: expiryDate,
-      privateKey,
-    });
-
-    return signedUrl;
+        return from(this.avatarService.getSignedUrl(user.profile_url)).pipe(
+          map((signedUrl) => ({ ...user, profile_url: signedUrl })),
+        );
+      }),
+    );
   }
 }
 ````
@@ -998,30 +719,6 @@ export default config;
 {
   "extends": "./tsconfig.json",
   "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
-}
-````
-
-## File: apps/web/src/app/providers.tsx
-````typescript
-'use client';
-
-import { DBUserProvider } from '@/context/dbusercontext';
-import type { ThemeProviderProps } from 'next-themes';
-
-import { ThemeProvider as NextThemesProvider } from 'next-themes';
-import { ReactNode } from 'react';
-
-export interface ProvidersProps {
-  children: ReactNode;
-  themeProps?: ThemeProviderProps;
-}
-
-export function Providers({ children, themeProps }: ProvidersProps) {
-  return (
-    <NextThemesProvider {...themeProps}>
-      <DBUserProvider>{children}</DBUserProvider>
-    </NextThemesProvider>
-  );
 }
 ````
 
@@ -1224,6 +921,57 @@ export default function ThemeSwitcher() {
     </Button>
   );
 }
+````
+
+## File: apps/web/src/components/ui/avatar.tsx
+````typescript
+'use client';
+
+import * as AvatarPrimitive from '@radix-ui/react-avatar';
+import * as React from 'react';
+
+import { cn } from '@/lib/utils';
+
+const Avatar = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Root
+    ref={ref}
+    className={cn('relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full', className)}
+    {...props}
+  />
+));
+Avatar.displayName = AvatarPrimitive.Root.displayName;
+
+const AvatarImage = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Image>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Image
+    ref={ref}
+    className={cn('aspect-square h-full w-full', className)}
+    {...props}
+  />
+));
+AvatarImage.displayName = AvatarPrimitive.Image.displayName;
+
+const AvatarFallback = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Fallback>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Fallback
+    ref={ref}
+    className={cn(
+      'flex h-full w-full items-center justify-center rounded-full bg-muted',
+      className,
+    )}
+    {...props}
+  />
+));
+AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName;
+
+export { Avatar, AvatarFallback, AvatarImage };
 ````
 
 ## File: apps/web/src/components/ui/button.tsx
@@ -1825,6 +1573,91 @@ TooltipContent.displayName = TooltipPrimitive.Content.displayName;
 export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger };
 ````
 
+## File: apps/web/src/components/editprofilemodal.tsx
+````typescript
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { useDBUser } from '@/context/dbusercontext';
+import { updateUserSchema } from '@/lib/schemas';
+import { UpdateUserDto } from '@dribblio/types';
+import { joiResolver } from '@hookform/resolvers/joi';
+import { DialogTrigger } from '@radix-ui/react-dialog';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+
+export default function EditProfileModal() {
+  const { user, updateUser } = useDBUser();
+
+  const form = useForm<UpdateUserDto>({
+    resolver: joiResolver(updateUserSchema),
+    defaultValues: {
+      display_name: user?.display_name ?? '',
+      name: user?.name ?? '',
+    },
+  });
+
+  useEffect(() => {
+    form.reset({
+      display_name: user?.display_name ?? '',
+      name: user?.name ?? '',
+    });
+  }, [user, form]);
+
+  return (
+    <Dialog>
+      <Form {...form}>
+        <DialogTrigger asChild>
+          <Button variant="ghost">Edit Profile</Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Profile</DialogTitle>
+          </DialogHeader>
+          <form
+            onSubmit={form.handleSubmit((values: UpdateUserDto) => {
+              console.log('values', values);
+              updateUser(values);
+            })}
+          >
+            <div className="flex flex-col space-y-4 mb-4">
+              <FormField
+                control={form.control}
+                name="display_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Display Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="flex justify-end">
+              <Button type="submit">Save</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Form>
+    </Dialog>
+  );
+}
+````
+
 ## File: apps/web/src/components/gamemodecard.tsx
 ````typescript
 import { Button } from '@/components/ui/button';
@@ -1893,6 +1726,100 @@ export default function TeamLogo({
         <rect height="100%" width="100%" fillOpacity={0} />
       </svg>
     </div>
+  );
+}
+````
+
+## File: apps/web/src/context/dbusercontext.tsx
+````typescript
+'use client';
+
+import { getAccessToken } from '@auth0/nextjs-auth0';
+import { User } from '@dribblio/database/generated/prisma-users/client';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+
+interface DBUserContextType {
+  user: User | undefined;
+
+  /**
+   * Update user fields in the database and sync local state.
+   * @param user - Partial user object with fields to update.
+   */
+  updateUser: (user: Partial<User>) => void;
+
+  /**
+   * Upload a new avatar image to the database and sync local state.
+   * @param avatar - The avatar image file to upload.
+   */
+  uploadAvatar: (avatar: File) => void;
+}
+
+const defaultUserContext: DBUserContextType = {
+  user: undefined,
+  updateUser: () => {},
+  uploadAvatar: () => {},
+};
+
+const DBUserContext = createContext<DBUserContextType | undefined>(undefined);
+export const useDBUser = () => useContext(DBUserContext) ?? defaultUserContext;
+
+export function DBUserProvider({ children }: { children: React.ReactNode | React.ReactNode[] }) {
+  const [user, setUser] = useState<User | undefined>(undefined);
+
+  useEffect(() => {
+    getAccessToken().then((accessToken) => {
+      if (!accessToken) return;
+
+      fetch('/api/me', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+        .then((res) => res.json())
+        .then(setUser);
+    });
+  }, []);
+
+  const updateUser = useCallback((user: Partial<User>) => {
+    getAccessToken().then((accessToken) => {
+      if (!accessToken) return;
+
+      fetch('/api/me', {
+        method: 'PATCH',
+        body: JSON.stringify(user),
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      })
+        .then((res) => res.json())
+        .then(setUser);
+    });
+  }, []);
+
+  const uploadAvatar = useCallback((avatar: File) => {
+    getAccessToken().then((accessToken) => {
+      if (!accessToken) return;
+
+      const formData = new FormData();
+      formData.append('avatar', avatar);
+
+      fetch('/api/me/avatar', {
+        method: 'PUT',
+        body: formData,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+        .then((res) => res.json())
+        .then(setUser);
+    });
+  }, []);
+
+  return (
+    <DBUserContext.Provider value={{ user, updateUser, uploadAvatar }}>
+      {children}
+    </DBUserContext.Provider>
   );
 }
 ````
@@ -2042,52 +1969,6 @@ import { io } from 'socket.io-client';
 
 export const clientSocket = io(`http://localhost:3002`, {
   autoConnect: false,
-});
-````
-
-## File: apps/web/src/lib/schemas.ts
-````typescript
-import {
-  GameDifficultyNames,
-  HostFormValues,
-  JoinFormValues,
-  UpdateUserDto,
-} from '@dribblio/types';
-import Joi from 'joi';
-
-export const hostSchema = Joi.object<HostFormValues>({
-  isRoundLimit: Joi.boolean().required(),
-  config: Joi.object({
-    scoreLimit: Joi.number().optional(),
-    roundLimit: Joi.number().optional(),
-    roundTimeLimit: Joi.number().required(),
-    gameDifficulty: Joi.string()
-      .valid(...GameDifficultyNames)
-      .required(),
-  }),
-}).custom((value, helpers) => {
-  const { isRoundLimit, config } = value;
-  if (isRoundLimit && !config.roundLimit) {
-    return helpers.error('any.custom', {
-      message: 'Round Limit is required when Round Limit mode is selected',
-    });
-  }
-  if (!isRoundLimit && !config.scoreLimit) {
-    return helpers.error('any.custom', {
-      message: 'Score Limit is required when Score Limit mode is selected',
-    });
-  }
-  return value;
-}, 'Round/Score limit conditional check');
-
-export const joinSchema = Joi.object<JoinFormValues>({
-  roomId: Joi.string().required(),
-});
-
-export const updateUserSchema = Joi.object<UpdateUserDto>({
-  display_name: Joi.string().optional(),
-  name: Joi.string().optional(),
-  profile_url: Joi.string().optional(),
 });
 ````
 
@@ -2323,6 +2204,52 @@ provider = "postgresql"
 Collection of internal eslint configurations.
 ````
 
+## File: packages/types/src/dtos/index.ts
+````typescript
+export * from './updateuser.dto.js';
+````
+
+## File: packages/types/src/dtos/updateuser.dto.ts
+````typescript
+import { IsOptional, IsString } from 'class-validator';
+
+export class UpdateUserDto {
+  @IsOptional()
+  @IsString()
+  display_name?: string;
+
+  @IsOptional()
+  @IsString()
+  name?: string;
+}
+````
+
+## File: packages/types/src/forms/hostform.ts
+````typescript
+export type HostFormValues = {
+  isRoundLimit: boolean;
+  config: {
+    scoreLimit?: number;
+    roundLimit?: number;
+    roundTimeLimit: number;
+    gameDifficulty: string;
+  };
+};
+````
+
+## File: packages/types/src/forms/index.ts
+````typescript
+export * from './hostform.js';
+export * from './joinform.js';
+````
+
+## File: packages/types/src/forms/joinform.ts
+````typescript
+export type JoinFormValues = {
+  roomId: string;
+};
+````
+
 ## File: packages/types/src/responses/index.ts
 ````typescript
 export * from './searchresponse.js';
@@ -2344,31 +2271,6 @@ export type PlayerGuess = {
   userId: string;
   guessId: number;
 };
-````
-
-## File: packages/typescript-config/base.json
-````json
-{
-  "$schema": "https://json.schemastore.org/tsconfig",
-  "compilerOptions": {
-    "declaration": true,
-    "declarationMap": true,
-    "emitDecoratorMetadata": true,
-    "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "incremental": false,
-    "isolatedModules": true,
-    "lib": ["es2022", "DOM", "DOM.Iterable"],
-    "module": "NodeNext",
-    "moduleDetection": "force",
-    "moduleResolution": "NodeNext",
-    "noUncheckedIndexedAccess": true,
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "target": "ES2022"
-  }
-}
 ````
 
 ## File: packages/typescript-config/nextjs.json
@@ -2469,6 +2371,71 @@ describe('RoomService', () => {
 });
 ````
 
+## File: apps/api/src/users/avatar.service.ts
+````typescript
+import { S3Service } from '@/users/s3.service';
+import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
+import { getSignedUrl } from '@aws-sdk/cloudfront-signer';
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class AvatarService {
+  private readonly urlExpirySeconds = 15 * 60;
+
+  constructor(private readonly s3Service: S3Service) {}
+
+  private async getCloudFrontPrivateKey() {
+    const secret_name = process.env.AWS_CLOUDFRONT_PRIVATE_KEY_SECRET_NAME;
+
+    const client = new SecretsManagerClient({ region: 'us-east-2' });
+
+    let response;
+
+    try {
+      response = await client.send(new GetSecretValueCommand({ SecretId: secret_name }));
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+
+    if ('SecretString' in response) {
+      return response.SecretString;
+    }
+
+    throw new Error('Failed to get CloudFront private key');
+  }
+
+  // TODO: Move signed url logic to controller with a interceptor
+  async uploadAvatar(userId: string, file: Express.Multer.File) {
+    const now = new Date().toISOString();
+    await this.s3Service.uploadFile(`${userId}-${now}`, file.buffer);
+
+    const encodedUserId = encodeURIComponent(userId);
+    const encodedDate = encodeURIComponent(now);
+
+    const unsignedUrl = `https://${process.env.AWS_CLOUDFRONT_CNAME}/${encodedUserId}-${encodedDate}.jpg`;
+
+    return unsignedUrl;
+  }
+
+  async getSignedUrl(unsignedUrl: string) {
+    const nowMs = Date.now();
+    const expiryDate = new Date(nowMs + this.urlExpirySeconds * 1000);
+
+    const privateKey = await this.getCloudFrontPrivateKey();
+
+    const signedUrl = getSignedUrl({
+      url: unsignedUrl,
+      keyPairId: process.env.AWS_CLOUDFRONT_KEY_PAIR_ID ?? '',
+      dateLessThan: expiryDate,
+      privateKey,
+    });
+
+    return signedUrl;
+  }
+}
+````
+
 ## File: apps/api/src/users/s3.service.ts
 ````typescript
 import { S3Client } from '@aws-sdk/client-s3';
@@ -2495,49 +2462,6 @@ export class S3Service {
       console.log(error);
       throw error;
     }
-  }
-}
-````
-
-## File: apps/api/src/users/users.controller.ts
-````typescript
-import { SignedUrlInterceptor } from '@/users/signedurl.inteceptor';
-import { UsersService } from '@/users/users.service';
-import { UpdateUserDto } from '@dribblio/types';
-import {
-  Body,
-  Controller,
-  Get,
-  Patch,
-  Put,
-  Request,
-  UploadedFile,
-  UseGuards,
-  UseInterceptors,
-} from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import { FileInterceptor } from '@nestjs/platform-express';
-
-@UseGuards(AuthGuard('jwt'))
-@UseInterceptors(SignedUrlInterceptor)
-@Controller('me')
-export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
-
-  @Get()
-  async get(@Request() req) {
-    return await this.usersService.get(req.user.id);
-  }
-
-  @Patch()
-  async update(@Request() req, @Body() updateUserDto: UpdateUserDto) {
-    return await this.usersService.update(req.user.id, updateUserDto);
-  }
-
-  @Put('avatar')
-  @UseInterceptors(FileInterceptor('avatar'))
-  async uploadProfileImage(@Request() req, @UploadedFile() file: Express.Multer.File) {
-    return await this.usersService.uploadProfileImage(req.user.id, file);
   }
 }
 ````
@@ -2661,6 +2585,30 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         </Providers>
       </body>
     </html>
+  );
+}
+````
+
+## File: apps/web/src/app/providers.tsx
+````typescript
+'use client';
+
+import { DBUserProvider } from '@/context/dbusercontext';
+import type { ThemeProviderProps } from 'next-themes';
+
+import { ThemeProvider as NextThemesProvider } from 'next-themes';
+import { ReactNode } from 'react';
+
+export interface ProvidersProps {
+  children: ReactNode;
+  themeProps?: ThemeProviderProps;
+}
+
+export function Providers({ children, themeProps }: ProvidersProps) {
+  return (
+    <NextThemesProvider {...themeProps}>
+      <DBUserProvider>{children}</DBUserProvider>
+    </NextThemesProvider>
   );
 }
 ````
@@ -3238,6 +3186,51 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
     </div>
   );
 }
+````
+
+## File: apps/web/src/lib/schemas.ts
+````typescript
+import {
+  GameDifficultyNames,
+  HostFormValues,
+  JoinFormValues,
+  UpdateUserDto,
+} from '@dribblio/types';
+import Joi from 'joi';
+
+export const hostSchema = Joi.object<HostFormValues>({
+  isRoundLimit: Joi.boolean().required(),
+  config: Joi.object({
+    scoreLimit: Joi.number().optional(),
+    roundLimit: Joi.number().optional(),
+    roundTimeLimit: Joi.number().required(),
+    gameDifficulty: Joi.string()
+      .valid(...GameDifficultyNames)
+      .required(),
+  }),
+}).custom((value, helpers) => {
+  const { isRoundLimit, config } = value;
+  if (isRoundLimit && !config.roundLimit) {
+    return helpers.error('any.custom', {
+      message: 'Round Limit is required when Round Limit mode is selected',
+    });
+  }
+  if (!isRoundLimit && !config.scoreLimit) {
+    return helpers.error('any.custom', {
+      message: 'Score Limit is required when Score Limit mode is selected',
+    });
+  }
+  return value;
+}, 'Round/Score limit conditional check');
+
+export const joinSchema = Joi.object<JoinFormValues>({
+  roomId: Joi.string().required(),
+});
+
+export const updateUserSchema = Joi.object<UpdateUserDto>({
+  display_name: Joi.string().optional(),
+  name: Joi.string().optional(),
+});
 ````
 
 ## File: apps/web/src/lib/utils.ts
@@ -3855,6 +3848,31 @@ export interface JoinRoomMessageBody {
 }
 ````
 
+## File: packages/typescript-config/base.json
+````json
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "declaration": true,
+    "declarationMap": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "incremental": false,
+    "isolatedModules": true,
+    "lib": ["es2022", "DOM", "DOM.Iterable"],
+    "module": "NodeNext",
+    "moduleDetection": "force",
+    "moduleResolution": "NodeNext",
+    "noUncheckedIndexedAccess": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "ES2022"
+  }
+}
+````
+
 ## File: .repomixignore
 ````
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
@@ -4376,6 +4394,49 @@ export class PlayersService {
 }
 ````
 
+## File: apps/api/src/users/users.controller.ts
+````typescript
+import { SignedUrlInterceptor } from '@/users/signedurl.inteceptor';
+import { UsersService } from '@/users/users.service';
+import { UpdateUserDto } from '@dribblio/types';
+import {
+  Body,
+  Controller,
+  Get,
+  Patch,
+  Put,
+  Request,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { FileInterceptor } from '@nestjs/platform-express';
+
+@UseGuards(AuthGuard('jwt'))
+@UseInterceptors(SignedUrlInterceptor)
+@Controller('me')
+export class UsersController {
+  constructor(private readonly usersService: UsersService) {}
+
+  @Get()
+  async get(@Request() req) {
+    return await this.usersService.get(req.user.id);
+  }
+
+  @Patch()
+  async update(@Request() req, @Body() updateUserDto: UpdateUserDto) {
+    return await this.usersService.update(req.user.id, updateUserDto);
+  }
+
+  @Put('avatar')
+  @UseInterceptors(FileInterceptor('avatar'))
+  async uploadProfileImage(@Request() req, @UploadedFile() file: Express.Multer.File) {
+    return await this.usersService.uploadProfileImage(req.user.id, file);
+  }
+}
+````
+
 ## File: apps/api/README.md
 ````markdown
 # Dribbl.io API
@@ -4661,100 +4722,6 @@ You are not permitted to:
 Any unauthorized use, reproduction, or distribution of the Software is strictly prohibited and may result in severe legal consequences.
 ````
 
-## File: apps/web/src/app/multiplayer/page.tsx
-````typescript
-'use client';
-
-import { CareerPath } from '@/components/careerpath/careerpathview';
-import JoinHostModal from '@/components/config/multiplayer/joinhostmodal';
-import PlayerSearchBar from '@/components/search/playersearchbar';
-import { Avatar, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import useMultiplayerSocket from '@/hooks/useMultiplayerSocket';
-import { UserGameInfo } from '@dribblio/types';
-import { User } from 'lucide-react';
-
-export default function Game() {
-  const {
-    isConnected,
-    roomId,
-    roundActive,
-    canStartGame,
-    onStartGame,
-    users,
-    onHostRoom,
-    onJoinRoom,
-    teams,
-    players,
-    onGuess,
-    timeLeft,
-    validAnswers,
-  } = useMultiplayerSocket();
-
-  return (
-    <div className="flex flex-col h-full space-y-8">
-      <JoinHostModal isOpen={!roomId} onJoinRoom={onJoinRoom} onHostRoom={onHostRoom} />
-      <div className="justify-start">
-        <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
-        {roomId && <p>{`Room Code: ${roomId}`}</p>}
-        {users.some((user: UserGameInfo) => user) && (
-          <div>
-            <p>Users:</p>
-            <ul>
-              {users.map((user: UserGameInfo) => (
-                <li key={user.info.id}>
-                  <div className="flex flex-row space-x-2 items-center">
-                    {user.info.profile_url ? (
-                      <Avatar>
-                        <AvatarImage
-                          src={user.info.profile_url}
-                          alt={user.info.name ?? ''}
-                          width={24}
-                          height={24}
-                        />
-                      </Avatar>
-                    ) : (
-                      <User />
-                    )}
-                    <p>{user.info.name}</p>
-                    <p>{user.score}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
-
-      {canStartGame && (
-        <div>
-          <Button onClick={onStartGame}>Start Game</Button>
-        </div>
-      )}
-
-      {roundActive && (
-        <div className="w-full flex flex-col items-center space-y-8">
-          <p className="text-2xl font-bold">Time Left: {timeLeft}</p>
-          <CareerPath teams={teams!} />
-          <PlayerSearchBar playerList={players} onSelect={onGuess} />
-        </div>
-      )}
-
-      {!roundActive && !canStartGame && (
-        <div>
-          <p>Correct Answers:</p>
-          <ul>
-            {validAnswers.map((answer) => (
-              <li key={answer.id}>{answer.display_first_last}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-}
-````
-
 ## File: apps/web/src/app/singleplayer/page.tsx
 ````typescript
 'use client';
@@ -4822,242 +4789,6 @@ export default function SinglePlayer() {
         </div>
       )}
     </div>
-  );
-}
-````
-
-## File: apps/web/src/components/config/multiplayer/joinhostmodal.tsx
-````typescript
-'use client';
-
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { hostSchema, joinSchema } from '@/lib/schemas';
-import {
-  GameDifficulties,
-  GameDifficultyNames,
-  GameDifficultySchema,
-  HostFormValues,
-  JoinFormValues,
-  MultiplayerConfig,
-} from '@dribblio/types';
-import { joiResolver } from '@hookform/resolvers/joi';
-import { useForm } from 'react-hook-form';
-
-export default function JoinHostModal({
-  isOpen,
-  onJoinRoom,
-  onHostRoom,
-}: Readonly<{
-  isOpen: boolean;
-  onJoinRoom: (roomId: string) => void;
-  onHostRoom: (config: MultiplayerConfig) => void;
-}>) {
-  return (
-    <Dialog open={isOpen}>
-      <DialogContent
-        className="[&>button]:hidden"
-        onInteractOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-      >
-        <DialogHeader>
-          <DialogTitle>Join or Host a Game</DialogTitle>
-        </DialogHeader>
-        <Tabs defaultValue="join">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="join">Join Room</TabsTrigger>
-            <TabsTrigger value="host">Host Room</TabsTrigger>
-          </TabsList>
-          <TabsContent value="join">
-            <JoinForm onJoinRoom={onJoinRoom} />
-          </TabsContent>
-          <TabsContent value="host">
-            <HostForm onHostRoom={onHostRoom} />
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function JoinForm({
-  onJoinRoom,
-}: Readonly<{
-  onJoinRoom: (roomId: string) => void;
-}>) {
-  const form = useForm<JoinFormValues>({
-    resolver: joiResolver(joinSchema),
-    defaultValues: {
-      roomId: '',
-    },
-  });
-
-  function onSubmit(values: JoinFormValues) {
-    onJoinRoom(values.roomId);
-  }
-
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="flex flex-col space-y-4">
-          <FormField
-            control={form.control}
-            name="roomId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Room Code</FormLabel>
-                <FormControl>
-                  <Input placeholder="Room Code" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          ></FormField>
-        </div>
-        <div className="flex justify-end mt-4">
-          <Button type="submit">Join Room</Button>
-        </div>
-      </form>
-    </Form>
-  );
-}
-
-function HostForm({
-  onHostRoom,
-}: Readonly<{
-  onHostRoom: (config: MultiplayerConfig) => void;
-}>) {
-  const form = useForm<HostFormValues>({
-    resolver: joiResolver(hostSchema),
-    defaultValues: {
-      isRoundLimit: false,
-      config: {
-        scoreLimit: undefined,
-        roundLimit: undefined,
-        roundTimeLimit: 30,
-        gameDifficulty: GameDifficulties.firstAllNBA.name,
-      },
-    },
-  });
-
-  function onSubmit(values: HostFormValues) {
-    const config = {
-      ...values.config,
-      scoreLimit: values.isRoundLimit ? undefined : values.config.scoreLimit,
-      roundLimit: values.isRoundLimit ? values.config.roundLimit : undefined,
-      gameDifficulty: GameDifficultySchema.parse(values.config.gameDifficulty),
-    };
-    onHostRoom(config);
-  }
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="flex flex-col space-y-4">
-          <div className="flex flex-row space-x-4 self-center">
-            <p>Score Limit</p>
-            <FormField
-              control={form.control}
-              name="isRoundLimit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                </FormItem>
-              )}
-            ></FormField>
-            <p>Round Limit</p>
-          </div>
-          {form.watch('isRoundLimit') && (
-            <FormField
-              control={form.control}
-              name="config.roundLimit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Round Limit</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="Round Limit" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            ></FormField>
-          )}
-          {!form.watch('isRoundLimit') && (
-            <FormField
-              control={form.control}
-              name="config.scoreLimit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Score Limit</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="Score Limit" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            ></FormField>
-          )}
-          <FormField
-            control={form.control}
-            name="config.roundTimeLimit"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Round Time Limit</FormLabel>
-                <FormControl>
-                  <Input type="number" placeholder="Round Time Limit" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          ></FormField>
-          <FormField
-            control={form.control}
-            name="config.gameDifficulty"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Difficulty</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select game difficulty" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {GameDifficultyNames.map((mode) => (
-                      <SelectItem key={mode} value={mode}>
-                        {GameDifficultySchema.parse(mode).display_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          ></FormField>
-        </div>
-        <div className="flex justify-end mt-4">
-          <Button type="submit">Create Room</Button>
-        </div>
-      </form>
-    </Form>
   );
 }
 ````
@@ -5615,59 +5346,6 @@ export const nextJsConfig = [
 }
 ````
 
-## File: .gitignore
-````
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# Dependencies
-node_modules
-/pnp
-.pnp.js
-
-# Local env files
-**/.env
-**/.env.local
-**/.env.development.local
-**/.env.test.local
-**/.env.production.local
-
-# Testing
-coverage
-
-# Turbo
-.turbo
-
-# Vercel
-.vercel
-
-# Build Outputs
-.next/
-out/
-build
-dist
-
-# Debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Misc
-.DS_Store
-*.pem
-
-# production
-/build
-
-# next.js
-/.next/
-/out/
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-**/*-lock.json
-````
-
 ## File: apps/api/src/nba/games/careerpath/room/room.service.ts
 ````typescript
 import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
@@ -5872,48 +5550,97 @@ import { UsersService } from './users.service';
 export class UsersModule {}
 ````
 
-## File: apps/api/src/users/users.service.ts
+## File: apps/web/src/app/multiplayer/page.tsx
 ````typescript
-import { UsersPrismaService } from '@/database/users.prisma.service';
-import { AvatarService } from '@/users/avatar.service';
-import { S3Service } from '@/users/s3.service';
-import { UpdateUserDto } from '@dribblio/types';
-import { Injectable } from '@nestjs/common';
+'use client';
 
-@Injectable()
-export class UsersService {
-  constructor(
-    private readonly userPrisma: UsersPrismaService,
-    private readonly s3Service: S3Service,
-    private readonly avatarService: AvatarService,
-  ) {}
+import { CareerPath } from '@/components/careerpath/careerpathview';
+import JoinHostModal from '@/components/config/multiplayer/joinhostmodal';
+import PlayerSearchBar from '@/components/search/playersearchbar';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import useMultiplayerSocket from '@/hooks/useMultiplayerSocket';
+import { UserGameInfo } from '@dribblio/types';
+import { User } from 'lucide-react';
 
-  async get(id: string) {
-    const user = await this.userPrisma.user.findUnique({
-      where: { id },
-    });
+export default function Game() {
+  const {
+    isConnected,
+    roomId,
+    roundActive,
+    canStartGame,
+    onStartGame,
+    users,
+    onHostRoom,
+    onJoinRoom,
+    teams,
+    players,
+    onGuess,
+    timeLeft,
+    validAnswers,
+  } = useMultiplayerSocket();
 
-    return user;
-  }
+  return (
+    <div className="flex flex-col h-full space-y-8">
+      <JoinHostModal isOpen={!roomId} onJoinRoom={onJoinRoom} onHostRoom={onHostRoom} />
+      <div className="justify-start">
+        <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
+        {roomId && <p>{`Room Code: ${roomId}`}</p>}
+        {users.some((user: UserGameInfo) => user) && (
+          <div>
+            <p>Users:</p>
+            <ul>
+              {users.map((user: UserGameInfo) => (
+                <li key={user.info.id}>
+                  <div className="flex flex-row space-x-2 items-center">
+                    {user.info.profile_url ? (
+                      <Avatar>
+                        <AvatarImage
+                          src={user.info.profile_url}
+                          alt={user.info.name ?? ''}
+                          width={24}
+                          height={24}
+                        />
+                      </Avatar>
+                    ) : (
+                      <User />
+                    )}
+                    <p>{user.info.name}</p>
+                    <p>{user.score}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
 
-  async update(id: string, updateUserDto: UpdateUserDto) {
-    return await this.userPrisma.user.update({
-      where: { id: id },
-      data: {
-        display_name: updateUserDto.display_name ?? '',
-        name: updateUserDto.name ?? '',
-      },
-    });
-  }
+      {canStartGame && (
+        <div>
+          <Button onClick={onStartGame}>Start Game</Button>
+        </div>
+      )}
 
-  async uploadProfileImage(userId: string, file: Express.Multer.File) {
-    const profile_url = await this.avatarService.uploadAvatar(userId, file);
+      {roundActive && (
+        <div className="w-full flex flex-col items-center space-y-8">
+          <p className="text-2xl font-bold">Time Left: {timeLeft}</p>
+          <CareerPath teams={teams!} />
+          <PlayerSearchBar playerList={players} onSelect={onGuess} />
+        </div>
+      )}
 
-    return await this.userPrisma.user.update({
-      where: { id: userId },
-      data: { profile_url },
-    });
-  }
+      {!roundActive && !canStartGame && (
+        <div>
+          <p>Correct Answers:</p>
+          <ul>
+            {validAnswers.map((answer) => (
+              <li key={answer.id}>{answer.display_first_last}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
 }
 ````
 
@@ -5945,87 +5672,238 @@ export default function Home() {
 }
 ````
 
-## File: apps/web/src/components/navbar/navbar.tsx
+## File: apps/web/src/components/config/multiplayer/joinhostmodal.tsx
 ````typescript
 'use client';
 
-import { Dock, DockIcon } from '@/components/magicui/dock';
-import ThemeSwitcher from '@/components/navbar/themeswitcher';
-import { Avatar, AvatarImage } from '@/components/ui/avatar';
-import { buttonVariants } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { siteConfig } from '@/config/site';
-import { useDBUser } from '@/context/dbusercontext';
-import { cn } from '@/lib/utils';
-import { LogIn, User as UserIcon } from 'lucide-react';
-import NextLink from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { hostSchema, joinSchema } from '@/lib/schemas';
+import {
+  GameDifficulties,
+  GameDifficultyNames,
+  GameDifficultySchema,
+  HostFormValues,
+  JoinFormValues,
+  MultiplayerConfig,
+} from '@dribblio/types';
+import { joiResolver } from '@hookform/resolvers/joi';
+import { useForm } from 'react-hook-form';
 
-export default function NBANavbar({ className }: Readonly<{ className?: string }>) {
-  const { user } = useDBUser();
+export default function JoinHostModal({
+  isOpen,
+  onJoinRoom,
+  onHostRoom,
+}: Readonly<{
+  isOpen: boolean;
+  onJoinRoom: (roomId: string) => void;
+  onHostRoom: (config: MultiplayerConfig) => void;
+}>) {
+  return (
+    <Dialog open={isOpen}>
+      <DialogContent
+        className="[&>button]:hidden"
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
+        <DialogHeader>
+          <DialogTitle>Join or Host a Game</DialogTitle>
+        </DialogHeader>
+        <Tabs defaultValue="join">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="join">Join Room</TabsTrigger>
+            <TabsTrigger value="host">Host Room</TabsTrigger>
+          </TabsList>
+          <TabsContent value="join">
+            <JoinForm onJoinRoom={onJoinRoom} />
+          </TabsContent>
+          <TabsContent value="host">
+            <HostForm onHostRoom={onHostRoom} />
+          </TabsContent>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function JoinForm({
+  onJoinRoom,
+}: Readonly<{
+  onJoinRoom: (roomId: string) => void;
+}>) {
+  const form = useForm<JoinFormValues>({
+    resolver: joiResolver(joinSchema),
+    defaultValues: {
+      roomId: '',
+    },
+  });
+
+  function onSubmit(values: JoinFormValues) {
+    onJoinRoom(values.roomId);
+  }
 
   return (
-    <div className={`${className}`}>
-      <TooltipProvider>
-        <Dock className="rounded-full" iconMagnification={60} iconDistance={25}>
-          <DockIcon>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                {user ? (
-                  <NextLink href="/profile">
-                    {user.profile_url ? (
-                      <Avatar>
-                        <AvatarImage
-                          src={user.profile_url}
-                          alt="Profile"
-                          width={32}
-                          height={32}
-                          className="rounded-full"
-                        />
-                      </Avatar>
-                    ) : (
-                      <UserIcon />
-                    )}
-                  </NextLink>
-                ) : (
-                  <a
-                    href="/auth/login"
-                    className={cn(
-                      buttonVariants({ variant: 'ghost', size: 'icon', className: 'rounded-full' }),
-                    )}
-                  >
-                    <LogIn />
-                  </a>
-                )}
-              </TooltipTrigger>
-              <TooltipContent>{user ? <p>Profile</p> : <p>Login</p>}</TooltipContent>
-            </Tooltip>
-          </DockIcon>
-          <Separator orientation="vertical" className="h-full py-2" />
-          {siteConfig.navItems.map((item) => (
-            <DockIcon key={item.label}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <NextLink
-                    href={item.href}
-                    className={cn(
-                      buttonVariants({ variant: 'ghost', size: 'icon', className: 'rounded-full' }),
-                    )}
-                  >
-                    <item.icon />
-                  </NextLink>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{item.label}</p>
-                </TooltipContent>
-              </Tooltip>
-            </DockIcon>
-          ))}
-          <Separator orientation="vertical" className="h-full py-2" />
-          <ThemeSwitcher />
-        </Dock>
-      </TooltipProvider>
-    </div>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="flex flex-col space-y-4">
+          <FormField
+            control={form.control}
+            name="roomId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Room Code</FormLabel>
+                <FormControl>
+                  <Input placeholder="Room Code" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          ></FormField>
+        </div>
+        <div className="flex justify-end mt-4">
+          <Button type="submit">Join Room</Button>
+        </div>
+      </form>
+    </Form>
+  );
+}
+
+function HostForm({
+  onHostRoom,
+}: Readonly<{
+  onHostRoom: (config: MultiplayerConfig) => void;
+}>) {
+  const form = useForm<HostFormValues>({
+    resolver: joiResolver(hostSchema),
+    defaultValues: {
+      isRoundLimit: false,
+      config: {
+        scoreLimit: undefined,
+        roundLimit: undefined,
+        roundTimeLimit: 30,
+        gameDifficulty: GameDifficulties.firstAllNBA.name,
+      },
+    },
+  });
+
+  function onSubmit(values: HostFormValues) {
+    const config = {
+      ...values.config,
+      scoreLimit: values.isRoundLimit ? undefined : values.config.scoreLimit,
+      roundLimit: values.isRoundLimit ? values.config.roundLimit : undefined,
+      gameDifficulty: GameDifficultySchema.parse(values.config.gameDifficulty),
+    };
+    onHostRoom(config);
+  }
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="flex flex-col space-y-4">
+          <div className="flex flex-row space-x-4 self-center">
+            <p>Score Limit</p>
+            <FormField
+              control={form.control}
+              name="isRoundLimit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                </FormItem>
+              )}
+            ></FormField>
+            <p>Round Limit</p>
+          </div>
+          {form.watch('isRoundLimit') && (
+            <FormField
+              control={form.control}
+              name="config.roundLimit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Round Limit</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="Round Limit" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            ></FormField>
+          )}
+          {!form.watch('isRoundLimit') && (
+            <FormField
+              control={form.control}
+              name="config.scoreLimit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Score Limit</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="Score Limit" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            ></FormField>
+          )}
+          <FormField
+            control={form.control}
+            name="config.roundTimeLimit"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Round Time Limit</FormLabel>
+                <FormControl>
+                  <Input type="number" placeholder="Round Time Limit" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          ></FormField>
+          <FormField
+            control={form.control}
+            name="config.gameDifficulty"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Difficulty</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select game difficulty" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {GameDifficultyNames.map((mode) => (
+                      <SelectItem key={mode} value={mode}>
+                        {GameDifficultySchema.parse(mode).display_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          ></FormField>
+        </div>
+        <div className="flex justify-end mt-4">
+          <Button type="submit">Create Room</Button>
+        </div>
+      </form>
+    </Form>
   );
 }
 ````
@@ -6238,92 +6116,57 @@ export interface Room {
 }
 ````
 
-## File: packages/types/package.json
-````json
-{
-  "name": "@dribblio/types",
-  "type": "module",
-  "version": "1.0.0",
-  "description": "",
-  "main": "dist/index.js",
-  "scripts": {
-    "build": "tsc"
-  },
-  "devDependencies": {
-    "@dribblio/typescript-config": "*",
-    "typescript": "latest"
-  },
-  "dependencies": {
-    "class-validator": "^0.14.2",
-    "joi": "^17.13.3",
-    "socket.io": "^4.8.1",
-    "xstate": "^5.19.2",
-    "zod": "^3.25.28"
-  }
-}
+## File: .gitignore
 ````
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-## File: apps/api/src/auth/jwt.strategy.ts
-````typescript
-import { Auth0JwtPayload } from '@/auth/payload.type';
-import { UserInfo } from '@/auth/userinfo.type';
-import { UsersPrismaService } from '@/database/users.prisma.service';
-import { Injectable } from '@nestjs/common';
-import { PassportStrategy } from '@nestjs/passport';
-import * as jwksRsa from 'jwks-rsa';
-import { ExtractJwt, Strategy, VerifiedCallback } from 'passport-jwt';
+# Dependencies
+node_modules
+/pnp
+.pnp.js
 
-@Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private readonly usersPrismaService: UsersPrismaService) {
-    super({
-      secretOrKeyProvider: jwksRsa.passportJwtSecret({
-        cache: true,
-        rateLimit: true,
-        jwksRequestsPerMinute: 5,
-        jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`,
-      }),
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      audience: process.env.AUTH0_AUDIENCE,
-      issuer: `https://${process.env.AUTH0_DOMAIN}/`,
-      algorithms: ['RS256'],
-      passReqToCallback: true,
-    });
-  }
+# Local env files
+**/.env
+**/.env.local
+**/.env.development.local
+**/.env.test.local
+**/.env.production.local
 
-  private async getUserProfileInfo(issuer: string, token: string | null): Promise<UserInfo> {
-    const userInfoUrl = `${issuer}userinfo`;
-    const response = await fetch(userInfoUrl, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+# Testing
+coverage
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch user profile info');
-    }
+# Turbo
+.turbo
 
-    return response.json();
-  }
+# Vercel
+.vercel
 
-  async validate(req: Request, payload: Auth0JwtPayload, done: VerifiedCallback): Promise<unknown> {
-    let user = await this.usersPrismaService.user.findUnique({ where: { id: payload.sub } });
-    if (!user) {
-      const token = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
-      const userInfo = await this.getUserProfileInfo(payload.iss, token);
-      user = await this.usersPrismaService.user.create({
-        data: {
-          id: payload.sub,
-          name: userInfo.name || '',
-          display_name: userInfo.given_name || '',
-          profile_url: userInfo.picture || '',
-        },
-      });
-    }
+# Build Outputs
+.next/
+out/
+build
+dist
 
-    return done(null, { id: user.id });
-  }
-}
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Misc
+.DS_Store
+*.pem
+
+# production
+/build
+
+# next.js
+/.next/
+/out/
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+**/*-lock.json
 ````
 
 ## File: apps/api/src/nba/games/careerpath/room/factory.service.ts
@@ -6459,6 +6302,137 @@ export class PlayersController {
   async findOne(@Param('id') id: string) {
     return await this.playerService.findOne(+id);
   }
+}
+````
+
+## File: apps/api/src/users/users.service.ts
+````typescript
+import { UsersPrismaService } from '@/database/users.prisma.service';
+import { AvatarService } from '@/users/avatar.service';
+import { S3Service } from '@/users/s3.service';
+import { UpdateUserDto } from '@dribblio/types';
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class UsersService {
+  constructor(
+    private readonly userPrisma: UsersPrismaService,
+    private readonly s3Service: S3Service,
+    private readonly avatarService: AvatarService,
+  ) {}
+
+  async get(id: string) {
+    const user = await this.userPrisma.user.findUnique({
+      where: { id },
+    });
+
+    return user;
+  }
+
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    return await this.userPrisma.user.update({
+      where: { id: id },
+      data: {
+        display_name: updateUserDto.display_name ?? '',
+        name: updateUserDto.name ?? '',
+      },
+    });
+  }
+
+  async uploadProfileImage(userId: string, file: Express.Multer.File) {
+    const profile_url = await this.avatarService.uploadAvatar(userId, file);
+
+    return await this.userPrisma.user.update({
+      where: { id: userId },
+      data: { profile_url },
+    });
+  }
+}
+````
+
+## File: apps/web/src/components/navbar/navbar.tsx
+````typescript
+'use client';
+
+import { Dock, DockIcon } from '@/components/magicui/dock';
+import ThemeSwitcher from '@/components/navbar/themeswitcher';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { buttonVariants } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { siteConfig } from '@/config/site';
+import { useDBUser } from '@/context/dbusercontext';
+import { cn } from '@/lib/utils';
+import { LogIn, User as UserIcon } from 'lucide-react';
+import NextLink from 'next/link';
+
+export default function NBANavbar({ className }: Readonly<{ className?: string }>) {
+  const { user } = useDBUser();
+
+  return (
+    <div className={`${className}`}>
+      <TooltipProvider>
+        <Dock className="rounded-full" iconMagnification={60} iconDistance={25}>
+          <DockIcon>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                {user ? (
+                  <NextLink href="/profile">
+                    {user.profile_url ? (
+                      <Avatar>
+                        <AvatarImage
+                          src={user.profile_url}
+                          alt="Profile"
+                          width={32}
+                          height={32}
+                          className="rounded-full"
+                        />
+                        <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <UserIcon />
+                    )}
+                  </NextLink>
+                ) : (
+                  <a
+                    href="/auth/login"
+                    className={cn(
+                      buttonVariants({ variant: 'ghost', size: 'icon', className: 'rounded-full' }),
+                    )}
+                  >
+                    <LogIn />
+                  </a>
+                )}
+              </TooltipTrigger>
+              <TooltipContent>{user ? <p>Profile</p> : <p>Login</p>}</TooltipContent>
+            </Tooltip>
+          </DockIcon>
+          <Separator orientation="vertical" className="h-full py-2" />
+          {siteConfig.navItems.map((item) => (
+            <DockIcon key={item.label}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <NextLink
+                    href={item.href}
+                    className={cn(
+                      buttonVariants({ variant: 'ghost', size: 'icon', className: 'rounded-full' }),
+                    )}
+                  >
+                    <item.icon />
+                  </NextLink>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{item.label}</p>
+                </TooltipContent>
+              </Tooltip>
+            </DockIcon>
+          ))}
+          <Separator orientation="vertical" className="h-full py-2" />
+          <ThemeSwitcher />
+        </Dock>
+      </TooltipProvider>
+    </div>
+  );
 }
 ````
 
@@ -6773,13 +6747,92 @@ export function createSinglePlayerMachine(
 }
 ````
 
-## File: packages/types/src/index.ts
+## File: packages/types/package.json
+````json
+{
+  "name": "@dribblio/types",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@dribblio/typescript-config": "*",
+    "typescript": "latest"
+  },
+  "dependencies": {
+    "class-validator": "^0.14.2",
+    "joi": "^17.13.3",
+    "socket.io": "^4.8.1",
+    "xstate": "^5.19.2",
+    "zod": "^3.25.28"
+  }
+}
+````
+
+## File: apps/api/src/auth/jwt.strategy.ts
 ````typescript
-export * from './dtos/index.js';
-export * from './forms/index.js';
-export * from './responses/index.js';
-export * from './statemachine/index.js';
-export * from './websocket/index.js';
+import { Auth0JwtPayload } from '@/auth/payload.type';
+import { UserInfo } from '@/auth/userinfo.type';
+import { UsersPrismaService } from '@/database/users.prisma.service';
+import { Injectable } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import * as jwksRsa from 'jwks-rsa';
+import { ExtractJwt, Strategy, VerifiedCallback } from 'passport-jwt';
+
+@Injectable()
+export class JwtStrategy extends PassportStrategy(Strategy) {
+  constructor(private readonly usersPrismaService: UsersPrismaService) {
+    super({
+      secretOrKeyProvider: jwksRsa.passportJwtSecret({
+        cache: true,
+        rateLimit: true,
+        jwksRequestsPerMinute: 5,
+        jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`,
+      }),
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      audience: process.env.AUTH0_AUDIENCE,
+      issuer: `https://${process.env.AUTH0_DOMAIN}/`,
+      algorithms: ['RS256'],
+      passReqToCallback: true,
+    });
+  }
+
+  private async getUserProfileInfo(issuer: string, token: string | null): Promise<UserInfo> {
+    const userInfoUrl = `${issuer}userinfo`;
+    const response = await fetch(userInfoUrl, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch user profile info');
+    }
+
+    return response.json();
+  }
+
+  async validate(req: Request, payload: Auth0JwtPayload, done: VerifiedCallback): Promise<unknown> {
+    let user = await this.usersPrismaService.user.findUnique({ where: { id: payload.sub } });
+    if (!user) {
+      const token = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
+      const userInfo = await this.getUserProfileInfo(payload.iss, token);
+      user = await this.usersPrismaService.user.create({
+        data: {
+          id: payload.sub,
+          name: userInfo.name || '',
+          display_name: userInfo.given_name || '',
+          profile_url: userInfo.picture || '',
+        },
+      });
+    }
+
+    return done(null, { id: user.id });
+  }
+}
 ````
 
 ## File: apps/api/src/app.module.ts
@@ -6795,28 +6848,6 @@ import { UsersModule } from './users/users.module';
   providers: [],
 })
 export class AppModule {}
-````
-
-## File: apps/api/src/main.ts
-````typescript
-import { AppModule } from '@/app.module';
-import { ValidationPipe } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
-import * as dotenv from 'dotenv';
-import * as express from 'express';
-
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
-
-  app.useGlobalPipes(new ValidationPipe());
-  app.setGlobalPrefix('/api');
-  await app.listen(process.env.PORT ?? 3002);
-}
-dotenv.config();
-bootstrap();
 ````
 
 ## File: packages/database/.gitignore
@@ -6852,6 +6883,15 @@ export const generateRound = fromPromise(async ({ input }: RoundInput): Promise<
   const { difficulty, gameService } = input;
   return await gameService.generateRound(difficulty);
 });
+````
+
+## File: packages/types/src/index.ts
+````typescript
+export * from './dtos/index.js';
+export * from './forms/index.js';
+export * from './responses/index.js';
+export * from './statemachine/index.js';
+export * from './websocket/index.js';
 ````
 
 ## File: turbo.json
@@ -6918,60 +6958,26 @@ export const generateRound = fromPromise(async ({ input }: RoundInput): Promise<
 }
 ````
 
-## File: apps/web/src/app/profile/page.tsx
+## File: apps/api/src/main.ts
 ````typescript
-'use client';
+import { AppModule } from '@/app.module';
+import { ValidationPipe } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
+import * as dotenv from 'dotenv';
+import * as express from 'express';
 
-import EditProfileModal from '@/components/editprofilemodal';
-import { Button } from '@/components/ui/button';
-import { useDBUser } from '@/context/dbusercontext';
-import { Pencil } from 'lucide-react';
-import Image from 'next/image';
-import NextLink from 'next/link';
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
 
-export default function ProfilePage() {
-  const { user } = useDBUser();
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
 
-  return (
-    <>
-      <div className="flex flex-col h-full items-center space-y-8 pt-12">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="relative">
-            <Image
-              src={user?.profile_url ?? ''}
-              alt="Profile"
-              width={100}
-              height={100}
-              className="rounded-full"
-            />
-            <div className="absolute bottom-0 right-0">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => {}}
-                className="rounded-full size-8"
-              >
-                <Pencil />
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex flex-col items-center space-y-2">
-            <span className="text-2xl font-bold">Hello {user?.name}!</span>
-            <span className="text-sm text-muted-foreground">{`@${user?.display_name}`}</span>
-          </div>
-
-          <EditProfileModal />
-        </div>
-        <div>
-          <Button asChild>
-            <NextLink href="/auth/logout">Logout</NextLink>
-          </Button>
-        </div>
-      </div>
-    </>
-  );
+  app.useGlobalPipes(new ValidationPipe());
+  app.setGlobalPrefix('/api');
+  await app.listen(process.env.PORT ?? 3002);
 }
+dotenv.config();
+bootstrap();
 ````
 
 ## File: packages/types/src/statemachine/multiplayer/gamemachine.ts
@@ -7158,170 +7164,57 @@ export function createMultiplayerMachine(
 }
 ````
 
-## File: apps/api/package.json
-````json
-{
-  "name": "api",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
-  "private": true,
-  "license": "UNLICENSED",
-  "scripts": {
-    "build": "nest build",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "nest start",
-    "dev": "nest start --watch",
-    "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main",
-    "lint": "jest --config=jest.lint.config.ts",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
-  },
-  "dependencies": {
-    "@aws-sdk/client-s3": "^3.832.0",
-    "@aws-sdk/client-secrets-manager": "^3.830.0",
-    "@aws-sdk/cloudfront-signer": "^3.821.0",
-    "@aws-sdk/lib-storage": "^3.832.0",
-    "@dribblio/database": "*",
-    "@nestjs/common": "^11.0.1",
-    "@nestjs/core": "^11.0.1",
-    "@nestjs/mapped-types": "*",
-    "@nestjs/passport": "^11.0.5",
-    "@nestjs/platform-express": "^11.0.1",
-    "@nestjs/platform-socket.io": "^11.1.2",
-    "@nestjs/websockets": "^11.1.2",
-    "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.2",
-    "dotenv": "^16.5.0",
-    "eslint-plugin-jest": "^28.13.0",
-    "jwks-rsa": "^3.2.0",
-    "nestjs-cls": "^6.0.1",
-    "passport": "^0.7.0",
-    "passport-jwt": "^4.0.1",
-    "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
-  },
-  "devDependencies": {
-    "@dribblio/types": "*",
-    "@eslint/eslintrc": "^3.2.0",
-    "@eslint/js": "^9.18.0",
-    "@nestjs/cli": "^11.0.0",
-    "@nestjs/schematics": "^11.0.0",
-    "@nestjs/testing": "^11.0.1",
-    "@swc/cli": "^0.6.0",
-    "@swc/core": "^1.10.7",
-    "@types/express": "^5.0.0",
-    "@types/jest": "^29.5.14",
-    "@types/multer": "^1.4.13",
-    "@types/node": "^22.10.7",
-    "@types/passport-jwt": "^4.0.1",
-    "@types/supertest": "^6.0.2",
-    "eslint": "^9.18.0",
-    "eslint-config-prettier": "^10.0.1",
-    "eslint-plugin-prettier": "^5.2.2",
-    "globals": "^16.0.0",
-    "jest": "^29.7.0",
-    "jest-runner-eslint": "^2.2.1",
-    "prettier": "^3.4.2",
-    "source-map-support": "^0.5.21",
-    "supertest": "^7.0.0",
-    "ts-jest": "^29.2.5",
-    "ts-loader": "^9.5.2",
-    "ts-node": "^10.9.2",
-    "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.7.3",
-    "typescript-eslint": "^8.20.0"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
-  }
-}
-````
+## File: apps/web/src/app/profile/page.tsx
+````typescript
+'use client';
 
-## File: apps/web/package.json
-````json
-{
-  "name": "web",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev --turbopack --port 3000",
-    "build": "next build",
-    "start": "next start",
-    "lint": "jest --config=jest.lint.config.ts",
-    "check-types": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@auth0/nextjs-auth0": "^4.6.1",
-    "@dribblio/database": "*",
-    "@hookform/resolvers": "^5.1.1",
-    "@radix-ui/react-avatar": "^1.1.10",
-    "@radix-ui/react-dialog": "^1.1.14",
-    "@radix-ui/react-label": "^2.1.7",
-    "@radix-ui/react-select": "^2.2.5",
-    "@radix-ui/react-separator": "^1.1.7",
-    "@radix-ui/react-slot": "^1.2.3",
-    "@radix-ui/react-switch": "^1.2.5",
-    "@radix-ui/react-tabs": "^1.1.12",
-    "@radix-ui/react-tooltip": "^1.2.7",
-    "@react-stately/data": "^3.13.0",
-    "@tailwindcss/postcss": "^4.1.7",
-    "canvas-confetti": "^1.9.3",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "cmdk": "^1.1.1",
-    "eslint-plugin-jest": "^28.13.0",
-    "joi": "^17.13.3",
-    "lucide-react": "^0.511.0",
-    "motion": "^12.15.0",
-    "next": "^15.3.0",
-    "next-themes": "^0.4.6",
-    "react": "^19.1.0",
-    "react-avatar-editor": "^14.0.0-beta.6",
-    "react-dom": "^19.1.0",
-    "react-dropzone": "^14.3.8",
-    "react-image-crop": "^11.0.10",
-    "react-toastify": "^11.0.5",
-    "short-unique-id": "^5.3.2",
-    "socket.io-client": "^4.8.1",
-    "tailwind-merge": "^3.0.2",
-    "tailwindcss-animate": "^1.0.7",
-    "unique-username-generator": "^1.4.0"
-  },
-  "devDependencies": {
-    "@dribblio/eslint-config": "*",
-    "@dribblio/types": "*",
-    "@dribblio/typescript-config": "*",
-    "@types/canvas-confetti": "^1.9.0",
-    "@types/node": "^22.15.3",
-    "@types/react": "19.1.0",
-    "@types/react-dom": "19.1.1",
-    "autoprefixer": "^10.4.21",
-    "eslint": "^9.25.0",
-    "jest-runner-eslint": "^2.2.1",
-    "postcss": "^8",
-    "tailwind-variants": "^0.3.1",
-    "tailwindcss": "^3.4.17",
-    "typescript": "5.8.2"
-  }
+import { AvatarEditor } from '@/components/avatar-editor';
+import EditProfileModal from '@/components/editprofilemodal';
+import { Button } from '@/components/ui/button';
+import { useDBUser } from '@/context/dbusercontext';
+import { Pencil } from 'lucide-react';
+import Image from 'next/image';
+import NextLink from 'next/link';
+
+export default function ProfilePage() {
+  const { user } = useDBUser();
+
+  return (
+    <>
+      <div className="flex flex-col h-full items-center space-y-8 pt-12">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="relative">
+            <Image
+              src={user?.profile_url ?? ''}
+              alt="Profile"
+              width={100}
+              height={100}
+              className="rounded-full"
+            />
+            <div className="absolute bottom-0 right-0">
+              <AvatarEditor>
+                <Button variant="outline" size="icon" className="rounded-full size-8">
+                  <Pencil />
+                </Button>
+              </AvatarEditor>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center space-y-2">
+            <span className="text-2xl font-bold">Hello {user?.name}!</span>
+            <span className="text-sm text-muted-foreground">{`@${user?.display_name}`}</span>
+          </div>
+
+          <EditProfileModal />
+        </div>
+        <div>
+          <Button asChild>
+            <NextLink href="/auth/logout">Logout</NextLink>
+          </Button>
+        </div>
+      </div>
+    </>
+  );
 }
 ````
 
@@ -7541,6 +7434,173 @@ Learn more about the power of Turborepo:
 - [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
 - [Configuration Options](https://turborepo.com/docs/reference/configuration)
 - [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+````
+
+## File: apps/api/package.json
+````json
+{
+  "name": "api",
+  "version": "0.0.1",
+  "description": "",
+  "author": "",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "nest build",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "start": "nest start",
+    "dev": "nest start --watch",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/main",
+    "lint": "jest --config=jest.lint.config.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "test:e2e": "jest --config ./test/jest-e2e.json"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.832.0",
+    "@aws-sdk/client-secrets-manager": "^3.830.0",
+    "@aws-sdk/cloudfront-signer": "^3.821.0",
+    "@aws-sdk/lib-storage": "^3.832.0",
+    "@dribblio/database": "*",
+    "@nestjs/common": "^11.0.1",
+    "@nestjs/core": "^11.0.1",
+    "@nestjs/mapped-types": "*",
+    "@nestjs/passport": "^11.0.5",
+    "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/platform-socket.io": "^11.1.2",
+    "@nestjs/websockets": "^11.1.2",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.2",
+    "dotenv": "^16.5.0",
+    "eslint-plugin-jest": "^28.13.0",
+    "jwks-rsa": "^3.2.0",
+    "nestjs-cls": "^6.0.1",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "@dribblio/types": "*",
+    "@eslint/eslintrc": "^3.2.0",
+    "@eslint/js": "^9.18.0",
+    "@nestjs/cli": "^11.0.0",
+    "@nestjs/schematics": "^11.0.0",
+    "@nestjs/testing": "^11.0.1",
+    "@swc/cli": "^0.6.0",
+    "@swc/core": "^1.10.7",
+    "@types/express": "^5.0.0",
+    "@types/jest": "^29.5.14",
+    "@types/multer": "^1.4.13",
+    "@types/node": "^22.10.7",
+    "@types/passport-jwt": "^4.0.1",
+    "@types/supertest": "^6.0.2",
+    "eslint": "^9.18.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.2",
+    "globals": "^16.0.0",
+    "jest": "^29.7.0",
+    "jest-runner-eslint": "^2.2.1",
+    "prettier": "^3.4.2",
+    "source-map-support": "^0.5.21",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.2.5",
+    "ts-loader": "^9.5.2",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.20.0"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node"
+  }
+}
+````
+
+## File: apps/web/package.json
+````json
+{
+  "name": "web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack --port 3000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "jest --config=jest.lint.config.ts",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@auth0/nextjs-auth0": "^4.6.1",
+    "@dribblio/database": "*",
+    "@hookform/resolvers": "^5.1.1",
+    "@radix-ui/react-avatar": "^1.1.10",
+    "@radix-ui/react-dialog": "^1.1.14",
+    "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-select": "^2.2.5",
+    "@radix-ui/react-separator": "^1.1.7",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@radix-ui/react-switch": "^1.2.5",
+    "@radix-ui/react-tabs": "^1.1.12",
+    "@radix-ui/react-tooltip": "^1.2.7",
+    "@react-stately/data": "^3.13.0",
+    "@tailwindcss/postcss": "^4.1.7",
+    "canvas-confetti": "^1.9.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
+    "eslint-plugin-jest": "^28.13.0",
+    "joi": "^17.13.3",
+    "lucide-react": "^0.511.0",
+    "motion": "^12.15.0",
+    "next": "^15.3.0",
+    "next-themes": "^0.4.6",
+    "react": "^19.1.0",
+    "react-avatar-editor": "^14.0.0-beta.6",
+    "react-dom": "^19.1.0",
+    "react-dropzone": "^14.3.8",
+    "react-image-crop": "^11.0.10",
+    "react-toastify": "^11.0.5",
+    "short-unique-id": "^5.3.2",
+    "socket.io-client": "^4.8.1",
+    "tailwind-merge": "^3.0.2",
+    "tailwindcss-animate": "^1.0.7",
+    "unique-username-generator": "^1.4.0"
+  },
+  "devDependencies": {
+    "@dribblio/eslint-config": "*",
+    "@dribblio/types": "*",
+    "@dribblio/typescript-config": "*",
+    "@types/canvas-confetti": "^1.9.0",
+    "@types/node": "^22.15.3",
+    "@types/react": "19.1.0",
+    "@types/react-dom": "19.1.1",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^9.25.0",
+    "jest-runner-eslint": "^2.2.1",
+    "postcss": "^8",
+    "tailwind-variants": "^0.3.1",
+    "tailwindcss": "^3.4.17",
+    "typescript": "5.8.2"
+  }
+}
 ````
 
 ## File: package.json

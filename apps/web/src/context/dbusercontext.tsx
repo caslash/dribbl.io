@@ -71,8 +71,11 @@ export function DBUserProvider({ children }: { children: React.ReactNode | React
       formData.append('avatar', avatar);
 
       fetch('/api/me/avatar', {
-        method: 'POST',
+        method: 'PUT',
         body: formData,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
       })
         .then((res) => res.json())
         .then(setUser);

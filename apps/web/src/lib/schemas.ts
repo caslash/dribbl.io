@@ -38,5 +38,4 @@ export const joinSchema = Joi.object<JoinFormValues>({
 export const updateUserSchema = Joi.object<UpdateUserDto>({
   display_name: Joi.string().optional(),
   name: Joi.string().optional(),
-  profile_url: Joi.string().optional(),
 });
