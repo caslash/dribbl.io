@@ -2,18 +2,19 @@
 
 import { Dock, DockIcon } from '@/components/magicui/dock';
 import ThemeSwitcher from '@/components/navbar/themeswitcher';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { buttonVariants } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { siteConfig } from '@/config/site';
+import { useDBUser } from '@/context/dbusercontext';
 import { cn } from '@/lib/utils';
-import { useUser } from '@auth0/nextjs-auth0';
-import { LogIn, User } from 'lucide-react';
-import Image from 'next/image';
+import { LogIn, User as UserIcon } from 'lucide-react';
 import NextLink from 'next/link';
 
 export default function NBANavbar({ className }: Readonly<{ className?: string }>) {
-  const { user } = useUser();
+  const { user } = useDBUser();
+
   return (
     <div className={`${className}`}>
       <TooltipProvider>
@@ -23,16 +24,18 @@ export default function NBANavbar({ className }: Readonly<{ className?: string }
               <TooltipTrigger asChild>
                 {user ? (
                   <NextLink href="/profile">
-                    {user.picture ? (
-                      <Image
-                        src={user.picture}
-                        alt="Profile"
-                        width={32}
-                        height={32}
-                        className="rounded-full"
-                      />
+                    {user.profile_url ? (
+                      <Avatar>
+                        <AvatarImage
+                          src={user.profile_url}
+                          alt="Profile"
+                          width={32}
+                          height={32}
+                          className="rounded-full"
+                        />
+                      </Avatar>
                     ) : (
-                      <User />
+                      <UserIcon />
                     )}
                   </NextLink>
                 ) : (

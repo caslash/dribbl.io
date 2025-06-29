@@ -3,25 +3,21 @@ This file is a merged representation of the entire codebase, combined into a sin
 # File Summary
 
 ## Purpose
-
 This file contains a packed representation of the entire repository's contents.
 It is designed to be easily consumable by AI systems for analysis, code review,
 or other automated processes.
 
 ## File Format
-
 The content is organized as follows:
-
 1. This summary section
 2. Repository information
 3. Directory structure
 4. Repository files (if enabled)
 5. Multiple file entries, each consisting of:
-   a. A header with the file path (## File: path/to/file)
-   b. The full contents of the file in a code block
+  a. A header with the file path (## File: path/to/file)
+  b. The full contents of the file in a code block
 
 ## Usage Guidelines
-
 - This file should be treated as read-only. Any changes should be made to the
   original repository files, not this packed version.
 - When processing this file, use the file path to distinguish
@@ -30,7 +26,6 @@ The content is organized as follows:
   the same level of security as you would the original repository.
 
 ## Notes
-
 - Some files may have been excluded based on .gitignore rules and Repomix's configuration
 - Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
 - Files matching patterns in .gitignore are excluded
@@ -38,7 +33,6 @@ The content is organized as follows:
 - Files are sorted by Git change count (files with more changes are at the bottom)
 
 # Directory Structure
-
 ```
 .cursor/
   rules/
@@ -46,6 +40,7 @@ The content is organized as follows:
     codequality.mdc
     nestjs.mdc
     nextjs.mdc
+    reference-file.mdc
     tailwind.mdc
     typescript.mdc
 apps/
@@ -76,8 +71,9 @@ apps/
           player.service.ts
         nba.module.ts
       users/
-        dto/
-          update-user.dto.ts
+        avatar.service.ts
+        s3.service.ts
+        signedurl.inteceptor.ts
         users.controller.ts
         users.module.ts
         users.service.ts
@@ -125,6 +121,7 @@ apps/
           playersearchbar.tsx
           playersearchresult.tsx
         ui/
+          avatar.tsx
           button.tsx
           card.tsx
           command.tsx
@@ -137,11 +134,15 @@ apps/
           switch.tsx
           tabs.tsx
           tooltip.tsx
+        editprofilemodal.tsx
         gamemodecard.tsx
+        image-cropper.tsx
         login-form.tsx
         teamlogo.tsx
       config/
         site.ts
+      context/
+        dbusercontext.tsx
       hooks/
         useConfetti.ts
         useMultiplayerSocket.ts
@@ -154,6 +155,7 @@ apps/
       lib/
         auth0.ts
         clientsocket.ts
+        schemas.ts
         utils.ts
       styles/
         globals.css
@@ -192,6 +194,13 @@ packages/
     README.md
   types/
     src/
+      dtos/
+        index.ts
+        updateuser.dto.ts
+      forms/
+        hostform.ts
+        index.ts
+        joinform.ts
       responses/
         index.ts
         searchresponse.ts
@@ -234,11 +243,494 @@ turbo.json
 
 # Files
 
-## File: .cursor/rules/nestjs.mdc
-
-```
+## File: .cursor/rules/reference-file.mdc
+````
 ---
-description:
+description: 
+globs: 
+alwaysApply: true
+---
+Reference the summary of the repo in the `docs/repo.md` file before responding to every prompt. This file will provide all context of the current state of the project. Read and analyze the file before responding, then respond using the knowledge and context acquired from the markdown file.
+````
+
+## File: apps/api/src/users/signedurl.inteceptor.ts
+````typescript
+import { AvatarService } from '@/users/avatar.service';
+import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
+import { from, map, mergeMap, Observable, of } from 'rxjs';
+
+@Injectable()
+export class SignedUrlInterceptor implements NestInterceptor {
+  constructor(private readonly avatarService: AvatarService) {}
+
+  intercept(_context: ExecutionContext, next: CallHandler): Observable<any> {
+    return next.handle().pipe(
+      mergeMap((user) => {
+        if (!user || !user.profile_url) {
+          return of(user);
+        }
+
+        return from(this.avatarService.getSignedUrl(user.profile_url)).pipe(
+          map((signedUrl) => ({ ...user, profile_url: signedUrl })),
+        );
+      }),
+    );
+  }
+}
+````
+
+## File: apps/web/src/components/ui/avatar.tsx
+````typescript
+'use client';
+
+import * as AvatarPrimitive from '@radix-ui/react-avatar';
+import * as React from 'react';
+
+import { cn } from '@/lib/utils';
+
+const Avatar = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Root
+    ref={ref}
+    className={cn('relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full', className)}
+    {...props}
+  />
+));
+Avatar.displayName = AvatarPrimitive.Root.displayName;
+
+const AvatarImage = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Image>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Image
+    ref={ref}
+    className={cn('aspect-square h-full w-full', className)}
+    {...props}
+  />
+));
+AvatarImage.displayName = AvatarPrimitive.Image.displayName;
+
+const AvatarFallback = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Fallback>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Fallback
+    ref={ref}
+    className={cn(
+      'flex h-full w-full items-center justify-center rounded-full bg-muted',
+      className,
+    )}
+    {...props}
+  />
+));
+AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName;
+
+export { Avatar, AvatarFallback, AvatarImage };
+````
+
+## File: apps/web/src/components/editprofilemodal.tsx
+````typescript
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { useDBUser } from '@/context/dbusercontext';
+import { updateUserSchema } from '@/lib/schemas';
+import { UpdateUserDto } from '@dribblio/types';
+import { joiResolver } from '@hookform/resolvers/joi';
+import { DialogTrigger } from '@radix-ui/react-dialog';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+
+export default function EditProfileModal() {
+  const { user, updateUser } = useDBUser();
+
+  const form = useForm<UpdateUserDto>({
+    resolver: joiResolver(updateUserSchema),
+    defaultValues: {
+      display_name: user?.display_name ?? '',
+      name: user?.name ?? '',
+    },
+  });
+
+  useEffect(() => {
+    form.reset({
+      display_name: user?.display_name ?? '',
+      name: user?.name ?? '',
+    });
+  }, [user, form]);
+
+  return (
+    <Dialog>
+      <Form {...form}>
+        <DialogTrigger asChild>
+          <Button variant="ghost">Edit Profile</Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Profile</DialogTitle>
+          </DialogHeader>
+          <form
+            onSubmit={form.handleSubmit((values: UpdateUserDto) => {
+              console.log('values', values);
+              updateUser(values);
+            })}
+          >
+            <div className="flex flex-col space-y-4 mb-4">
+              <FormField
+                control={form.control}
+                name="display_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Display Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="flex justify-end">
+              <Button type="submit">Save</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Form>
+    </Dialog>
+  );
+}
+````
+
+## File: apps/web/src/components/image-cropper.tsx
+````typescript
+'use client';
+
+import React, { type SyntheticEvent } from 'react';
+
+import ReactCrop, { centerCrop, makeAspectCrop, type Crop, type PixelCrop } from 'react-image-crop';
+
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+
+// import { FileWithPreview } from '@/app/page';
+import { CropIcon, Trash2Icon } from 'lucide-react';
+import { FileWithPath } from 'react-dropzone';
+import 'react-image-crop/dist/ReactCrop.css';
+
+export type FileWithPreview = FileWithPath & {
+  preview: string;
+};
+
+interface ImageCropperProps {
+  dialogOpen: boolean;
+  setDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  selectedFile: FileWithPreview | null;
+  setSelectedFile: React.Dispatch<React.SetStateAction<FileWithPreview | null>>;
+}
+
+export function ImageCropper({
+  dialogOpen,
+  setDialogOpen,
+  selectedFile,
+  setSelectedFile,
+}: ImageCropperProps) {
+  const aspect = 1;
+
+  const imgRef = React.useRef<HTMLImageElement | null>(null);
+
+  const [crop, setCrop] = React.useState<Crop>();
+  const [croppedImageUrl, setCroppedImageUrl] = React.useState<string>('');
+  const [croppedImage, setCroppedImage] = React.useState<string>('');
+
+  function onImageLoad(e: SyntheticEvent<HTMLImageElement>) {
+    if (aspect) {
+      const { width, height } = e.currentTarget;
+      setCrop(centerAspectCrop(width, height, aspect));
+    }
+  }
+
+  function onCropComplete(crop: PixelCrop) {
+    if (imgRef.current && crop.width && crop.height) {
+      const croppedImageUrl = getCroppedImg(imgRef.current, crop);
+      setCroppedImageUrl(croppedImageUrl);
+    }
+  }
+
+  function getCroppedImg(image: HTMLImageElement, crop: PixelCrop): string {
+    const canvas = document.createElement('canvas');
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+
+    canvas.width = crop.width * scaleX;
+    canvas.height = crop.height * scaleY;
+
+    const ctx = canvas.getContext('2d');
+
+    if (ctx) {
+      ctx.imageSmoothingEnabled = false;
+
+      ctx.drawImage(
+        image,
+        crop.x * scaleX,
+        crop.y * scaleY,
+        crop.width * scaleX,
+        crop.height * scaleY,
+        0,
+        0,
+        crop.width * scaleX,
+        crop.height * scaleY,
+      );
+    }
+
+    return canvas.toDataURL('image/png', 1.0);
+  }
+
+  async function onCrop() {
+    try {
+      setCroppedImage(croppedImageUrl);
+      setDialogOpen(false);
+    } catch {
+      alert('Something went wrong!');
+    }
+  }
+
+  return (
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <DialogTrigger>
+        <Avatar className="size-36 cursor-pointer ring-offset-2 ring-2 ring-slate-200">
+          <AvatarImage src={croppedImage ? croppedImage : selectedFile?.preview} alt="@shadcn" />
+          <AvatarFallback>CN</AvatarFallback>
+        </Avatar>
+      </DialogTrigger>
+      <DialogContent className="p-0 gap-0">
+        <div className="p-6 size-full">
+          <ReactCrop
+            crop={crop}
+            onChange={(_, percentCrop) => setCrop(percentCrop)}
+            onComplete={(c) => onCropComplete(c)}
+            aspect={aspect}
+            className="w-full"
+          >
+            <Avatar className="size-full rounded-none">
+              <AvatarImage
+                ref={imgRef}
+                className="size-full rounded-none "
+                alt="Image Cropper Shell"
+                src={selectedFile?.preview}
+                onLoad={onImageLoad}
+              />
+              <AvatarFallback className="size-full min-h-[460px] rounded-none">
+                Loading...
+              </AvatarFallback>
+            </Avatar>
+          </ReactCrop>
+        </div>
+        <DialogFooter className="p-6 pt-0 justify-center ">
+          <DialogClose asChild>
+            <Button
+              size={'sm'}
+              type="reset"
+              className="w-fit"
+              variant={'outline'}
+              onClick={() => {
+                setSelectedFile(null);
+              }}
+            >
+              <Trash2Icon className="mr-1.5 size-4" />
+              Cancel
+            </Button>
+          </DialogClose>
+          <Button type="submit" size={'sm'} className="w-fit" onClick={onCrop}>
+            <CropIcon className="mr-1.5 size-4" />
+            Crop
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Helper function to center the crop
+export function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: number): Crop {
+  return centerCrop(
+    makeAspectCrop(
+      {
+        unit: '%',
+        width: 50,
+        height: 50,
+      },
+      aspect,
+      mediaWidth,
+      mediaHeight,
+    ),
+    mediaWidth,
+    mediaHeight,
+  );
+}
+````
+
+## File: apps/web/src/context/dbusercontext.tsx
+````typescript
+'use client';
+
+import { getAccessToken } from '@auth0/nextjs-auth0';
+import { User } from '@dribblio/database/generated/prisma-users/client';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+
+interface DBUserContextType {
+  user: User | undefined;
+
+  /**
+   * Update user fields in the database and sync local state.
+   * @param user - Partial user object with fields to update.
+   */
+  updateUser: (user: Partial<User>) => void;
+
+  /**
+   * Upload a new avatar image to the database and sync local state.
+   * @param avatar - The avatar image file to upload.
+   */
+  uploadAvatar: (avatar: File) => void;
+}
+
+const defaultUserContext: DBUserContextType = {
+  user: undefined,
+  updateUser: () => {},
+  uploadAvatar: () => {},
+};
+
+const DBUserContext = createContext<DBUserContextType | undefined>(undefined);
+export const useDBUser = () => useContext(DBUserContext) ?? defaultUserContext;
+
+export function DBUserProvider({ children }: { children: React.ReactNode | React.ReactNode[] }) {
+  const [user, setUser] = useState<User | undefined>(undefined);
+
+  useEffect(() => {
+    getAccessToken().then((accessToken) => {
+      if (!accessToken) return;
+
+      fetch('/api/me', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+        .then((res) => res.json())
+        .then(setUser);
+    });
+  }, []);
+
+  const updateUser = useCallback((user: Partial<User>) => {
+    getAccessToken().then((accessToken) => {
+      if (!accessToken) return;
+
+      fetch('/api/me', {
+        method: 'PATCH',
+        body: JSON.stringify(user),
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      })
+        .then((res) => res.json())
+        .then(setUser);
+    });
+  }, []);
+
+  const uploadAvatar = useCallback((avatar: File) => {
+    getAccessToken().then((accessToken) => {
+      if (!accessToken) return;
+
+      const formData = new FormData();
+      formData.append('avatar', avatar);
+
+      fetch('/api/me/avatar', {
+        method: 'POST',
+        body: formData,
+      })
+        .then((res) => res.json())
+        .then(setUser);
+    });
+  }, []);
+
+  return (
+    <DBUserContext.Provider value={{ user, updateUser, uploadAvatar }}>
+      {children}
+    </DBUserContext.Provider>
+  );
+}
+````
+
+## File: packages/types/src/dtos/index.ts
+````typescript
+export * from './updateuser.dto.js';
+````
+
+## File: packages/types/src/dtos/updateuser.dto.ts
+````typescript
+import { IsOptional, IsString } from 'class-validator';
+
+export class UpdateUserDto {
+  @IsOptional()
+  @IsString()
+  display_name?: string;
+
+  @IsOptional()
+  @IsString()
+  name?: string;
+}
+````
+
+## File: packages/types/src/forms/hostform.ts
+````typescript
+export type HostFormValues = {
+  isRoundLimit: boolean;
+  config: {
+    scoreLimit?: number;
+    roundLimit?: number;
+    roundTimeLimit: number;
+    gameDifficulty: string;
+  };
+};
+````
+
+## File: packages/types/src/forms/index.ts
+````typescript
+export * from './hostform.js';
+export * from './joinform.js';
+````
+
+## File: packages/types/src/forms/joinform.ts
+````typescript
+export type JoinFormValues = {
+  roomId: string;
+};
+````
+
+## File: .cursor/rules/nestjs.mdc
+````
+---
+description: 
 globs: apps/api/**/*.ts
 alwaysApply: false
 ---
@@ -360,11 +852,10 @@ You are a senior TypeScript programmer with experience in the NestJS framework a
 - Write tests for each controller and service.
 - Write end to end tests for each api module.
 - Add a admin/test method to each controller as a smoke test.
-```
+````
 
 ## File: apps/api/src/auth/userinfo.type.ts
-
-```typescript
+````typescript
 export type UserInfo = {
   sub: string;
   given_name: string;
@@ -373,11 +864,10 @@ export type UserInfo = {
   picture: string;
   updated_at: string;
 };
-```
+````
 
 ## File: apps/api/src/database/nba.prisma.service.ts
-
-```typescript
+````typescript
 import { nba } from '@dribblio/database';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 
@@ -387,11 +877,10 @@ export class NBAPrismaService extends nba.PrismaClient implements OnModuleInit {
     await this.$connect();
   }
 }
-```
+````
 
 ## File: apps/api/src/database/users.prisma.service.ts
-
-```typescript
+````typescript
 import { users } from '@dribblio/database';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 
@@ -401,36 +890,75 @@ export class UsersPrismaService extends users.PrismaClient implements OnModuleIn
     await this.$connect();
   }
 }
-```
+````
 
-## File: apps/api/src/users/users.controller.ts
+## File: apps/api/src/users/avatar.service.ts
+````typescript
+import { S3Service } from '@/users/s3.service';
+import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
+import { getSignedUrl } from '@aws-sdk/cloudfront-signer';
+import { Injectable } from '@nestjs/common';
 
-```typescript
-import { UpdateUserDto } from '@/users/dto/update-user.dto';
-import { UsersService } from '@/users/users.service';
-import { Body, Controller, Get, Patch, Request, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+@Injectable()
+export class AvatarService {
+  private readonly urlExpirySeconds = 15 * 60;
 
-@UseGuards(AuthGuard('jwt'))
-@Controller('me')
-export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly s3Service: S3Service) {}
 
-  @Get()
-  async get(@Request() req) {
-    return await this.usersService.get(req.user.id);
+  private async getCloudFrontPrivateKey() {
+    const secret_name = process.env.AWS_CLOUDFRONT_PRIVATE_KEY_SECRET_NAME;
+
+    const client = new SecretsManagerClient({ region: 'us-east-2' });
+
+    let response;
+
+    try {
+      response = await client.send(new GetSecretValueCommand({ SecretId: secret_name }));
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+
+    if ('SecretString' in response) {
+      return response.SecretString;
+    }
+
+    throw new Error('Failed to get CloudFront private key');
   }
 
-  @Patch()
-  async update(@Request() req, @Body() updateUserDto: UpdateUserDto) {
-    return await this.usersService.update(req.user.id, updateUserDto);
+  // TODO: Move signed url logic to controller with a interceptor
+  async uploadAvatar(userId: string, file: Express.Multer.File) {
+    const now = new Date().toISOString();
+    await this.s3Service.uploadFile(`${userId}-${now}`, file.buffer);
+
+    const encodedUserId = encodeURIComponent(userId);
+    const encodedDate = encodeURIComponent(now);
+
+    const unsignedUrl = `https://${process.env.AWS_CLOUDFRONT_CNAME}/${encodedUserId}-${encodedDate}.jpg`;
+
+    return unsignedUrl;
+  }
+
+  async getSignedUrl(unsignedUrl: string) {
+    const nowMs = Date.now();
+    const expiryDate = new Date(nowMs + this.urlExpirySeconds * 1000);
+
+    const privateKey = await this.getCloudFrontPrivateKey();
+
+    const signedUrl = getSignedUrl({
+      url: unsignedUrl,
+      keyPairId: process.env.AWS_CLOUDFRONT_KEY_PAIR_ID ?? '',
+      dateLessThan: expiryDate,
+      privateKey,
+    });
+
+    return signedUrl;
   }
 }
-```
+````
 
 ## File: apps/api/test/jest-e2e.json
-
-```json
+````json
 {
   "moduleFileExtensions": ["js", "json", "ts"],
   "rootDir": ".",
@@ -440,11 +968,10 @@ export class UsersController {
     "^.+\\.(t|j)s$": "ts-jest"
   }
 }
-```
+````
 
 ## File: apps/api/jest.lint.config.ts
-
-```typescript
+````typescript
 const config = {
   runner: 'jest-runner-eslint',
   displayName: 'lint',
@@ -452,11 +979,10 @@ const config = {
 };
 
 export default config;
-```
+````
 
 ## File: apps/api/nest-cli.json
-
-```json
+````json
 {
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
@@ -465,22 +991,21 @@ export default config;
     "deleteOutDir": true
   }
 }
-```
+````
 
 ## File: apps/api/tsconfig.build.json
-
-```json
+````json
 {
   "extends": "./tsconfig.json",
   "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
 }
-```
+````
 
 ## File: apps/web/src/app/providers.tsx
-
-```typescript
+````typescript
 'use client';
 
+import { DBUserProvider } from '@/context/dbusercontext';
 import type { ThemeProviderProps } from 'next-themes';
 
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
@@ -492,13 +1017,16 @@ export interface ProvidersProps {
 }
 
 export function Providers({ children, themeProps }: ProvidersProps) {
-  return <NextThemesProvider {...themeProps}>{children}</NextThemesProvider>;
+  return (
+    <NextThemesProvider {...themeProps}>
+      <DBUserProvider>{children}</DBUserProvider>
+    </NextThemesProvider>
+  );
 }
-```
+````
 
 ## File: apps/web/src/components/careerpath/careerpathview.tsx
-
-```typescript
+````typescript
 'use client';
 import Image from 'next/image';
 
@@ -522,11 +1050,10 @@ export function CareerPath({ teams }: Readonly<{ teams?: string[] }>) {
     </div>
   );
 }
-```
+````
 
 ## File: apps/web/src/components/magicui/dock.tsx
-
-```typescript
+````typescript
 'use client';
 
 import { cva, type VariantProps } from 'class-variance-authority';
@@ -668,11 +1195,10 @@ const DockIcon = ({
 DockIcon.displayName = 'DockIcon';
 
 export { Dock, DockIcon, dockVariants };
-```
+````
 
 ## File: apps/web/src/components/navbar/themeswitcher.tsx
-
-```typescript
+````typescript
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -698,11 +1224,10 @@ export default function ThemeSwitcher() {
     </Button>
   );
 }
-```
+````
 
 ## File: apps/web/src/components/ui/button.tsx
-
-```typescript
+````typescript
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 import * as React from 'react';
@@ -753,11 +1278,10 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = 'Button';
 
 export { Button, buttonVariants };
-```
+````
 
 ## File: apps/web/src/components/ui/command.tsx
-
-```typescript
+````typescript
 'use client';
 
 import { type DialogProps } from '@radix-ui/react-dialog';
@@ -901,11 +1425,10 @@ export {
   CommandSeparator,
   CommandShortcut,
 };
-```
+````
 
 ## File: apps/web/src/components/ui/dialog.tsx
-
-```typescript
+````typescript
 'use client';
 
 import * as DialogPrimitive from '@radix-ui/react-dialog';
@@ -1010,11 +1533,10 @@ export {
   DialogTitle,
   DialogTrigger,
 };
-```
+````
 
 ## File: apps/web/src/components/ui/form.tsx
-
-```typescript
+````typescript
 'use client';
 
 import * as LabelPrimitive from '@radix-ui/react-label';
@@ -1184,11 +1706,10 @@ export {
   FormMessage,
   useFormField,
 };
-```
+````
 
 ## File: apps/web/src/components/ui/input.tsx
-
-```typescript
+````typescript
 import * as React from 'react';
 
 import { cn } from '@/lib/utils';
@@ -1211,11 +1732,10 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<'input'>>(
 Input.displayName = 'Input';
 
 export { Input };
-```
+````
 
 ## File: apps/web/src/components/ui/label.tsx
-
-```typescript
+````typescript
 'use client';
 
 import * as LabelPrimitive from '@radix-ui/react-label';
@@ -1237,11 +1757,10 @@ function Label({ className, ...props }: React.ComponentProps<typeof LabelPrimiti
 }
 
 export { Label };
-```
+````
 
 ## File: apps/web/src/components/ui/separator.tsx
-
-```typescript
+````typescript
 'use client';
 
 import * as SeparatorPrimitive from '@radix-ui/react-separator';
@@ -1268,11 +1787,10 @@ const Separator = React.forwardRef<
 Separator.displayName = SeparatorPrimitive.Root.displayName;
 
 export { Separator };
-```
+````
 
 ## File: apps/web/src/components/ui/tooltip.tsx
-
-```typescript
+````typescript
 'use client';
 
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
@@ -1305,11 +1823,10 @@ const TooltipContent = React.forwardRef<
 TooltipContent.displayName = TooltipPrimitive.Content.displayName;
 
 export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger };
-```
+````
 
 ## File: apps/web/src/components/gamemodecard.tsx
-
-```typescript
+````typescript
 import { Button } from '@/components/ui/button';
 import { StaticImport } from 'next/dist/shared/lib/get-img-props';
 import { Url } from 'next/dist/shared/lib/router/router';
@@ -1350,11 +1867,10 @@ export default function GameModeCard({
     </div>
   );
 }
-```
+````
 
 ## File: apps/web/src/components/teamlogo.tsx
-
-```typescript
+````typescript
 'use client';
 import Image from 'next/image';
 
@@ -1379,11 +1895,10 @@ export default function TeamLogo({
     </div>
   );
 }
-```
+````
 
 ## File: apps/web/src/hooks/useConfetti.ts
-
-```typescript
+````typescript
 import confetti from 'canvas-confetti';
 
 const useConfetti = () => {
@@ -1421,11 +1936,10 @@ const useConfetti = () => {
 };
 
 export default useConfetti;
-```
+````
 
 ## File: apps/web/src/hooks/useUnveilLogos.ts
-
-```typescript
+````typescript
 import { useState } from 'react';
 
 const useUnveilLogos = (teamHistory: string[]) => {
@@ -1452,21 +1966,19 @@ const useUnveilLogos = (teamHistory: string[]) => {
 };
 
 export default useUnveilLogos;
-```
+````
 
 ## File: apps/web/src/icons/iconsvgprops.tsx
-
-```typescript
+````typescript
 import { SVGProps } from 'react';
 
 export type IconSvgProps = SVGProps<SVGSVGElement> & {
   size?: number;
 };
-```
+````
 
 ## File: apps/web/src/icons/themes.tsx
-
-```typescript
+````typescript
 'use client';
 
 import { IconSvgProps } from '@/icons/iconsvgprops';
@@ -1508,11 +2020,10 @@ export const SunIcon = (props: IconSvgProps) => {
     </svg>
   );
 };
-```
+````
 
 ## File: apps/web/src/lib/auth0.ts
-
-```typescript
+````typescript
 import { Auth0Client } from '@auth0/nextjs-auth0/server';
 
 export const auth0 = new Auth0Client({
@@ -1521,11 +2032,10 @@ export const auth0 = new Auth0Client({
     scope: process.env.AUTH0_SCOPE,
   },
 });
-```
+````
 
 ## File: apps/web/src/lib/clientsocket.ts
-
-```typescript
+````typescript
 'use client';
 
 import { io } from 'socket.io-client';
@@ -1533,11 +2043,56 @@ import { io } from 'socket.io-client';
 export const clientSocket = io(`http://localhost:3002`, {
   autoConnect: false,
 });
-```
+````
+
+## File: apps/web/src/lib/schemas.ts
+````typescript
+import {
+  GameDifficultyNames,
+  HostFormValues,
+  JoinFormValues,
+  UpdateUserDto,
+} from '@dribblio/types';
+import Joi from 'joi';
+
+export const hostSchema = Joi.object<HostFormValues>({
+  isRoundLimit: Joi.boolean().required(),
+  config: Joi.object({
+    scoreLimit: Joi.number().optional(),
+    roundLimit: Joi.number().optional(),
+    roundTimeLimit: Joi.number().required(),
+    gameDifficulty: Joi.string()
+      .valid(...GameDifficultyNames)
+      .required(),
+  }),
+}).custom((value, helpers) => {
+  const { isRoundLimit, config } = value;
+  if (isRoundLimit && !config.roundLimit) {
+    return helpers.error('any.custom', {
+      message: 'Round Limit is required when Round Limit mode is selected',
+    });
+  }
+  if (!isRoundLimit && !config.scoreLimit) {
+    return helpers.error('any.custom', {
+      message: 'Score Limit is required when Score Limit mode is selected',
+    });
+  }
+  return value;
+}, 'Round/Score limit conditional check');
+
+export const joinSchema = Joi.object<JoinFormValues>({
+  roomId: Joi.string().required(),
+});
+
+export const updateUserSchema = Joi.object<UpdateUserDto>({
+  display_name: Joi.string().optional(),
+  name: Joi.string().optional(),
+  profile_url: Joi.string().optional(),
+});
+````
 
 ## File: apps/web/src/styles/sfFont.ts
-
-```typescript
+````typescript
 import localFont from 'next/font/local';
 
 export const sfFont = localFont({
@@ -1636,11 +2191,10 @@ export const sfFont = localFont({
   display: 'swap',
   variable: '--font-sf',
 });
-```
+````
 
 ## File: apps/web/jest.lint.config.ts
-
-```typescript
+````typescript
 const config = {
   runner: 'jest-runner-eslint',
   displayName: 'lint',
@@ -1648,22 +2202,20 @@ const config = {
 };
 
 export default config;
-```
+````
 
 ## File: apps/web/postcss.config.js
-
-```javascript
+````javascript
 module.exports = {
   plugins: {
     tailwindcss: {},
     autoprefixer: {},
   },
 };
-```
+````
 
 ## File: apps/web/postcss.config.mjs
-
-```
+````
 /** @type {import('postcss-load-config').Config} */
 const config = {
   plugins: {
@@ -1672,11 +2224,10 @@ const config = {
 };
 
 export default config;
-```
+````
 
 ## File: packages/database/prisma-nba/schema.prisma
-
-```
+````
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -1730,11 +2281,10 @@ model player_accolades {
   accolades Json?
   player    Player @relation(fields: [player_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
-```
+````
 
 ## File: packages/database/prisma-users/migrations/20250618014712_add_users_table/migration.sql
-
-```sql
+````sql
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
@@ -1744,19 +2294,17 @@ CREATE TABLE "User" (
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
-```
+````
 
 ## File: packages/database/prisma-users/migrations/migration_lock.toml
-
-```toml
+````toml
 # Please do not edit this file manually
 # It should be added in your version-control system (e.g., Git)
 provider = "postgresql"
-```
+````
 
 ## File: packages/database/tsconfig.json
-
-```json
+````json
 {
   "extends": "@dribblio/typescript-config/base.json",
   "compilerOptions": {
@@ -1766,51 +2314,48 @@ provider = "postgresql"
   "include": ["src"],
   "exclude": ["node_modules", "dist"]
 }
-```
+````
 
 ## File: packages/eslint-config/README.md
-
-```markdown
+````markdown
 # `@turbo/eslint-config`
 
 Collection of internal eslint configurations.
-```
+````
 
 ## File: packages/types/src/responses/index.ts
-
-```typescript
+````typescript
 export * from './searchresponse.js';
-```
+````
 
 ## File: packages/types/src/statemachine/gameservice.ts
-
-```typescript
+````typescript
 import { RoundProps } from './actors.js';
 import { GameDifficulty } from './gamedifficulties.js';
 
 export interface BaseGameService {
   generateRound: (difficulty: GameDifficulty) => Promise<RoundProps>;
 }
-```
+````
 
 ## File: packages/types/src/websocket/playerguess.ts
-
-```typescript
+````typescript
 export type PlayerGuess = {
   userId: string;
   guessId: number;
 };
-```
+````
 
 ## File: packages/typescript-config/base.json
-
-```json
+````json
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
     "declaration": true,
     "declarationMap": true,
+    "emitDecoratorMetadata": true,
     "esModuleInterop": true,
+    "experimentalDecorators": true,
     "incremental": false,
     "isolatedModules": true,
     "lib": ["es2022", "DOM", "DOM.Iterable"],
@@ -1824,11 +2369,10 @@ export type PlayerGuess = {
     "target": "ES2022"
   }
 }
-```
+````
 
 ## File: packages/typescript-config/nextjs.json
-
-```json
+````json
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "./base.json",
@@ -1841,11 +2385,10 @@ export type PlayerGuess = {
     "noEmit": true
   }
 }
-```
+````
 
 ## File: packages/typescript-config/package.json
-
-```json
+````json
 {
   "name": "@dribblio/typescript-config",
   "version": "0.0.0",
@@ -1855,11 +2398,10 @@ export type PlayerGuess = {
     "access": "public"
   }
 }
-```
+````
 
 ## File: packages/typescript-config/react-library.json
-
-```json
+````json
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "./base.json",
@@ -1867,119 +2409,19 @@ export type PlayerGuess = {
     "jsx": "react-jsx"
   }
 }
-```
+````
 
 ## File: .prettierrc
-
-```
+````
 singleQuote: true
 printWidth: 100
 trailingComma: all
 endOfLine: auto
 tabWidth: 2
-```
-
-## File: .repomixignore
-
-```
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# Dependencies
-node_modules
-/pnp
-.pnp.js
-
-# Local env files
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Testing
-coverage
-
-# Turbo
-.turbo
-
-# Vercel
-.vercel
-
-# Build Outputs
-.next/
-out/
-build
-dist
-
-# Debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Misc
-.DS_Store
-*.pem
-
-# production
-/build
-
-# next.js
-/.next/
-/out/
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-**/*-lock.json
-
-*.svg
-```
-
-## File: repomix.config.json
-
-```json
-{
-  "$schema": "https://repomix.com/schemas/latest/schema.json",
-  "input": {
-    "maxFileSize": 52428800
-  },
-  "output": {
-    "filePath": "docs/repo.md",
-    "style": "markdown",
-    "parsableStyle": false,
-    "fileSummary": true,
-    "directoryStructure": true,
-    "files": true,
-    "removeComments": false,
-    "removeEmptyLines": false,
-    "compress": false,
-    "topFilesLength": 5,
-    "showLineNumbers": false,
-    "copyToClipboard": false,
-    "git": {
-      "sortByChanges": true,
-      "sortByChangesMaxCommits": 100,
-      "includeDiffs": false
-    }
-  },
-  "include": [],
-  "ignore": {
-    "useGitignore": true,
-    "useDefaultPatterns": true,
-    "customPatterns": []
-  },
-  "security": {
-    "enableSecurityCheck": true
-  },
-  "tokenCount": {
-    "encoding": "o200k_base"
-  }
-}
-```
+````
 
 ## File: apps/api/src/auth/auth.module.ts
-
-```typescript
+````typescript
 import { JwtStrategy } from '@/auth/jwt.strategy';
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
@@ -1990,11 +2432,10 @@ import { PassportModule } from '@nestjs/passport';
   exports: [PassportModule],
 })
 export class AuthModule {}
-```
+````
 
 ## File: apps/api/src/auth/payload.type.ts
-
-```typescript
+````typescript
 export type Auth0JwtPayload = {
   aud: string; // Audience (API identifier)
   azp?: string; // Authorized party
@@ -2004,11 +2445,10 @@ export type Auth0JwtPayload = {
   scope?: string; // Scopes granted
   sub: string; // Subject (user ID)
 };
-```
+````
 
 ## File: apps/api/src/nba/games/careerpath/room/room.service.spec.ts
-
-```typescript
+````typescript
 import { RoomService } from '@/nba/games/careerpath/room/room.service';
 import { Test, TestingModule } from '@nestjs/testing';
 
@@ -2027,68 +2467,83 @@ describe('RoomService', () => {
     expect(service).toBeDefined();
   });
 });
-```
+````
 
-## File: apps/api/src/users/dto/update-user.dto.ts
-
-```typescript
-export interface UpdateUserDto {
-  display_name?: string;
-  name?: string;
-  profile_url?: string;
-}
-```
-
-## File: apps/api/src/users/users.module.ts
-
-```typescript
-import { Module } from '@nestjs/common';
-import { UsersController } from './users.controller';
-import { UsersService } from './users.service';
-
-@Module({
-  controllers: [UsersController],
-  providers: [UsersService],
-  exports: [UsersService],
-})
-export class UsersModule {}
-```
-
-## File: apps/api/src/users/users.service.ts
-
-```typescript
-import { UsersPrismaService } from '@/database/users.prisma.service';
+## File: apps/api/src/users/s3.service.ts
+````typescript
+import { S3Client } from '@aws-sdk/client-s3';
+import { Upload } from '@aws-sdk/lib-storage';
 import { Injectable } from '@nestjs/common';
-import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
-export class UsersService {
-  constructor(private readonly userPrisma: UsersPrismaService) {}
+export class S3Service {
+  constructor(private readonly s3: S3Client) {}
 
-  async get(id: string) {
-    const user = await this.userPrisma.user.findUnique({
-      where: { id },
-    });
+  async uploadFile(userId: string, file: Buffer) {
+    try {
+      const parallelUploads3 = new Upload({
+        client: this.s3,
+        params: {
+          Bucket: process.env.AWS_S3_BUCKET_NAME,
+          Key: `avatars/${userId}.jpg`,
+          Body: file,
+        },
+      });
 
-    return user;
-  }
-
-  async update(id: string, updateUserDto: UpdateUserDto) {
-    return await this.userPrisma.user.update({
-      where: { id: id },
-      data: {
-        display_name: updateUserDto.display_name ?? '',
-        name: updateUserDto.name ?? '',
-        profile_url: updateUserDto.profile_url ?? '',
-      },
-    });
+      await parallelUploads3.done();
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 }
-```
+````
+
+## File: apps/api/src/users/users.controller.ts
+````typescript
+import { SignedUrlInterceptor } from '@/users/signedurl.inteceptor';
+import { UsersService } from '@/users/users.service';
+import { UpdateUserDto } from '@dribblio/types';
+import {
+  Body,
+  Controller,
+  Get,
+  Patch,
+  Put,
+  Request,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { FileInterceptor } from '@nestjs/platform-express';
+
+@UseGuards(AuthGuard('jwt'))
+@UseInterceptors(SignedUrlInterceptor)
+@Controller('me')
+export class UsersController {
+  constructor(private readonly usersService: UsersService) {}
+
+  @Get()
+  async get(@Request() req) {
+    return await this.usersService.get(req.user.id);
+  }
+
+  @Patch()
+  async update(@Request() req, @Body() updateUserDto: UpdateUserDto) {
+    return await this.usersService.update(req.user.id, updateUserDto);
+  }
+
+  @Put('avatar')
+  @UseInterceptors(FileInterceptor('avatar'))
+  async uploadProfileImage(@Request() req, @UploadedFile() file: Express.Multer.File) {
+    return await this.usersService.uploadProfileImage(req.user.id, file);
+  }
+}
+````
 
 ## File: apps/api/test/app.e2e-spec.ts
-
-```typescript
+````typescript
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
@@ -2111,214 +2566,18 @@ describe('AppController (e2e)', () => {
     return request(app.getHttpServer()).get('/').expect(200).expect('Hello World!');
   });
 });
-```
+````
 
 ## File: apps/api/eslint.config.mjs
-
-```
+````
 import { baseConfig } from '@dribblio/eslint-config/base';
 
 /** @type {import("eslint").Linter.Config} */
 export default baseConfig;
-```
-
-## File: apps/api/README.md
-
-````markdown
-# Dribbl.io API
-
-A NestJS-based API service for Dribbl.io, providing NBA player data and real-time game functionality.
-
-## Architecture
-
-The API is built using NestJS and follows a modular architecture:
-
-- `NBAModule`: Core module handling NBA-related features
-  - `PlayersModule`: Manages NBA player data and statistics
-  - `GamesModule`: Handles game-related functionality
-    - `CareerPath`: Real-time game implementation using WebSockets
-- `DatabaseModule`: Database integration using Prisma with PostgreSQL
-
-## Tech Stack
-
-- NestJS 11.x
-- Socket.IO for real-time communication
-- Prisma for database operations
-- PostgreSQL database
-- TypeScript
-- Jest for testing
-
-## Database Schema
-
-The API uses a PostgreSQL database with the following main models:
-
-### Player Model
-
-```prisma
-model Player {
-  id                 Int               @id
-  first_name         String?
-  last_name          String?
-  display_first_last String?
-  display_fi_last    String?
-  birthdate          DateTime?
-  school             String?
-  country            String?
-  height             String?
-  weight             String?
-  season_exp         Int?
-  jersey             String?
-  position           String?
-  team_history       String?
-  is_active          Boolean?
-  from_year          Int?
-  to_year            Int?
-  total_games_played Int?
-  draft_round        String?
-  draft_number       String?
-  draft_year         String?
-  player_accolades   player_accolades?
-}
-```
-
-### Player Accolades Model
-
-```prisma
-model player_accolades {
-  player_id Int    @id
-  accolades Json?
-  player    Player @relation(fields: [player_id], references: [id])
-}
-```
-
-## API Endpoints
-
-### Players API
-
-Base URL: `/players`
-
-| Method | Endpoint                   | Description            |
-| ------ | -------------------------- | ---------------------- |
-| GET    | `/`                        | Get all players        |
-| GET    | `/random`                  | Get a random player    |
-| GET    | `/count`                   | Get total player count |
-| GET    | `/search?searchTerm=:term` | Search players by name |
-| GET    | `/:id`                     | Get player by ID       |
-
-## CareerPath Game
-
-The CareerPath game is a real-time multiplayer/singleplayer game where players must identify NBA players based on their team history.
-
-### Game Modes
-
-1. **Single Player**
-
-   - Players try to achieve the highest score possible
-   - Limited number of lives
-   - Progressive difficulty
-
-2. **Multiplayer**
-   - Real-time competition in game rooms
-   - All players see the same team history
-   - First correct answer gets a point
-   - Real-time score updates
-
-### Game Difficulties
-
-1. **First Team All-NBA Players**
-
-   - Only players who made All-NBA First Team
-   - Players from 1980 onwards
-   - Multiple team history required
-
-2. **All-NBA Players**
-
-   - Players who made any All-NBA team
-   - Players from 1980 onwards
-   - Multiple team history required
-
-3. **Current Players**
-
-   - Only active NBA players
-   - Easier difficulty level
-
-4. **All Players**
-   - Complete NBA player database
-   - Most challenging difficulty
-
-## Development Setup
-
-1. Install dependencies:
-
-   ```bash
-   npm install
-   ```
-
-2. Set up environment variables:
-
-   ```bash
-   DATABASE_URL="postgresql://user:password@localhost:5432/dribblio"
-   ```
-
-3. Start the development server:
-
-   ```bash
-   npm run dev
-   ```
-
-4. Run tests:
-   ```bash
-   npm test
-   ```
-
-## Available Scripts
-
-- `npm run build`: Build the application
-- `npm run dev`: Start development server with hot reload
-- `npm run start:prod`: Start production server
-- `npm run test`: Run unit tests
-- `npm run test:e2e`: Run end-to-end tests
-- `npm run test:cov`: Generate test coverage report
-
-## WebSocket Events
-
-The CareerPath game uses WebSocket connections for real-time gameplay. The following events are supported:
-
-- `join_room`: Join a game room
-- `leave_room`: Leave a game room
-- `start_game`: Start a new game
-- `submit_answer`: Submit a player guess
-- `game_state`: Receive game state updates
-- `score_update`: Receive score updates
-
-## Future Enhancements
-
-- Authentication system for user management
-- Persistent user profiles and statistics
-- Additional game modes and difficulties
-- Leaderboards and achievements
-- Cloud deployment
-
-## License
-
-Copyright (c) 2025 Cameron Slash. All Rights Reserved.
-
-This software and associated documentation files (the "Software") are the proprietary property of Cameron Slash and are protected by copyright law. The Software is licensed, not sold.
-
-You are not permitted to:
-
-- Copy, modify, or create derivative works of the Software
-- Reverse engineer, decompile, or disassemble the Software
-- Remove or alter any proprietary notices or labels on the Software
-- Use the Software for any commercial purpose
-- Distribute, sublicense, or transfer the Software to any third party
-
-Any unauthorized use, reproduction, or distribution of the Software is strictly prohibited and may result in severe legal consequences.
 ````
 
 ## File: apps/api/tsconfig.json
-
-```json
+````json
 {
   "compilerOptions": {
     "module": "commonjs",
@@ -2343,11 +2602,10 @@ Any unauthorized use, reproduction, or distribution of the Software is strictly 
     }
   }
 }
-```
+````
 
 ## File: apps/web/src/app/login/page.tsx
-
-```typescript
+````typescript
 import { GalleryVerticalEnd } from 'lucide-react';
 
 import { LoginForm } from '@/components/login-form';
@@ -2367,11 +2625,10 @@ export default function LoginPage() {
     </div>
   );
 }
-```
+````
 
 ## File: apps/web/src/app/layout.tsx
-
-```typescript
+````typescript
 import '@/styles/globals.css';
 
 import { Providers } from '@/app/providers';
@@ -2406,11 +2663,10 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
     </html>
   );
 }
-```
+````
 
 ## File: apps/web/src/components/careerpath/answer.tsx
-
-```typescript
+````typescript
 'use client';
 
 import { nba } from '@dribblio/database';
@@ -2481,276 +2737,10 @@ const IncorrectAnswer = ({ possibleAnswers }: Readonly<{ possibleAnswers: nba.Pl
 };
 
 export { CorrectAnswer, IncorrectAnswer };
-```
-
-## File: apps/web/src/components/config/multiplayer/joinhostmodal.tsx
-
-```typescript
-'use client';
-
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  GameDifficulties,
-  GameDifficultyNames,
-  GameDifficultySchema,
-  MultiplayerConfig,
-} from '@dribblio/types';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-
-export default function JoinHostModal({
-  isOpen,
-  onJoinRoom,
-  onHostRoom,
-}: Readonly<{
-  isOpen: boolean;
-  onJoinRoom: (roomId: string) => void;
-  onHostRoom: (config: MultiplayerConfig) => void;
-}>) {
-  return (
-    <Dialog open={isOpen}>
-      <DialogContent
-        className="[&>button]:hidden"
-        onInteractOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-      >
-        <DialogHeader>
-          <DialogTitle>Join or Host a Game</DialogTitle>
-        </DialogHeader>
-        <Tabs defaultValue="join">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="join">Join Room</TabsTrigger>
-            <TabsTrigger value="host">Host Room</TabsTrigger>
-          </TabsList>
-          <TabsContent value="join">
-            <JoinForm onJoinRoom={onJoinRoom} />
-          </TabsContent>
-          <TabsContent value="host">
-            <HostForm onHostRoom={onHostRoom} />
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function JoinForm({
-  onJoinRoom,
-}: Readonly<{
-  onJoinRoom: (roomId: string) => void;
-}>) {
-  const formSchema = z.object({
-    roomId: z.string().max(5),
-  });
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      roomId: '',
-    },
-  });
-
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    onJoinRoom(values.roomId);
-  }
-
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="flex flex-col space-y-4">
-          <FormField
-            control={form.control}
-            name="roomId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Room Code</FormLabel>
-                <FormControl>
-                  <Input placeholder="Room Code" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          ></FormField>
-        </div>
-        <div className="flex justify-end mt-4">
-          <Button type="submit">Join Room</Button>
-        </div>
-      </form>
-    </Form>
-  );
-}
-
-function HostForm({
-  onHostRoom,
-}: Readonly<{
-  onHostRoom: (config: MultiplayerConfig) => void;
-}>) {
-  const formSchema = z
-    .object({
-      isRoundLimit: z.boolean(),
-      config: z.object({
-        scoreLimit: z.coerce.number().optional(),
-        roundLimit: z.coerce.number().optional(),
-        roundTimeLimit: z.coerce.number(),
-        gameDifficulty: z.enum(GameDifficultyNames as [string, ...string[]]),
-      }),
-    })
-    .superRefine((data, ctx) => {
-      if (data.isRoundLimit && !data.config.roundLimit) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Round Limit is required when Round Limit mode is selected',
-          path: ['config.roundLimit'],
-        });
-      } else if (!data.isRoundLimit && !data.config.scoreLimit) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Score Limit is required when Score Limit mode is selected',
-          path: ['config.scoreLimit'],
-        });
-      }
-    });
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      isRoundLimit: false,
-      config: {
-        scoreLimit: undefined,
-        roundLimit: undefined,
-        roundTimeLimit: 30,
-        gameDifficulty: GameDifficulties.firstAllNBA.name,
-      },
-    },
-  });
-
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    const config = {
-      ...values.config,
-      scoreLimit: values.isRoundLimit ? undefined : values.config.scoreLimit,
-      roundLimit: values.isRoundLimit ? values.config.roundLimit : undefined,
-      gameDifficulty: GameDifficultySchema.parse(values.config.gameDifficulty),
-    };
-    onHostRoom(config);
-  }
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="flex flex-col space-y-4">
-          <div className="flex flex-row space-x-4 self-center">
-            <p>Score Limit</p>
-            <FormField
-              control={form.control}
-              name="isRoundLimit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                </FormItem>
-              )}
-            ></FormField>
-            <p>Round Limit</p>
-          </div>
-          {form.watch('isRoundLimit') && (
-            <FormField
-              control={form.control}
-              name="config.roundLimit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Round Limit</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="Round Limit" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            ></FormField>
-          )}
-          {!form.watch('isRoundLimit') && (
-            <FormField
-              control={form.control}
-              name="config.scoreLimit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Score Limit</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="Score Limit" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            ></FormField>
-          )}
-          <FormField
-            control={form.control}
-            name="config.roundTimeLimit"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Round Time Limit</FormLabel>
-                <FormControl>
-                  <Input type="number" placeholder="Round Time Limit" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          ></FormField>
-          <FormField
-            control={form.control}
-            name="config.gameDifficulty"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Difficulty</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select game difficulty" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {GameDifficultyNames.map((mode) => (
-                      <SelectItem key={mode} value={mode}>
-                        {GameDifficultySchema.parse(mode).display_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          ></FormField>
-        </div>
-        <div className="flex justify-end mt-4">
-          <Button type="submit">Create Room</Button>
-        </div>
-      </form>
-    </Form>
-  );
-}
-```
+````
 
 ## File: apps/web/src/components/config/singleplayer/configmodal.tsx
-
-```typescript
+````typescript
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -2846,11 +2836,10 @@ function SinglePlayerForm({
     </Form>
   );
 }
-```
+````
 
 ## File: apps/web/src/components/search/playersearchresult.tsx
-
-```typescript
+````typescript
 import { nba } from '@dribblio/database';
 
 export default function PlayerSearchResult({ player }: Readonly<{ player: nba.Player }>) {
@@ -2861,11 +2850,10 @@ export default function PlayerSearchResult({ player }: Readonly<{ player: nba.Pl
     </div>
   );
 }
-```
+````
 
 ## File: apps/web/src/components/ui/card.tsx
-
-```typescript
+````typescript
 import * as React from 'react';
 
 import { cn } from '@/lib/utils';
@@ -2921,11 +2909,10 @@ const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
 CardFooter.displayName = 'CardFooter';
 
 export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle };
-```
+````
 
 ## File: apps/web/src/components/ui/select.tsx
-
-```typescript
+````typescript
 'use client';
 
 import * as SelectPrimitive from '@radix-ui/react-select';
@@ -3078,11 +3065,10 @@ export {
   SelectTrigger,
   SelectValue,
 };
-```
+````
 
 ## File: apps/web/src/components/ui/switch.tsx
-
-```typescript
+````typescript
 'use client';
 
 import * as SwitchPrimitives from '@radix-ui/react-switch';
@@ -3112,11 +3098,10 @@ const Switch = React.forwardRef<
 Switch.displayName = SwitchPrimitives.Root.displayName;
 
 export { Switch };
-```
+````
 
 ## File: apps/web/src/components/ui/tabs.tsx
-
-```typescript
+````typescript
 'use client';
 
 import * as TabsPrimitive from '@radix-ui/react-tabs';
@@ -3172,11 +3157,10 @@ const TabsContent = React.forwardRef<
 TabsContent.displayName = TabsPrimitive.Content.displayName;
 
 export { Tabs, TabsContent, TabsList, TabsTrigger };
-```
+````
 
 ## File: apps/web/src/components/login-form.tsx
-
-```typescript
+````typescript
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -3254,22 +3238,20 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
     </div>
   );
 }
-```
+````
 
 ## File: apps/web/src/lib/utils.ts
-
-```typescript
+````typescript
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
-```
+````
 
 ## File: apps/web/src/styles/globals.css
-
-```css
+````css
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -3338,11 +3320,10 @@ export function cn(...inputs: ClassValue[]) {
     @apply bg-background text-foreground;
   }
 }
-```
+````
 
 ## File: apps/web/src/middleware.ts
-
-```typescript
+````typescript
 import { auth0 } from '@/lib/auth0';
 import type { NextRequest } from 'next/server';
 
@@ -3353,11 +3334,10 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)'],
 };
-```
+````
 
 ## File: apps/web/components.json
-
-```json
+````json
 {
   "$schema": "https://ui.shadcn.com/schema.json",
   "style": "new-york",
@@ -3379,195 +3359,18 @@ export const config = {
   },
   "iconLibrary": "lucide"
 }
-```
+````
 
 ## File: apps/web/eslint.config.js
-
-```javascript
+````javascript
 import { nextJsConfig } from '@dribblio/eslint-config/next-js';
 
 /** @type {import("eslint").Linter.Config} */
 export default nextJsConfig;
-```
-
-## File: apps/web/README.md
-
-````markdown
-# Dribbl.io Web Application
-
-A Next.js-based web application for Dribbl.io, providing an interactive interface for the CareerPath NBA player guessing game.
-
-## Architecture
-
-The web application is built using Next.js 15 and follows a modern React architecture:
-
-- **App Router**: Next.js App Router for routing and page organization
-  - `/singleplayer`: Single player game mode
-  - `/multiplayer`: Multiplayer game mode
-- **Component Structure**:
-  - `components/`: Reusable UI components
-  - `hooks/`: Custom React hooks
-  - `lib/`: Utility functions and shared logic
-  - `styles/`: Global styles and Tailwind configuration
-  - `config/`: Application configuration
-  - `icons/`: SVG icons and assets
-
-## Tech Stack
-
-- Next.js 15.x with App Router
-- React 19.x
-- TypeScript
-- Tailwind CSS for styling
-- Radix UI for accessible components
-- Socket.IO Client for real-time communication
-- Zod for schema validation
-- React Hook Form for form handling
-
-## Features
-
-### Game Modes
-
-1. **Single Player**
-
-   - Progressive difficulty levels
-   - Score tracking (+1 point per correct answer)
-   - Lives system (-1 life per incorrect answer)
-   - Game ends when all lives are lost
-   - Option to restart with a new game
-   - Player statistics
-
-2. **Multiplayer**
-   - Room-based gameplay
-     - Host creates a room and receives a room code
-     - Players join using the room code
-     - Players can leave by navigating away
-   - Real-time gameplay
-     - All players see the same team history
-     - Round ends when:
-       - A player correctly guesses the player
-       - Round time limit is reached
-     - After each round:
-       - All acceptable answers are shown
-       - New round automatically starts
-   - Live score updates
-   - Competitive gameplay
-
-### UI Components
-
-The application uses a combination of:
-
-- Radix UI primitives for accessibility
-- Tailwind CSS for styling
-- Responsive design for all screen sizes
-
-## Development Setup
-
-1. Install dependencies:
-
-   ```bash
-   npm install
-   ```
-
-2. Start the development server:
-
-   ```bash
-   npm run dev
-   ```
-
-3. Build for production:
-
-   ```bash
-   npm run build
-   ```
-
-4. Start production server:
-   ```bash
-   npm run start
-   ```
-
-## Available Scripts
-
-- `npm run dev`: Start development server with Turbopack
-- `npm run build`: Build the application
-- `npm run start`: Start production server
-- `npm run lint`: Run ESLint
-- `npm run check-types`: Run TypeScript type checking
-
-## Project Structure
-
-```
-src/
-├── app/                 # Next.js App Router pages
-│   ├── singleplayer/    # Single player game mode
-│   ├── multiplayer/     # Multiplayer game mode
-│   ├── layout.tsx       # Root layout
-│   └── providers.tsx    # Global providers
-├── components/          # Reusable UI components
-├── hooks/              # Custom React hooks
-├── lib/                # Utility functions
-├── icons/              # SVG icons
-├── config/             # App configuration
-└── styles/             # Global styles
-```
-
-## Dependencies
-
-### Core
-
-- Next.js 15.x
-- React 19.x
-- TypeScript
-- Tailwind CSS
-
-### UI Components
-
-- Radix UI primitives
-- Lucide React icons
-- Tailwind Variants
-
-### State Management & Data
-
-- React Hook Form
-- Zod for validation
-- Socket.IO Client
-- Canvas Confetti for effects
-
-### Development
-
-- ESLint
-- TypeScript
-- PostCSS
-- Tailwind CSS
-
-## Future Enhancements
-
-- User authentication system (planned)
-- Persistent user profiles
-- Leaderboards
-- Achievement system
-- Additional game modes
-- Enhanced animations and effects
-
-## License
-
-Copyright (c) 2025 Cameron Slash. All Rights Reserved.
-
-This software and associated documentation files (the "Software") are the proprietary property of Cameron Slash and are protected by copyright law. The Software is licensed, not sold.
-
-You are not permitted to:
-
-- Copy, modify, or create derivative works of the Software
-- Reverse engineer, decompile, or disassemble the Software
-- Remove or alter any proprietary notices or labels on the Software
-- Use the Software for any commercial purpose
-- Distribute, sublicense, or transfer the Software to any third party
-
-Any unauthorized use, reproduction, or distribution of the Software is strictly prohibited and may result in severe legal consequences.
 ````
 
 ## File: apps/web/tailwind.config.ts
-
-```typescript
+````typescript
 export default {
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
@@ -3634,11 +3437,10 @@ export default {
   darkMode: ['class'],
   plugins: [require('tailwindcss-animate')],
 };
-```
+````
 
 ## File: packages/database/prisma-users/schema.prisma
-
-```
+````
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -3661,11 +3463,10 @@ model User {
   name String?
   profile_url String?
 }
-```
+````
 
 ## File: packages/database/src/client.ts
-
-```typescript
+````typescript
 import { PrismaClient as NBAPrismaClient } from '../generated/prisma-nba';
 import { PrismaClient as UsersPrismaClient } from '../generated/prisma-users';
 
@@ -3676,11 +3477,10 @@ const globalForPrisma = global as unknown as {
 
 export const users_prisma = globalForPrisma.users_prisma || new UsersPrismaClient();
 export const nba_prisma = globalForPrisma.nba_prisma || new NBAPrismaClient();
-```
+````
 
 ## File: packages/eslint-config/package.json
-
-```json
+````json
 {
   "name": "@dribblio/eslint-config",
   "version": "0.0.0",
@@ -3705,21 +3505,19 @@ export const nba_prisma = globalForPrisma.nba_prisma || new NBAPrismaClient();
     "typescript-eslint": "^8.31.0"
   }
 }
-```
+````
 
 ## File: packages/types/src/responses/searchresponse.ts
-
-```typescript
+````typescript
 import { nba } from '@dribblio/database';
 
 export interface SearchResponse {
   results: nba.Player[];
 }
-```
+````
 
 ## File: packages/types/src/statemachine/multiplayer/actions.ts
-
-```typescript
+````typescript
 import { AnyEventObject } from 'xstate';
 import { MultiplayerContext } from './gamemachine.js';
 
@@ -3753,11 +3551,10 @@ export const sendRoundInfoToRoom = ({ context }: ActionProps) => {
 
   io?.to(room.id).emit('end_round', gameState);
 };
-```
+````
 
 ## File: packages/types/src/statemachine/multiplayer/guards.ts
-
-```typescript
+````typescript
 import { AnyEventObject } from 'xstate';
 import { MultiplayerContext } from './gamemachine.js';
 
@@ -3775,19 +3572,17 @@ export const timeExpired = ({ context }: GuardProps): boolean => {
   const { timeLeft } = context.gameState;
   return timeLeft <= 0;
 };
-```
+````
 
 ## File: packages/types/src/statemachine/multiplayer/index.ts
-
-```typescript
+````typescript
 export * from './actions.js';
 export * from './gamemachine.js';
 export * from './guards.js';
-```
+````
 
 ## File: packages/types/src/statemachine/singleplayer/actions.ts
-
-```typescript
+````typescript
 import { AnyEventObject } from 'xstate';
 import { SinglePlayerContext } from './gamemachine.js';
 
@@ -3861,11 +3656,10 @@ export const notifyGameOver = ({ context }: ActionProps) => {
     throw Error(`Socket could not be found: ${err}`);
   }
 };
-```
+````
 
 ## File: packages/types/src/statemachine/singleplayer/guards.ts
-
-```typescript
+````typescript
 import { AnyEventObject } from 'xstate';
 import { SinglePlayerContext } from './gamemachine.js';
 
@@ -3880,19 +3674,17 @@ export const isCorrectSinglePlayer = ({ context, event }: GuardProps): boolean =
 };
 
 export const hasLives = ({ context }: GuardProps): boolean => context.gameState.lives > 0;
-```
+````
 
 ## File: packages/types/src/statemachine/singleplayer/index.ts
-
-```typescript
+````typescript
 export * from './actions.js';
 export * from './gamemachine.js';
 export * from './guards.js';
-```
+````
 
 ## File: packages/types/src/statemachine/gamedifficulties.ts
-
-```typescript
+````typescript
 import { nba } from '@dribblio/database';
 import { z } from 'zod';
 
@@ -4044,11 +3836,10 @@ export const GameDifficultySchema = z
     const difficulty = GameDifficulties.allModes.find((mode) => mode.name === val);
     return difficulty!;
   });
-```
+````
 
 ## File: packages/types/src/websocket/messagebodies.ts
-
-```typescript
+````typescript
 import { MultiplayerConfig } from '../statemachine/multiplayer/gamemachine.js';
 import { SinglePlayerConfig } from '../statemachine/singleplayer/gamemachine.js';
 
@@ -4062,14 +3853,109 @@ export interface JoinRoomMessageBody {
   roomId: string;
   userId: string;
 }
-```
+````
+
+## File: .repomixignore
+````
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# Dependencies
+node_modules
+/pnp
+.pnp.js
+
+# Local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Testing
+coverage
+
+# Turbo
+.turbo
+
+# Vercel
+.vercel
+
+# Build Outputs
+.next/
+out/
+build
+dist
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Misc
+.DS_Store
+*.pem
+
+# production
+/build
+
+# next.js
+/.next/
+/out/
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+**/*-lock.json
+
+*.svg
+````
+
+## File: repomix.config.json
+````json
+{
+  "$schema": "https://repomix.com/schemas/latest/schema.json",
+  "input": {
+    "maxFileSize": 52428800
+  },
+  "output": {
+    "filePath": "docs/repo.md",
+    "style": "markdown",
+    "parsableStyle": false,
+    "fileSummary": true,
+    "directoryStructure": true,
+    "files": true,
+    "removeComments": false,
+    "removeEmptyLines": false,
+    "compress": false,
+    "topFilesLength": 5,
+    "showLineNumbers": false,
+    "copyToClipboard": false,
+    "git": {
+      "sortByChanges": true,
+      "sortByChangesMaxCommits": 100,
+      "includeDiffs": false
+    }
+  },
+  "include": [],
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": []
+  },
+  "security": {
+    "enableSecurityCheck": true
+  },
+  "tokenCount": {
+    "encoding": "o200k_base"
+  }
+}
+````
 
 ## File: .cursor/rules/clean-code.mdc
-
-```
+````
 ---
 description: Guidelines for writing clean, maintainable, and human-readable code. Apply these rules when writing or reviewing code to ensure consistency and quality.
-globs:
+globs: 
 ---
 # Clean Code Guidelines
 
@@ -4122,14 +4008,13 @@ globs:
 - Write clear commit messages
 - Make small, focused commits
 - Use meaningful branch names
-```
+````
 
 ## File: .cursor/rules/codequality.mdc
-
-```
+````
 ---
 description: Code Quality Guidelines
-globs:
+globs: 
 ---
 # Code Quality Guidelines
 
@@ -4174,11 +4059,10 @@ Always provide links to the real files, not x.md.
 
 ## No Current Implementation
 Don't show or discuss the current implementation unless specifically requested.
-```
+````
 
 ## File: .cursor/rules/nextjs.mdc
-
-```
+````
 ---
 description: Next.js with TypeScript and Tailwind UI best practices
 globs: apps/web/*.ts,apps/web/**/*.tsx
@@ -4233,11 +4117,10 @@ alwaysApply: false
 - Use React Context sparingly
 - Prefer server state when possible
 - Implement proper loading states
-```
+````
 
 ## File: .cursor/rules/tailwind.mdc
-
-```
+````
 ---
 description: Tailwind CSS and UI component best practices for modern web applications
 globs: **/*.css,apps/web/**/*.tsx,apps/web/tailwind.config.ts
@@ -4317,11 +4200,10 @@ alwaysApply: false
 - Implement proper testing
 - Follow accessibility guidelines
 - Use proper version control
-```
+````
 
 ## File: .cursor/rules/typescript.mdc
-
-```
+````
 ---
 description: TypeScript coding standards and best practices for modern web development
 globs: **/*.ts, **/*.tsx, **/*.d.ts
@@ -4379,11 +4261,10 @@ globs: **/*.ts, **/*.tsx, **/*.d.ts
 - Use the Factory pattern for object creation
 - Leverage dependency injection
 - Use the Module pattern for encapsulation
-```
+````
 
 ## File: apps/api/src/database/database.module.ts
-
-```typescript
+````typescript
 import { NBAPrismaService } from '@/database/nba.prisma.service';
 import { UsersPrismaService } from '@/database/users.prisma.service';
 import { Global, Module } from '@nestjs/common';
@@ -4394,11 +4275,10 @@ import { Global, Module } from '@nestjs/common';
 })
 @Global()
 export class DatabaseModule {}
-```
+````
 
 ## File: apps/api/src/nba/games/careerpath/careerpath.module.ts
-
-```typescript
+````typescript
 import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
 import { UsersModule } from '@/users/users.module';
 import { Module } from '@nestjs/common';
@@ -4410,11 +4290,10 @@ import { PlayersModule } from 'src/nba/player/player.module';
   providers: [CareerPathGateway],
 })
 export class CareerPathModule {}
-```
+````
 
 ## File: apps/api/src/nba/games/careerpath/game.service.ts
-
-```typescript
+````typescript
 import { PlayersService } from '@/nba/player/player.service';
 import { BaseGameService, GameDifficulty, RoundProps } from '@dribblio/types';
 import { Injectable } from '@nestjs/common';
@@ -4443,11 +4322,10 @@ export class GameService implements BaseGameService {
     return { validAnswers, players };
   }
 }
-```
+````
 
 ## File: apps/api/src/nba/player/player.module.ts
-
-```typescript
+````typescript
 import { PlayersController } from '@/nba/player/player.controller';
 import { PlayersService } from '@/nba/player/player.service';
 import { Module } from '@nestjs/common';
@@ -4458,11 +4336,10 @@ import { Module } from '@nestjs/common';
   exports: [PlayersService],
 })
 export class PlayersModule {}
-```
+````
 
 ## File: apps/api/src/nba/player/player.service.ts
-
-```typescript
+````typescript
 import { NBAPrismaService } from '@/database/nba.prisma.service';
 import { runtime } from '@dribblio/database';
 import { Prisma as NBAPrisma, Player } from '@dribblio/database/generated/prisma-nba';
@@ -4497,21 +4374,305 @@ export class PlayersService {
     return await this.nba.player.count();
   }
 }
+````
+
+## File: apps/api/README.md
+````markdown
+# Dribbl.io API
+
+A NestJS-based API service for Dribbl.io, providing NBA player data, real-time game functionality, and user authentication.
+
+## Architecture
+
+The API is built using NestJS and follows a modular architecture:
+
+- `NBAModule`: Core module handling NBA-related features
+  - `PlayersModule`: Manages NBA player data and statistics
+  - `GamesModule`: Handles game-related functionality
+    - `CareerPath`: Real-time game implementation using WebSockets
+- `AuthModule`: Authentication and authorization using Auth0
+  - `JwtStrategy`: JWT token validation and user authentication
+- `UsersModule`: User management and profile functionality
+  - `UsersController`: User profile endpoints
+  - `UsersService`: User data management
+- `DatabaseModule`: Database integration using Prisma with PostgreSQL
+  - NBA database for player data
+  - Users database for authentication and user profiles
+
+## Tech Stack
+
+- NestJS 11.x
+- Socket.IO for real-time communication
+- Prisma for database operations
+- PostgreSQL database
+- TypeScript
+- Jest for testing
+- **Auth0 for authentication and authorization**
+- **Passport.js for JWT strategy**
+- **JWKS-RSA for token validation**
+
+## Database Schema
+
+The API uses PostgreSQL databases with the following main models:
+
+### NBA Database
+
+#### Player Model
+
+```prisma
+model Player {
+  id                 Int               @id
+  first_name         String?
+  last_name          String?
+  display_first_last String?
+  display_fi_last    String?
+  birthdate          DateTime?
+  school             String?
+  country            String?
+  height             String?
+  weight             String?
+  season_exp         Int?
+  jersey             String?
+  position           String?
+  team_history       String?
+  is_active          Boolean?
+  from_year          Int?
+  to_year            Int?
+  total_games_played Int?
+  draft_round        String?
+  draft_number       String?
+  draft_year         String?
+  player_accolades   player_accolades?
+}
 ```
 
-## File: apps/web/src/app/multiplayer/page.tsx
+#### Player Accolades Model
 
-```typescript
+```prisma
+model player_accolades {
+  player_id Int    @id
+  accolades Json?
+  player    Player @relation(fields: [player_id], references: [id])
+}
+```
+
+### Users Database
+
+#### User Model
+
+```prisma
+model User {
+  id String @id
+  display_name String?
+  name String?
+  profile_url String?
+}
+```
+
+## Authentication
+
+The API implements secure authentication using Auth0:
+
+### JWT Strategy
+
+- **Token Validation**: Validates JWT tokens using Auth0's JWKS endpoint
+- **User Creation**: Automatically creates user profiles on first authentication
+- **Profile Sync**: Fetches user profile information from Auth0
+- **Protected Routes**: Uses `@UseGuards(AuthGuard('jwt'))` decorator
+
+### Environment Variables
+
+Required Auth0 configuration:
+
+```bash
+AUTH0_DOMAIN="your-domain.auth0.com"
+AUTH0_AUDIENCE="your-api-identifier"
+AUTH0_CLIENT_ID="your-client-id"
+AUTH0_CLIENT_SECRET="your-client-secret"
+AUTH0_SECRET="your-secret"
+AUTH0_SCOPE="openid profile email"
+```
+
+## API Endpoints
+
+### Players API
+
+Base URL: `/players`
+
+| Method | Endpoint                   | Description            |
+| ------ | -------------------------- | ---------------------- |
+| GET    | `/`                        | Get all players        |
+| GET    | `/random`                  | Get a random player    |
+| GET    | `/count`                   | Get total player count |
+| GET    | `/search?searchTerm=:term` | Search players by name |
+| GET    | `/:id`                     | Get player by ID       |
+
+### Users API
+
+Base URL: `/me` (Protected routes requiring authentication)
+
+| Method | Endpoint | Description                 |
+| ------ | -------- | --------------------------- |
+| GET    | `/`      | Get current user profile    |
+| PATCH  | `/`      | Update current user profile |
+
+## CareerPath Game
+
+The CareerPath game is a real-time multiplayer/singleplayer game where players must identify NBA players based on their team history.
+
+### Game Modes
+
+1. **Single Player**
+
+   - Players try to achieve the highest score possible
+   - Limited number of lives
+   - Progressive difficulty
+
+2. **Multiplayer**
+   - Real-time competition in game rooms
+   - All players see the same team history
+   - First correct answer gets a point
+   - Real-time score updates
+
+### Game Difficulties
+
+1. **First Team All-NBA Players**
+
+   - Only players who made All-NBA First Team
+   - Players from 1980 onwards
+   - Multiple team history required
+
+2. **All-NBA Players**
+
+   - Players who made any All-NBA team
+   - Players from 1980 onwards
+   - Multiple team history required
+
+3. **Current Players**
+
+   - Only active NBA players
+   - Easier difficulty level
+
+4. **All Players**
+   - Complete NBA player database
+   - Most challenging difficulty
+
+## Development Setup
+
+1. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+2. Set up environment variables:
+
+   ```bash
+   # Database URLs
+   DATABASE_URL="postgresql://user:password@localhost:5432/dribblio"
+   USERS_DATABASE_URL="postgresql://user:password@localhost:5432/dribblio_users"
+
+   # Auth0 Configuration
+   AUTH0_DOMAIN="your-domain.auth0.com"
+   AUTH0_AUDIENCE="your-api-identifier"
+   AUTH0_CLIENT_ID="your-client-id"
+   AUTH0_CLIENT_SECRET="your-client-secret"
+   AUTH0_SECRET="your-secret"
+   AUTH0_SCOPE="openid profile email"
+
+   # Server Configuration
+   PORT=3002
+   ```
+
+3. Set up databases:
+
+   ```bash
+   # Generate Prisma clients
+   npm run db:generate
+
+   # Run database migrations
+   npm run db:migrate
+   ```
+
+4. Start the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+5. Run tests:
+   ```bash
+   npm test
+   ```
+
+## Available Scripts
+
+- `npm run build`: Build the application
+- `npm run dev`: Start development server with hot reload
+- `npm run start:prod`: Start production server
+- `npm run test`: Run unit tests
+- `npm run test:e2e`: Run end-to-end tests
+- `npm run test:cov`: Generate test coverage report
+- `npm run db:generate`: Generate Prisma clients
+- `npm run db:migrate`: Run database migrations
+
+## WebSocket Events
+
+The CareerPath game uses WebSocket connections for real-time gameplay. The following events are supported:
+
+- `join_room`: Join a game room
+- `leave_room`: Leave a game room
+- `start_game`: Start a new game
+- `submit_answer`: Submit a player guess
+- `game_state`: Receive game state updates
+- `score_update`: Receive score updates
+
+## Security Features
+
+- **JWT Token Validation**: Secure token-based authentication
+- **CORS Protection**: Configured for secure cross-origin requests
+- **Rate Limiting**: Built-in protection against abuse
+- **Input Validation**: Comprehensive request validation using class-validator
+- **Error Handling**: Secure error responses without sensitive information
+
+## Future Enhancements
+
+- **Enhanced User Profiles**: Additional user statistics and preferences
+- **Leaderboards**: Global and friend-based leaderboards
+- **Achievement System**: Gamification with achievements and badges
+- **Social Features**: Friend system and social interactions
+- **Advanced Analytics**: Detailed game statistics and insights
+- **Cloud Deployment**: Production-ready deployment configuration
+
+## License
+
+Copyright (c) 2025 Cameron Slash. All Rights Reserved.
+
+This software and associated documentation files (the "Software") are the proprietary property of Cameron Slash and are protected by copyright law. The Software is licensed, not sold.
+
+You are not permitted to:
+
+- Copy, modify, or create derivative works of the Software
+- Reverse engineer, decompile, or disassemble the Software
+- Remove or alter any proprietary notices or labels on the Software
+- Use the Software for any commercial purpose
+- Distribute, sublicense, or transfer the Software to any third party
+
+Any unauthorized use, reproduction, or distribution of the Software is strictly prohibited and may result in severe legal consequences.
+````
+
+## File: apps/web/src/app/multiplayer/page.tsx
+````typescript
 'use client';
 
 import { CareerPath } from '@/components/careerpath/careerpathview';
 import JoinHostModal from '@/components/config/multiplayer/joinhostmodal';
 import PlayerSearchBar from '@/components/search/playersearchbar';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import useMultiplayerSocket from '@/hooks/useMultiplayerSocket';
 import { UserGameInfo } from '@dribblio/types';
 import { User } from 'lucide-react';
-import Image from 'next/image';
 
 export default function Game() {
   const {
@@ -4544,12 +4705,14 @@ export default function Game() {
                 <li key={user.info.id}>
                   <div className="flex flex-row space-x-2 items-center">
                     {user.info.profile_url ? (
-                      <Image
-                        src={user.info.profile_url}
-                        alt={user.info.name ?? ''}
-                        width={24}
-                        height={24}
-                      />
+                      <Avatar>
+                        <AvatarImage
+                          src={user.info.profile_url}
+                          alt={user.info.name ?? ''}
+                          width={24}
+                          height={24}
+                        />
+                      </Avatar>
                     ) : (
                       <User />
                     )}
@@ -4590,11 +4753,10 @@ export default function Game() {
     </div>
   );
 }
-```
+````
 
 ## File: apps/web/src/app/singleplayer/page.tsx
-
-```typescript
+````typescript
 'use client';
 
 import { CorrectAnswer } from '@/components/careerpath/answer';
@@ -4662,11 +4824,246 @@ export default function SinglePlayer() {
     </div>
   );
 }
-```
+````
+
+## File: apps/web/src/components/config/multiplayer/joinhostmodal.tsx
+````typescript
+'use client';
+
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { hostSchema, joinSchema } from '@/lib/schemas';
+import {
+  GameDifficulties,
+  GameDifficultyNames,
+  GameDifficultySchema,
+  HostFormValues,
+  JoinFormValues,
+  MultiplayerConfig,
+} from '@dribblio/types';
+import { joiResolver } from '@hookform/resolvers/joi';
+import { useForm } from 'react-hook-form';
+
+export default function JoinHostModal({
+  isOpen,
+  onJoinRoom,
+  onHostRoom,
+}: Readonly<{
+  isOpen: boolean;
+  onJoinRoom: (roomId: string) => void;
+  onHostRoom: (config: MultiplayerConfig) => void;
+}>) {
+  return (
+    <Dialog open={isOpen}>
+      <DialogContent
+        className="[&>button]:hidden"
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
+        <DialogHeader>
+          <DialogTitle>Join or Host a Game</DialogTitle>
+        </DialogHeader>
+        <Tabs defaultValue="join">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="join">Join Room</TabsTrigger>
+            <TabsTrigger value="host">Host Room</TabsTrigger>
+          </TabsList>
+          <TabsContent value="join">
+            <JoinForm onJoinRoom={onJoinRoom} />
+          </TabsContent>
+          <TabsContent value="host">
+            <HostForm onHostRoom={onHostRoom} />
+          </TabsContent>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function JoinForm({
+  onJoinRoom,
+}: Readonly<{
+  onJoinRoom: (roomId: string) => void;
+}>) {
+  const form = useForm<JoinFormValues>({
+    resolver: joiResolver(joinSchema),
+    defaultValues: {
+      roomId: '',
+    },
+  });
+
+  function onSubmit(values: JoinFormValues) {
+    onJoinRoom(values.roomId);
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="flex flex-col space-y-4">
+          <FormField
+            control={form.control}
+            name="roomId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Room Code</FormLabel>
+                <FormControl>
+                  <Input placeholder="Room Code" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          ></FormField>
+        </div>
+        <div className="flex justify-end mt-4">
+          <Button type="submit">Join Room</Button>
+        </div>
+      </form>
+    </Form>
+  );
+}
+
+function HostForm({
+  onHostRoom,
+}: Readonly<{
+  onHostRoom: (config: MultiplayerConfig) => void;
+}>) {
+  const form = useForm<HostFormValues>({
+    resolver: joiResolver(hostSchema),
+    defaultValues: {
+      isRoundLimit: false,
+      config: {
+        scoreLimit: undefined,
+        roundLimit: undefined,
+        roundTimeLimit: 30,
+        gameDifficulty: GameDifficulties.firstAllNBA.name,
+      },
+    },
+  });
+
+  function onSubmit(values: HostFormValues) {
+    const config = {
+      ...values.config,
+      scoreLimit: values.isRoundLimit ? undefined : values.config.scoreLimit,
+      roundLimit: values.isRoundLimit ? values.config.roundLimit : undefined,
+      gameDifficulty: GameDifficultySchema.parse(values.config.gameDifficulty),
+    };
+    onHostRoom(config);
+  }
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="flex flex-col space-y-4">
+          <div className="flex flex-row space-x-4 self-center">
+            <p>Score Limit</p>
+            <FormField
+              control={form.control}
+              name="isRoundLimit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                </FormItem>
+              )}
+            ></FormField>
+            <p>Round Limit</p>
+          </div>
+          {form.watch('isRoundLimit') && (
+            <FormField
+              control={form.control}
+              name="config.roundLimit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Round Limit</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="Round Limit" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            ></FormField>
+          )}
+          {!form.watch('isRoundLimit') && (
+            <FormField
+              control={form.control}
+              name="config.scoreLimit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Score Limit</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="Score Limit" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            ></FormField>
+          )}
+          <FormField
+            control={form.control}
+            name="config.roundTimeLimit"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Round Time Limit</FormLabel>
+                <FormControl>
+                  <Input type="number" placeholder="Round Time Limit" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          ></FormField>
+          <FormField
+            control={form.control}
+            name="config.gameDifficulty"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Difficulty</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select game difficulty" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {GameDifficultyNames.map((mode) => (
+                      <SelectItem key={mode} value={mode}>
+                        {GameDifficultySchema.parse(mode).display_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          ></FormField>
+        </div>
+        <div className="flex justify-end mt-4">
+          <Button type="submit">Create Room</Button>
+        </div>
+      </form>
+    </Form>
+  );
+}
+````
 
 ## File: apps/web/src/components/search/playersearchbar.tsx
-
-```typescript
+````typescript
 import PlayerSearchResult from '@/components/search/playersearchresult';
 import {
   Command,
@@ -4736,11 +5133,10 @@ export default function PlayerSearchBar({
     </div>
   );
 }
-```
+````
 
 ## File: apps/web/src/config/site.ts
-
-```typescript
+````typescript
 import { Gamepad2, House, LucideProps, Swords } from 'lucide-react';
 import { ForwardRefExoticComponent, RefAttributes } from 'react';
 
@@ -4772,11 +5168,10 @@ export const siteConfig: { name: string; navItems: NavItem[] } = {
     },
   ],
 };
-```
+````
 
 ## File: apps/web/src/hooks/usePlayerSearch.ts
-
-```typescript
+````typescript
 'use client';
 
 import { nba } from '@dribblio/database';
@@ -4810,11 +5205,10 @@ const usePlayerSearch = () => {
 };
 
 export default usePlayerSearch;
-```
+````
 
 ## File: apps/web/next.config.mjs
-
-```
+````
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   rewrites() {
@@ -4844,11 +5238,261 @@ const nextConfig = {
 };
 
 export default nextConfig;
+````
+
+## File: apps/web/README.md
+````markdown
+# Dribbl.io Web Application
+
+A Next.js-based web application for Dribbl.io, providing an interactive interface for the CareerPath NBA player guessing game with secure user authentication.
+
+## Architecture
+
+The web application is built using Next.js 15 and follows a modern React architecture:
+
+- **App Router**: Next.js App Router for routing and page organization
+  - `/singleplayer`: Single player game mode
+  - `/multiplayer`: Multiplayer game mode
+  - `/profile`: User profile management (protected route)
+  - `/auth/login`: Authentication login page
+  - `/auth/logout`: Authentication logout page
+- **Component Structure**:
+  - `components/`: Reusable UI components
+  - `hooks/`: Custom React hooks
+  - `lib/`: Utility functions and shared logic
+  - `styles/`: Global styles and Tailwind configuration
+  - `config/`: Application configuration
+  - `icons/`: SVG icons and assets
+- **Authentication Integration**:
+  - Auth0 Next.js SDK for authentication
+  - Protected routes with middleware
+  - User profile management
+  - JWT token handling
+
+## Tech Stack
+
+- Next.js 15.x with App Router
+- React 19.x
+- TypeScript
+- Tailwind CSS for styling
+- Radix UI for accessible components
+- Socket.IO Client for real-time communication
+- Zod for schema validation
+- React Hook Form for form handling
+- **Auth0 Next.js SDK for authentication**
+- **Next.js Middleware for route protection**
+
+## Features
+
+### Game Modes
+
+1. **Single Player**
+
+   - Progressive difficulty levels
+   - Score tracking (+1 point per correct answer)
+   - Lives system (-1 life per incorrect answer)
+   - Game ends when all lives are lost
+   - Option to restart with a new game
+   - Player statistics
+
+2. **Multiplayer**
+   - Room-based gameplay
+     - Host creates a room and receives a room code
+     - Players join using the room code
+     - Players can leave by navigating away
+   - Real-time gameplay
+     - All players see the same team history
+     - Round ends when:
+       - A player correctly guesses the player
+       - Round time limit is reached
+     - After each round:
+       - All acceptable answers are shown
+       - New round automatically starts
+   - Live score updates
+   - Competitive gameplay
+
+### Authentication & User Management
+
+- **Auth0 Integration**: Secure authentication with social login support
+- **User Profiles**: Personalized user experience with profile management
+- **Protected Routes**: Secure access to user-specific features
+- **Profile Management**: View and update user profile information
+- **Session Management**: Automatic session handling and token refresh
+- **Social Login**: Support for Google and other social providers
+
+### UI Components
+
+The application uses a combination of:
+
+- Radix UI primitives for accessibility
+- Tailwind CSS for styling
+- Responsive design for all screen sizes
+- **Auth0 components for authentication flows**
+
+## Development Setup
+
+1. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+2. Set up environment variables (create `.env.local` file):
+
+   ```bash
+   # Auth0 Configuration
+   AUTH0_SECRET="your-secret"
+   AUTH0_BASE_URL="http://localhost:3000"
+   AUTH0_ISSUER_BASE_URL="https://your-domain.auth0.com"
+   AUTH0_CLIENT_ID="your-client-id"
+   AUTH0_CLIENT_SECRET="your-client-secret"
+   AUTH0_AUDIENCE="your-api-identifier"
+   AUTH0_SCOPE="openid profile email"
+   ```
+
+3. Configure Auth0 Application:
+
+   - Create an Auth0 account at [auth0.com](https://auth0.com)
+   - Create a new application (Regular Web Application)
+   - Configure callback URLs: `http://localhost:3000/api/auth/callback`
+   - Configure logout URLs: `http://localhost:3000`
+   - Create an API with appropriate scopes
+   - Update the environment variables with your Auth0 configuration
+
+4. Start the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+5. Build for production:
+
+   ```bash
+   npm run build
+   ```
+
+6. Start production server:
+   ```bash
+   npm run start
+   ```
+
+## Available Scripts
+
+- `npm run dev`: Start development server with Turbopack
+- `npm run build`: Build the application
+- `npm run start`: Start production server
+- `npm run lint`: Run ESLint
+- `npm run check-types`: Run TypeScript type checking
+
+## Project Structure
+
+```
+src/
+├── app/                 # Next.js App Router pages
+│   ├── singleplayer/    # Single player game mode
+│   ├── multiplayer/     # Multiplayer game mode
+│   ├── profile/         # User profile management (protected)
+│   ├── auth/            # Authentication routes
+│   │   ├── login/       # Login page
+│   │   └── logout/      # Logout page
+│   ├── api/             # API routes
+│   │   └── auth/        # Auth0 API routes
+│   ├── layout.tsx       # Root layout
+│   └── providers.tsx    # Global providers
+├── components/          # Reusable UI components
+│   ├── navbar/          # Navigation components
+│   ├── ui/              # Base UI components
+│   └── login-form.tsx   # Authentication form
+├── hooks/              # Custom React hooks
+├── lib/                # Utility functions
+│   └── auth0.ts        # Auth0 configuration
+├── icons/              # SVG icons
+├── config/             # App configuration
+├── styles/             # Global styles
+└── middleware.ts       # Next.js middleware for route protection
 ```
 
-## File: apps/web/tsconfig.json
+## Dependencies
 
-```json
+### Core
+
+- Next.js 15.x
+- React 19.x
+- TypeScript
+- Tailwind CSS
+
+### Authentication
+
+- **@auth0/nextjs-auth0**: Auth0 Next.js SDK
+- **Next.js Middleware**: Route protection
+
+### UI Components
+
+- Radix UI primitives
+- Lucide React icons
+- Tailwind Variants
+
+### State Management & Data
+
+- React Hook Form
+- Zod for validation
+- Socket.IO Client
+- Canvas Confetti for effects
+
+### Development
+
+- ESLint
+- TypeScript
+- PostCSS
+- Tailwind CSS
+
+## Authentication Flow
+
+1. **Login**: Users can log in via Auth0's universal login or social providers
+2. **Session Management**: Automatic session handling with token refresh
+3. **Protected Routes**: Middleware protects routes requiring authentication
+4. **Profile Access**: Authenticated users can access their profile page
+5. **API Integration**: JWT tokens are used for secure API communication
+6. **Logout**: Secure logout with session cleanup
+
+## Security Features
+
+- **JWT Token Validation**: Secure token-based authentication
+- **Route Protection**: Middleware-based route protection
+- **Session Management**: Secure session handling
+- **CORS Protection**: Configured for secure cross-origin requests
+- **Input Validation**: Comprehensive form validation
+- **Error Handling**: Secure error responses
+
+## Future Enhancements
+
+- **Enhanced User Profiles**: Additional user statistics and preferences
+- **Leaderboards**: Global and friend-based leaderboards
+- **Achievement System**: Gamification with achievements and badges
+- **Social Features**: Friend system and social interactions
+- **Advanced Analytics**: Detailed game statistics and insights
+- **Progressive Web App**: Offline support and app-like experience
+- **Theme Customization**: User-selectable themes and customization
+
+## License
+
+Copyright (c) 2025 Cameron Slash. All Rights Reserved.
+
+This software and associated documentation files (the "Software") are the proprietary property of Cameron Slash and are protected by copyright law. The Software is licensed, not sold.
+
+You are not permitted to:
+
+- Copy, modify, or create derivative works of the Software
+- Reverse engineer, decompile, or disassemble the Software
+- Remove or alter any proprietary notices or labels on the Software
+- Use the Software for any commercial purpose
+- Distribute, sublicense, or transfer the Software to any third party
+
+Any unauthorized use, reproduction, or distribution of the Software is strictly prohibited and may result in severe legal consequences.
+````
+
+## File: apps/web/tsconfig.json
+````json
 {
   "extends": "@dribblio/typescript-config/nextjs.json",
   "compilerOptions": {
@@ -4864,21 +5508,10 @@ export default nextConfig;
   "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", "next.config.mjs", ".next/types/**/*.ts"],
   "exclude": ["node_modules", "public"]
 }
-```
-
-## File: packages/database/.gitignore
-
-```
-node_modules
-# Keep environment variables out of version control
-.env
-
-/generated
-```
+````
 
 ## File: packages/eslint-config/base.js
-
-```javascript
+````javascript
 import js from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import jest from 'eslint-plugin-jest';
@@ -4925,11 +5558,10 @@ export const baseConfig = [
     ignores: ['dist/**'],
   },
 ];
-```
+````
 
 ## File: packages/eslint-config/next.js
-
-```javascript
+````javascript
 import js from '@eslint/js';
 import { default as pluginNext } from '@next/eslint-plugin-next';
 import eslintConfigPrettier from 'eslint-config-prettier';
@@ -4968,11 +5600,10 @@ export const nextJsConfig = [
     },
   },
 ];
-```
+````
 
 ## File: packages/types/tsconfig.json
-
-```json
+````json
 {
   "extends": "@dribblio/typescript-config/base.json",
   "compilerOptions": {
@@ -4982,11 +5613,10 @@ export const nextJsConfig = [
   "include": ["src"],
   "exclude": ["node_modules", "dist"]
 }
-```
+````
 
 ## File: .gitignore
-
-```
+````
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # Dependencies
@@ -4995,11 +5625,11 @@ node_modules
 .pnp.js
 
 # Local env files
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+**/.env
+**/.env.local
+**/.env.development.local
+**/.env.test.local
+**/.env.production.local
 
 # Testing
 coverage
@@ -5036,11 +5666,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 **/*-lock.json
-```
+````
 
 ## File: apps/api/src/nba/games/careerpath/room/room.service.ts
-
-```typescript
+````typescript
 import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
 import { RoomFactory } from '@/nba/games/careerpath/room/factory.service';
 import { UsersService } from '@/users/users.service';
@@ -5150,11 +5779,10 @@ export class RoomService {
     return roomId;
   }
 }
-```
+````
 
 ## File: apps/api/src/nba/games/careerpath/careerpath.gateway.ts
-
-```typescript
+````typescript
 import { RoomService } from '@/nba/games/careerpath/room/room.service';
 import { HostRoomMessageBody, JoinRoomMessageBody } from '@dribblio/types';
 import { forwardRef, Inject } from '@nestjs/common';
@@ -5198,11 +5826,10 @@ export class CareerPathGateway implements OnGatewayDisconnect {
     await this.roomService.joinRoom(client, config);
   }
 }
-```
+````
 
 ## File: apps/api/src/nba/nba.module.ts
-
-```typescript
+````typescript
 import { DatabaseModule } from '@/database/database.module';
 import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
 import { GameService } from '@/nba/games/careerpath/game.service';
@@ -5218,11 +5845,80 @@ import { Module } from '@nestjs/common';
   providers: [CareerPathGateway, RoomService, RoomFactory, GameService],
 })
 export class NBAModule {}
-```
+````
+
+## File: apps/api/src/users/users.module.ts
+````typescript
+import { AvatarService } from '@/users/avatar.service';
+import { S3Service } from '@/users/s3.service';
+import { S3Client } from '@aws-sdk/client-s3';
+import { Module } from '@nestjs/common';
+import { UsersController } from './users.controller';
+import { UsersService } from './users.service';
+
+@Module({
+  controllers: [UsersController],
+  providers: [
+    UsersService,
+    S3Service,
+    AvatarService,
+    {
+      provide: S3Client,
+      useValue: new S3Client(),
+    },
+  ],
+  exports: [UsersService],
+})
+export class UsersModule {}
+````
+
+## File: apps/api/src/users/users.service.ts
+````typescript
+import { UsersPrismaService } from '@/database/users.prisma.service';
+import { AvatarService } from '@/users/avatar.service';
+import { S3Service } from '@/users/s3.service';
+import { UpdateUserDto } from '@dribblio/types';
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class UsersService {
+  constructor(
+    private readonly userPrisma: UsersPrismaService,
+    private readonly s3Service: S3Service,
+    private readonly avatarService: AvatarService,
+  ) {}
+
+  async get(id: string) {
+    const user = await this.userPrisma.user.findUnique({
+      where: { id },
+    });
+
+    return user;
+  }
+
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    return await this.userPrisma.user.update({
+      where: { id: id },
+      data: {
+        display_name: updateUserDto.display_name ?? '',
+        name: updateUserDto.name ?? '',
+      },
+    });
+  }
+
+  async uploadProfileImage(userId: string, file: Express.Multer.File) {
+    const profile_url = await this.avatarService.uploadAvatar(userId, file);
+
+    return await this.userPrisma.user.update({
+      where: { id: userId },
+      data: { profile_url },
+    });
+  }
+}
+````
 
 ## File: apps/web/src/app/page.tsx
-
-```typescript
+````typescript
 'use client';
 
 import GameModeCard from '@/components/gamemodecard';
@@ -5247,27 +5943,27 @@ export default function Home() {
     </div>
   );
 }
-```
+````
 
 ## File: apps/web/src/components/navbar/navbar.tsx
-
-```typescript
+````typescript
 'use client';
 
 import { Dock, DockIcon } from '@/components/magicui/dock';
 import ThemeSwitcher from '@/components/navbar/themeswitcher';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { buttonVariants } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { siteConfig } from '@/config/site';
+import { useDBUser } from '@/context/dbusercontext';
 import { cn } from '@/lib/utils';
-import { useUser } from '@auth0/nextjs-auth0';
-import { LogIn, User } from 'lucide-react';
-import Image from 'next/image';
+import { LogIn, User as UserIcon } from 'lucide-react';
 import NextLink from 'next/link';
 
 export default function NBANavbar({ className }: Readonly<{ className?: string }>) {
-  const { user } = useUser();
+  const { user } = useDBUser();
+
   return (
     <div className={`${className}`}>
       <TooltipProvider>
@@ -5277,16 +5973,18 @@ export default function NBANavbar({ className }: Readonly<{ className?: string }
               <TooltipTrigger asChild>
                 {user ? (
                   <NextLink href="/profile">
-                    {user.picture ? (
-                      <Image
-                        src={user.picture}
-                        alt="Profile"
-                        width={32}
-                        height={32}
-                        className="rounded-full"
-                      />
+                    {user.profile_url ? (
+                      <Avatar>
+                        <AvatarImage
+                          src={user.profile_url}
+                          alt="Profile"
+                          width={32}
+                          height={32}
+                          className="rounded-full"
+                        />
+                      </Avatar>
                     ) : (
-                      <User />
+                      <UserIcon />
                     )}
                   </NextLink>
                 ) : (
@@ -5330,11 +6028,10 @@ export default function NBANavbar({ className }: Readonly<{ className?: string }
     </div>
   );
 }
-```
+````
 
 ## File: apps/web/src/hooks/useMultiplayerSocket.ts
-
-```typescript
+````typescript
 'use client';
 
 import { clientSocket } from '@/lib/clientsocket';
@@ -5472,11 +6169,301 @@ const useMultiplayerSocket = () => {
 };
 
 export default useMultiplayerSocket;
-```
+````
+
+## File: packages/database/src/index.ts
+````typescript
+export * as nba from '../generated/prisma-nba/index.js';
+export * as users from '../generated/prisma-users/index.js';
+export * from './client.js';
+
+export * as runtime from '@prisma/client/runtime/library.js';
+````
+
+## File: packages/database/package.json
+````json
+{
+  "name": "@dribblio/database",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "db:generate": "prisma generate --schema ./prisma-users/schema.prisma && prisma generate --schema ./prisma-nba/schema.prisma",
+    "db:migrate": "prisma migrate dev --schema ./prisma-users/schema.prisma",
+    "data-migration:add-display-name-and-profile-url": "tsx ./prisma-users/migrations/20250616000523_add_display_name_and_profile_url/data-migration.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.1",
+    "prisma": "^6.7.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.6.0",
+    "prisma-json-types-generator": "^3.3.1"
+  }
+}
+````
+
+## File: packages/types/src/statemachine/index.ts
+````typescript
+export * from './actors.js';
+export * from './gamedifficulties.js';
+export * from './gameservice.js';
+export * from './multiplayer/index.js';
+export * from './singleplayer/index.js';
+````
+
+## File: packages/types/src/websocket/index.ts
+````typescript
+export * from './messagebodies.js';
+export * from './playerguess.js';
+export * from './room.js';
+````
+
+## File: packages/types/src/websocket/room.ts
+````typescript
+import { users } from '@dribblio/database';
+import { Actor, AnyStateMachine } from 'xstate';
+import { MultiplayerConfig } from '../statemachine/multiplayer/gamemachine.js';
+import { SinglePlayerConfig } from '../statemachine/singleplayer/gamemachine.js';
+
+export interface Room {
+  id: string;
+  statemachine: Actor<AnyStateMachine> | undefined;
+  users: users.User[];
+  config: SinglePlayerConfig | MultiplayerConfig;
+  isMulti: boolean;
+}
+````
+
+## File: packages/types/package.json
+````json
+{
+  "name": "@dribblio/types",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@dribblio/typescript-config": "*",
+    "typescript": "latest"
+  },
+  "dependencies": {
+    "class-validator": "^0.14.2",
+    "joi": "^17.13.3",
+    "socket.io": "^4.8.1",
+    "xstate": "^5.19.2",
+    "zod": "^3.25.28"
+  }
+}
+````
+
+## File: apps/api/src/auth/jwt.strategy.ts
+````typescript
+import { Auth0JwtPayload } from '@/auth/payload.type';
+import { UserInfo } from '@/auth/userinfo.type';
+import { UsersPrismaService } from '@/database/users.prisma.service';
+import { Injectable } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import * as jwksRsa from 'jwks-rsa';
+import { ExtractJwt, Strategy, VerifiedCallback } from 'passport-jwt';
+
+@Injectable()
+export class JwtStrategy extends PassportStrategy(Strategy) {
+  constructor(private readonly usersPrismaService: UsersPrismaService) {
+    super({
+      secretOrKeyProvider: jwksRsa.passportJwtSecret({
+        cache: true,
+        rateLimit: true,
+        jwksRequestsPerMinute: 5,
+        jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`,
+      }),
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      audience: process.env.AUTH0_AUDIENCE,
+      issuer: `https://${process.env.AUTH0_DOMAIN}/`,
+      algorithms: ['RS256'],
+      passReqToCallback: true,
+    });
+  }
+
+  private async getUserProfileInfo(issuer: string, token: string | null): Promise<UserInfo> {
+    const userInfoUrl = `${issuer}userinfo`;
+    const response = await fetch(userInfoUrl, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch user profile info');
+    }
+
+    return response.json();
+  }
+
+  async validate(req: Request, payload: Auth0JwtPayload, done: VerifiedCallback): Promise<unknown> {
+    let user = await this.usersPrismaService.user.findUnique({ where: { id: payload.sub } });
+    if (!user) {
+      const token = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
+      const userInfo = await this.getUserProfileInfo(payload.iss, token);
+      user = await this.usersPrismaService.user.create({
+        data: {
+          id: payload.sub,
+          name: userInfo.name || '',
+          display_name: userInfo.given_name || '',
+          profile_url: userInfo.picture || '',
+        },
+      });
+    }
+
+    return done(null, { id: user.id });
+  }
+}
+````
+
+## File: apps/api/src/nba/games/careerpath/room/factory.service.ts
+````typescript
+import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
+import { GameService } from '@/nba/games/careerpath/game.service';
+import { users } from '@dribblio/database';
+import {
+  createMultiplayerMachine,
+  createSinglePlayerMachine,
+  MultiplayerConfig,
+  PlayerGuess,
+  Room,
+  SinglePlayerConfig,
+} from '@dribblio/types';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Socket } from 'socket.io';
+
+@Injectable()
+export class RoomFactory {
+  constructor(
+    @Inject(forwardRef(() => CareerPathGateway))
+    private gateway: CareerPathGateway,
+    private gameService: GameService,
+  ) {}
+
+  createSinglePlayerRoom(socket: Socket, config: SinglePlayerConfig): Room {
+    const room: Room = {
+      id: '',
+      statemachine: undefined,
+      users: [],
+      config,
+      isMulti: false,
+    };
+
+    room.statemachine = createSinglePlayerMachine(socket, room.config, this.gameService);
+
+    socket.on('start_game', () => {
+      room.statemachine?.subscribe((s) => {
+        socket.emit('state_change', s.value);
+      });
+
+      socket.on('skip_round', () => room.statemachine?.send({ type: 'SKIP' }));
+
+      socket.on('disconnect', () => {
+        room.statemachine?.stop();
+      });
+
+      room.statemachine?.send({ type: 'START_GAME', socket });
+    });
+
+    return room;
+  }
+
+  createMultiplayerRoom(socket: Socket, roomId: string, config: MultiplayerConfig): Room {
+    const room: Room = {
+      id: roomId,
+      statemachine: undefined,
+      users: [],
+      config: config,
+      isMulti: true,
+    };
+
+    room.statemachine = createMultiplayerMachine(this.gateway.server, room, this.gameService);
+
+    socket.on('start_game', (users: users.User[]) => {
+      room.statemachine?.subscribe((s) => {
+        this.gateway.server.to(room.id).emit('state_change', s.value);
+      });
+
+      room.statemachine?.send({ type: 'START_GAME', users });
+    });
+
+    return room;
+  }
+
+  setUpListenersOnJoin(socket: Socket, room: Room) {
+    socket.on('client_guess', (guess: PlayerGuess) => {
+      room.statemachine?.send({ type: 'CLIENT_GUESS', guess });
+    });
+
+    socket.on('disconnect', () => {
+      room.statemachine?.stop();
+    });
+  }
+}
+````
+
+## File: apps/api/src/nba/player/player.controller.ts
+````typescript
+import { PlayersService } from '@/nba/player/player.service';
+import { Controller, Get, Param, Query } from '@nestjs/common';
+
+@Controller('players')
+export class PlayersController {
+  constructor(private readonly playerService: PlayersService) {}
+
+  @Get()
+  findAll() {
+    return this.playerService.findAll();
+  }
+
+  @Get('random')
+  async findRandom() {
+    return await this.playerService.findRandom();
+  }
+
+  @Get('count')
+  async findCount() {
+    return await this.playerService.findCount();
+  }
+
+  @Get('search')
+  async search(@Query('searchTerm') searchTerm: string) {
+    const results = await this.playerService.findAll({
+      orderBy: {
+        last_name: 'asc',
+      },
+      where: {
+        display_first_last: {
+          contains: searchTerm,
+          mode: 'insensitive',
+        },
+      },
+    });
+
+    return {
+      results,
+    };
+  }
+
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    return await this.playerService.findOne(+id);
+  }
+}
+````
 
 ## File: apps/web/src/hooks/useSinglePlayerSocket.ts
-
-```typescript
+````typescript
 'use client';
 
 import { clientSocket } from '@/lib/clientsocket';
@@ -5614,381 +6601,10 @@ const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketP
 };
 
 export default useSinglePlayerSocket;
-```
-
-## File: packages/database/src/index.ts
-
-```typescript
-export * as nba from '../generated/prisma-nba/index.js';
-export * as users from '../generated/prisma-users/index.js';
-export * from './client.js';
-
-export * as runtime from '@prisma/client/runtime/library.js';
-```
-
-## File: packages/database/package.json
-
-```json
-{
-  "name": "@dribblio/database",
-  "version": "1.0.0",
-  "main": "dist/index.js",
-  "scripts": {
-    "build": "tsc",
-    "db:generate": "prisma generate --schema ./prisma-users/schema.prisma && prisma generate --schema ./prisma-nba/schema.prisma",
-    "db:migrate": "prisma migrate dev --schema ./prisma-users/schema.prisma",
-    "data-migration:add-display-name-and-profile-url": "tsx ./prisma-users/migrations/20250616000523_add_display_name_and_profile_url/data-migration.ts"
-  },
-  "devDependencies": {
-    "@types/node": "^24.0.1",
-    "prisma": "^6.7.0",
-    "ts-node": "^10.9.2",
-    "tsx": "^4.20.3",
-    "typescript": "^5.8.3"
-  },
-  "dependencies": {
-    "@prisma/client": "^6.6.0",
-    "prisma-json-types-generator": "^3.3.1"
-  }
-}
-```
-
-## File: packages/types/src/statemachine/index.ts
-
-```typescript
-export * from './actors.js';
-export * from './gamedifficulties.js';
-export * from './gameservice.js';
-export * from './multiplayer/index.js';
-export * from './singleplayer/index.js';
-```
-
-## File: packages/types/src/websocket/index.ts
-
-```typescript
-export * from './messagebodies.js';
-export * from './playerguess.js';
-export * from './room.js';
-```
-
-## File: packages/types/src/websocket/room.ts
-
-```typescript
-import { users } from '@dribblio/database';
-import { Actor, AnyStateMachine } from 'xstate';
-import { MultiplayerConfig } from '../statemachine/multiplayer/gamemachine.js';
-import { SinglePlayerConfig } from '../statemachine/singleplayer/gamemachine.js';
-
-export interface Room {
-  id: string;
-  statemachine: Actor<AnyStateMachine> | undefined;
-  users: users.User[];
-  config: SinglePlayerConfig | MultiplayerConfig;
-  isMulti: boolean;
-}
-```
-
-## File: packages/types/package.json
-
-```json
-{
-  "name": "@dribblio/types",
-  "type": "module",
-  "version": "1.0.0",
-  "description": "",
-  "main": "dist/index.js",
-  "scripts": {
-    "build": "tsc"
-  },
-  "devDependencies": {
-    "@dribblio/typescript-config": "*",
-    "typescript": "latest"
-  },
-  "dependencies": {
-    "socket.io": "^4.8.1",
-    "xstate": "^5.19.2",
-    "zod": "^3.25.28"
-  }
-}
-```
-
-## File: turbo.json
-
-```json
-{
-  "$schema": "https://turborepo.com/schema.json",
-  "ui": "tui",
-  "tasks": {
-    "start": {
-      "dependsOn": ["^start"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
-      "env": [
-        "DATABASE_URL",
-        "AUTH0_DOMAIN",
-        "AUTH0_AUDIENCE",
-        "AUTH0_CLIENT_ID",
-        "AUTH0_CLIENT_SECRET",
-        "AUTH0_SECRET",
-        "AUTH0_SCOPE",
-        "PORT"
-      ]
-    },
-    "build": {
-      "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
-      "env": [
-        "DATABASE_URL",
-        "AUTH0_DOMAIN",
-        "AUTH0_AUDIENCE",
-        "AUTH0_CLIENT_ID",
-        "AUTH0_CLIENT_SECRET",
-        "AUTH0_SECRET",
-        "AUTH0_SCOPE",
-        "PORT"
-      ]
-    },
-    "lint": {
-      "dependsOn": ["^lint"]
-    },
-    "check-types": {
-      "dependsOn": ["^check-types"]
-    },
-    "dev": {
-      "cache": false,
-      "persistent": true
-    },
-    "db:generate": {
-      "cache": false
-    },
-    "db:migrate": {
-      "cache": false
-    }
-  }
-}
-```
-
-## File: apps/api/src/auth/jwt.strategy.ts
-
-```typescript
-import { Auth0JwtPayload } from '@/auth/payload.type';
-import { UserInfo } from '@/auth/userinfo.type';
-import { UsersPrismaService } from '@/database/users.prisma.service';
-import { Injectable } from '@nestjs/common';
-import { PassportStrategy } from '@nestjs/passport';
-import * as jwksRsa from 'jwks-rsa';
-import { ExtractJwt, Strategy, VerifiedCallback } from 'passport-jwt';
-
-@Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private readonly usersPrismaService: UsersPrismaService) {
-    super({
-      secretOrKeyProvider: jwksRsa.passportJwtSecret({
-        cache: true,
-        rateLimit: true,
-        jwksRequestsPerMinute: 5,
-        jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`,
-      }),
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      audience: process.env.AUTH0_AUDIENCE,
-      issuer: `https://${process.env.AUTH0_DOMAIN}/`,
-      algorithms: ['RS256'],
-      passReqToCallback: true,
-    });
-  }
-
-  private async getUserProfileInfo(issuer: string, token: string | null): Promise<UserInfo> {
-    const userInfoUrl = `${issuer}userinfo`;
-    const response = await fetch(userInfoUrl, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch user profile info');
-    }
-
-    return response.json();
-  }
-
-  async validate(req: Request, payload: Auth0JwtPayload, done: VerifiedCallback): Promise<unknown> {
-    let user = await this.usersPrismaService.user.findUnique({ where: { id: payload.sub } });
-    if (!user) {
-      const token = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
-      const userInfo = await this.getUserProfileInfo(payload.iss, token);
-      user = await this.usersPrismaService.user.create({
-        data: {
-          id: payload.sub,
-          name: userInfo.name || '',
-          display_name: userInfo.given_name || '',
-          profile_url: userInfo.picture || '',
-        },
-      });
-    }
-    return done(null, user);
-  }
-}
-```
-
-## File: apps/api/src/nba/games/careerpath/room/factory.service.ts
-
-```typescript
-import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
-import { GameService } from '@/nba/games/careerpath/game.service';
-import { users } from '@dribblio/database';
-import {
-  createMultiplayerMachine,
-  createSinglePlayerMachine,
-  MultiplayerConfig,
-  PlayerGuess,
-  Room,
-  SinglePlayerConfig,
-} from '@dribblio/types';
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { Socket } from 'socket.io';
-
-@Injectable()
-export class RoomFactory {
-  constructor(
-    @Inject(forwardRef(() => CareerPathGateway))
-    private gateway: CareerPathGateway,
-    private gameService: GameService,
-  ) {}
-
-  createSinglePlayerRoom(socket: Socket, config: SinglePlayerConfig): Room {
-    const room: Room = {
-      id: '',
-      statemachine: undefined,
-      users: [],
-      config,
-      isMulti: false,
-    };
-
-    room.statemachine = createSinglePlayerMachine(socket, room.config, this.gameService);
-
-    socket.on('start_game', () => {
-      room.statemachine?.subscribe((s) => {
-        socket.emit('state_change', s.value);
-      });
-
-      socket.on('skip_round', () => room.statemachine?.send({ type: 'SKIP' }));
-
-      socket.on('disconnect', () => {
-        room.statemachine?.stop();
-      });
-
-      room.statemachine?.send({ type: 'START_GAME', socket });
-    });
-
-    return room;
-  }
-
-  createMultiplayerRoom(socket: Socket, roomId: string, config: MultiplayerConfig): Room {
-    const room: Room = {
-      id: roomId,
-      statemachine: undefined,
-      users: [],
-      config: config,
-      isMulti: true,
-    };
-
-    room.statemachine = createMultiplayerMachine(this.gateway.server, room, this.gameService);
-
-    socket.on('start_game', (users: users.User[]) => {
-      room.statemachine?.subscribe((s) => {
-        this.gateway.server.to(room.id).emit('state_change', s.value);
-      });
-
-      room.statemachine?.send({ type: 'START_GAME', users });
-    });
-
-    return room;
-  }
-
-  setUpListenersOnJoin(socket: Socket, room: Room) {
-    socket.on('client_guess', (guess: PlayerGuess) => {
-      room.statemachine?.send({ type: 'CLIENT_GUESS', guess });
-    });
-
-    socket.on('disconnect', () => {
-      room.statemachine?.stop();
-    });
-  }
-}
-```
-
-## File: apps/api/src/nba/player/player.controller.ts
-
-```typescript
-import { PlayersService } from '@/nba/player/player.service';
-import { Controller, Get, Param, Query } from '@nestjs/common';
-
-@Controller('players')
-export class PlayersController {
-  constructor(private readonly playerService: PlayersService) {}
-
-  @Get()
-  findAll() {
-    return this.playerService.findAll();
-  }
-
-  @Get('random')
-  async findRandom() {
-    return await this.playerService.findRandom();
-  }
-
-  @Get('count')
-  async findCount() {
-    return await this.playerService.findCount();
-  }
-
-  @Get('search')
-  async search(@Query('searchTerm') searchTerm: string) {
-    const results = await this.playerService.findAll({
-      orderBy: {
-        last_name: 'asc',
-      },
-      where: {
-        display_first_last: {
-          contains: searchTerm,
-          mode: 'insensitive',
-        },
-      },
-    });
-
-    return {
-      results,
-    };
-  }
-
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return await this.playerService.findOne(+id);
-  }
-}
-```
-
-## File: apps/api/src/main.ts
-
-```typescript
-import { AppModule } from '@/app.module';
-import { NestFactory } from '@nestjs/core';
-import * as dotenv from 'dotenv';
-
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  app.setGlobalPrefix('/api');
-  await app.listen(process.env.PORT ?? 3002);
-}
-dotenv.config();
-bootstrap();
-```
+````
 
 ## File: packages/types/src/statemachine/singleplayer/gamemachine.ts
-
-```typescript
+````typescript
 import { nba } from '@dribblio/database';
 import { Socket } from 'socket.io';
 import { Actor, AnyStateMachine, assign, createActor, enqueueActions, setup } from 'xstate';
@@ -6155,19 +6771,19 @@ export function createSinglePlayerMachine(
 
   return createActor(gameMachine).start();
 }
-```
+````
 
 ## File: packages/types/src/index.ts
-
-```typescript
+````typescript
+export * from './dtos/index.js';
+export * from './forms/index.js';
 export * from './responses/index.js';
 export * from './statemachine/index.js';
 export * from './websocket/index.js';
-```
+````
 
 ## File: apps/api/src/app.module.ts
-
-```typescript
+````typescript
 import { AuthModule } from '@/auth/auth.module';
 import { NBAModule } from '@/nba/nba.module';
 import { Module } from '@nestjs/common';
@@ -6179,50 +6795,41 @@ import { UsersModule } from './users/users.module';
   providers: [],
 })
 export class AppModule {}
-```
+````
 
-## File: apps/web/src/app/profile/page.tsx
+## File: apps/api/src/main.ts
+````typescript
+import { AppModule } from '@/app.module';
+import { ValidationPipe } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
+import * as dotenv from 'dotenv';
+import * as express from 'express';
 
-```typescript
-'use client';
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
 
-import { Button } from '@/components/ui/button';
-import { getAccessToken } from '@auth0/nextjs-auth0';
-import { User } from '@dribblio/database/generated/prisma-users';
-import NextLink from 'next/link';
-import { useEffect, useState } from 'react';
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
 
-export default function ProfilePage() {
-  const [user, setUser] = useState<User | undefined>(undefined);
-
-  useEffect(() => {
-    getAccessToken().then((token) => {
-      fetch('/api/me', { headers: { Authorization: `Bearer ${token}` } })
-        .then((res) => res.json())
-        .then(setUser);
-    });
-  }, []);
-
-  return (
-    <div className="flex flex-col h-full space-y-8">
-      {user && (
-        <div>
-          <p>Hello {user.name}!</p>
-        </div>
-      )}
-      <div>
-        <Button asChild>
-          <NextLink href="/auth/logout">Logout</NextLink>
-        </Button>
-      </div>
-    </div>
-  );
+  app.useGlobalPipes(new ValidationPipe());
+  app.setGlobalPrefix('/api');
+  await app.listen(process.env.PORT ?? 3002);
 }
-```
+dotenv.config();
+bootstrap();
+````
+
+## File: packages/database/.gitignore
+````
+node_modules
+# Keep environment variables out of version control
+.env
+
+**/generated/
+````
 
 ## File: packages/types/src/statemachine/actors.ts
-
-```typescript
+````typescript
 import { fromPromise } from 'xstate';
 
 import { nba } from '@dribblio/database';
@@ -6245,11 +6852,130 @@ export const generateRound = fromPromise(async ({ input }: RoundInput): Promise<
   const { difficulty, gameService } = input;
   return await gameService.generateRound(difficulty);
 });
-```
+````
+
+## File: turbo.json
+````json
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "start": {
+      "dependsOn": ["^start"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": [
+        "DATABASE_URL",
+        "AUTH0_DOMAIN",
+        "AUTH0_AUDIENCE",
+        "AUTH0_CLIENT_ID",
+        "AUTH0_CLIENT_SECRET",
+        "AUTH0_SECRET",
+        "AUTH0_SCOPE",
+        "PORT",
+        "AWS_S3_BUCKET_NAME",
+        "AWS_CLOUDFRONT_CNAME",
+        "AWS_CLOUDFRONT_KEY_PAIR_ID",
+        "AWS_CLOUDFRONT_PRIVATE_KEY_SECRET_NAME"
+      ]
+    },
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": [
+        "DATABASE_URL",
+        "AUTH0_DOMAIN",
+        "AUTH0_AUDIENCE",
+        "AUTH0_CLIENT_ID",
+        "AUTH0_CLIENT_SECRET",
+        "AUTH0_SECRET",
+        "AUTH0_SCOPE",
+        "PORT",
+        "AWS_S3_BUCKET_NAME",
+        "AWS_CLOUDFRONT_CNAME",
+        "AWS_CLOUDFRONT_KEY_PAIR_ID",
+        "AWS_CLOUDFRONT_PRIVATE_KEY_SECRET_NAME"
+      ]
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "check-types": {
+      "dependsOn": ["^check-types"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "db:generate": {
+      "cache": false
+    },
+    "db:migrate": {
+      "cache": false
+    }
+  }
+}
+````
+
+## File: apps/web/src/app/profile/page.tsx
+````typescript
+'use client';
+
+import EditProfileModal from '@/components/editprofilemodal';
+import { Button } from '@/components/ui/button';
+import { useDBUser } from '@/context/dbusercontext';
+import { Pencil } from 'lucide-react';
+import Image from 'next/image';
+import NextLink from 'next/link';
+
+export default function ProfilePage() {
+  const { user } = useDBUser();
+
+  return (
+    <>
+      <div className="flex flex-col h-full items-center space-y-8 pt-12">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="relative">
+            <Image
+              src={user?.profile_url ?? ''}
+              alt="Profile"
+              width={100}
+              height={100}
+              className="rounded-full"
+            />
+            <div className="absolute bottom-0 right-0">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => {}}
+                className="rounded-full size-8"
+              >
+                <Pencil />
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center space-y-2">
+            <span className="text-2xl font-bold">Hello {user?.name}!</span>
+            <span className="text-sm text-muted-foreground">{`@${user?.display_name}`}</span>
+          </div>
+
+          <EditProfileModal />
+        </div>
+        <div>
+          <Button asChild>
+            <NextLink href="/auth/logout">Logout</NextLink>
+          </Button>
+        </div>
+      </div>
+    </>
+  );
+}
+````
 
 ## File: packages/types/src/statemachine/multiplayer/gamemachine.ts
-
-```typescript
+````typescript
 import { nba, users } from '@dribblio/database';
 import { Server } from 'socket.io';
 import { Actor, AnyStateMachine, assign, createActor, enqueueActions, setup } from 'xstate';
@@ -6430,11 +7156,10 @@ export function createMultiplayerMachine(
 
   return createActor(gameMachine).start();
 }
-```
+````
 
 ## File: apps/api/package.json
-
-```json
+````json
 {
   "name": "api",
   "version": "0.0.1",
@@ -6457,6 +7182,10 @@ export function createMultiplayerMachine(
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.832.0",
+    "@aws-sdk/client-secrets-manager": "^3.830.0",
+    "@aws-sdk/cloudfront-signer": "^3.821.0",
+    "@aws-sdk/lib-storage": "^3.832.0",
     "@dribblio/database": "*",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
@@ -6470,6 +7199,7 @@ export function createMultiplayerMachine(
     "dotenv": "^16.5.0",
     "eslint-plugin-jest": "^28.13.0",
     "jwks-rsa": "^3.2.0",
+    "nestjs-cls": "^6.0.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
@@ -6486,6 +7216,7 @@ export function createMultiplayerMachine(
     "@swc/core": "^1.10.7",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
+    "@types/multer": "^1.4.13",
     "@types/node": "^22.10.7",
     "@types/passport-jwt": "^4.0.1",
     "@types/supertest": "^6.0.2",
@@ -6506,22 +7237,27 @@ export function createMultiplayerMachine(
     "typescript-eslint": "^8.20.0"
   },
   "jest": {
-    "moduleFileExtensions": ["js", "json", "ts"],
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
-    "collectCoverageFrom": ["**/*.(t|j)s"],
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
   }
 }
-```
+````
 
 ## File: apps/web/package.json
-
-```json
+````json
 {
   "name": "web",
   "version": "0.1.0",
@@ -6536,7 +7272,8 @@ export function createMultiplayerMachine(
   "dependencies": {
     "@auth0/nextjs-auth0": "^4.6.1",
     "@dribblio/database": "*",
-    "@hookform/resolvers": "^5.0.1",
+    "@hookform/resolvers": "^5.1.1",
+    "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-select": "^2.2.5",
@@ -6552,19 +7289,22 @@ export function createMultiplayerMachine(
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "eslint-plugin-jest": "^28.13.0",
+    "joi": "^17.13.3",
     "lucide-react": "^0.511.0",
     "motion": "^12.15.0",
     "next": "^15.3.0",
     "next-themes": "^0.4.6",
     "react": "^19.1.0",
+    "react-avatar-editor": "^14.0.0-beta.6",
     "react-dom": "^19.1.0",
+    "react-dropzone": "^14.3.8",
+    "react-image-crop": "^11.0.10",
     "react-toastify": "^11.0.5",
     "short-unique-id": "^5.3.2",
     "socket.io-client": "^4.8.1",
     "tailwind-merge": "^3.0.2",
     "tailwindcss-animate": "^1.0.7",
-    "unique-username-generator": "^1.4.0",
-    "zod": "^3.24.2"
+    "unique-username-generator": "^1.4.0"
   },
   "devDependencies": {
     "@dribblio/eslint-config": "*",
@@ -6583,10 +7323,9 @@ export function createMultiplayerMachine(
     "typescript": "5.8.2"
   }
 }
-```
+````
 
 ## File: README.md
-
 ````markdown
 # dribbl.io
 
@@ -6620,6 +7359,14 @@ This is a NBA career path guessing game. Guess the NBA player based on the prese
 - Live score updates
 - Competitive gameplay
 
+### Authentication
+
+- **Auth0 Integration**: Secure user authentication and authorization
+- **User Profiles**: Personalized user experience with profile management
+- **Protected Routes**: Secure access to user-specific features
+- **Social Login**: Support for Google and other social providers
+- **JWT Tokens**: Secure API access with JWT-based authentication
+
 ## What's inside?
 
 This Turborepo includes the following packages/apps:
@@ -6630,11 +7377,18 @@ This Turborepo includes the following packages/apps:
   - NBA player data API
   - Real-time game functionality via WebSockets
   - PostgreSQL database integration
+  - **Auth0 JWT authentication and authorization**
+  - **User management and profile endpoints**
 - `web`: a [Next.js](https://nextjs.org/) app that provides:
   - Interactive game interface
   - Real-time multiplayer functionality
   - Responsive design
+  - **Auth0 authentication integration**
+  - **User profile management**
+  - **Protected routes and middleware**
 - `@dribblio/database`: a Prisma ORM types library shared by both `web` and `api` applications
+  - **NBA database schema** for player data
+  - **Users database schema** for authentication and user profiles
 - `@dribblio/types`: a Typescript types library shared by both `web` and `api` applications
 - `@dribblio/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
 - `@dribblio/typescript-config`: `tsconfig.json`s used throughout the monorepo
@@ -6656,6 +7410,7 @@ This Turborepo has some additional tools already setup for you:
 - Node.js (Latest LTS version recommended)
 - PostgreSQL database
 - npm or yarn package manager
+- **Auth0 account and application setup**
 
 ### Setup
 
@@ -6673,9 +7428,56 @@ This Turborepo has some additional tools already setup for you:
    ```
 
 3. Set up environment variables:
+
+   **API Environment Variables** (create `.env` file in the `api` directory):
+
    ```bash
-   # Create .env file in the api directory
+   # Database URLs
    DATABASE_URL="postgresql://user:password@localhost:5432/dribblio"
+   USERS_DATABASE_URL="postgresql://user:password@localhost:5432/dribblio_users"
+
+   # Auth0 Configuration
+   AUTH0_DOMAIN="your-domain.auth0.com"
+   AUTH0_AUDIENCE="your-api-identifier"
+   AUTH0_CLIENT_ID="your-client-id"
+   AUTH0_CLIENT_SECRET="your-client-secret"
+   AUTH0_SECRET="your-secret"
+   AUTH0_SCOPE="openid profile email"
+
+   # Server Configuration
+   PORT=3002
+   ```
+
+   **Web Environment Variables** (create `.env.local` file in the `web` directory):
+
+   ```bash
+   # Auth0 Configuration
+   AUTH0_SECRET="your-secret"
+   AUTH0_BASE_URL="http://localhost:3000"
+   AUTH0_ISSUER_BASE_URL="https://your-domain.auth0.com"
+   AUTH0_CLIENT_ID="your-client-id"
+   AUTH0_CLIENT_SECRET="your-client-secret"
+   AUTH0_AUDIENCE="your-api-identifier"
+   AUTH0_SCOPE="openid profile email"
+   ```
+
+4. **Set up Auth0 Application**:
+
+   - Create an Auth0 account at [auth0.com](https://auth0.com)
+   - Create a new application (Regular Web Application)
+   - Configure callback URLs: `http://localhost:3000/api/auth/callback`
+   - Configure logout URLs: `http://localhost:3000`
+   - Create an API with appropriate scopes
+   - Update the environment variables with your Auth0 configuration
+
+5. **Set up Databases**:
+
+   ```bash
+   # Generate Prisma clients
+   npm run db:generate
+
+   # Run database migrations
+   npm run db:migrate
    ```
 
 ### Build
@@ -6742,8 +7544,7 @@ Learn more about the power of Turborepo:
 ````
 
 ## File: package.json
-
-```json
+````json
 {
   "name": "dribbl.io",
   "private": true,
@@ -6767,6 +7568,9 @@ Learn more about the power of Turborepo:
     "node": ">=18"
   },
   "packageManager": "npm@11.2.0",
-  "workspaces": ["apps/*", "packages/*"]
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
 }
-```
+````

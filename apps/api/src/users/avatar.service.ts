@@ -30,12 +30,20 @@ export class AvatarService {
     throw new Error('Failed to get CloudFront private key');
   }
 
+  // TODO: Move signed url logic to controller with a interceptor
   async uploadAvatar(userId: string, file: Express.Multer.File) {
-    await this.s3Service.uploadFile(userId, file.buffer);
+    const now = new Date().toISOString();
+    await this.s3Service.uploadFile(`${userId}-${now}`, file.buffer);
 
     const encodedUserId = encodeURIComponent(userId);
+    const encodedDate = encodeURIComponent(now);
 
-    const unsignedUrl = `https://${process.env.AWS_CLOUDFRONT_CNAME}/${encodedUserId}.jpg`;
+    const unsignedUrl = `https://${process.env.AWS_CLOUDFRONT_CNAME}/${encodedUserId}-${encodedDate}.jpg`;
+
+    return unsignedUrl;
+  }
+
+  async getSignedUrl(unsignedUrl: string) {
     const nowMs = Date.now();
     const expiryDate = new Date(nowMs + this.urlExpirySeconds * 1000);
 

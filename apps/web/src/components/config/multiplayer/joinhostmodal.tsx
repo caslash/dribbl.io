@@ -20,11 +20,13 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { HostFormValues, hostSchema, JoinFormValues, joinSchema } from '@/lib/schemas';
+import { hostSchema, joinSchema } from '@/lib/schemas';
 import {
   GameDifficulties,
   GameDifficultyNames,
   GameDifficultySchema,
+  HostFormValues,
+  JoinFormValues,
   MultiplayerConfig,
 } from '@dribblio/types';
 import { joiResolver } from '@hookform/resolvers/joi';

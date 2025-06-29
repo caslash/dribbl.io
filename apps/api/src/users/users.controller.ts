@@ -1,5 +1,6 @@
-import { UpdateUserDto } from '@/users/dto/update-user.dto';
+import { SignedUrlInterceptor } from '@/users/signedurl.inteceptor';
 import { UsersService } from '@/users/users.service';
+import { UpdateUserDto } from '@dribblio/types';
 import {
   Body,
   Controller,
@@ -15,6 +16,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 
 @UseGuards(AuthGuard('jwt'))
+@UseInterceptors(SignedUrlInterceptor)
 @Controller('me')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}

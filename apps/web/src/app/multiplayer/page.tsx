@@ -3,11 +3,11 @@
 import { CareerPath } from '@/components/careerpath/careerpathview';
 import JoinHostModal from '@/components/config/multiplayer/joinhostmodal';
 import PlayerSearchBar from '@/components/search/playersearchbar';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import useMultiplayerSocket from '@/hooks/useMultiplayerSocket';
 import { UserGameInfo } from '@dribblio/types';
 import { User } from 'lucide-react';
-import Image from 'next/image';
 
 export default function Game() {
   const {
@@ -40,12 +40,14 @@ export default function Game() {
                 <li key={user.info.id}>
                   <div className="flex flex-row space-x-2 items-center">
                     {user.info.profile_url ? (
-                      <Image
-                        src={user.info.profile_url}
-                        alt={user.info.name ?? ''}
-                        width={24}
-                        height={24}
-                      />
+                      <Avatar>
+                        <AvatarImage
+                          src={user.info.profile_url}
+                          alt={user.info.name ?? ''}
+                          width={24}
+                          height={24}
+                        />
+                      </Avatar>
                     ) : (
                       <User />
                     )}

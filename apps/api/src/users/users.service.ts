@@ -1,8 +1,8 @@
 import { UsersPrismaService } from '@/database/users.prisma.service';
 import { AvatarService } from '@/users/avatar.service';
 import { S3Service } from '@/users/s3.service';
+import { UpdateUserDto } from '@dribblio/types';
 import { Injectable } from '@nestjs/common';
-import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -26,7 +26,6 @@ export class UsersService {
       data: {
         display_name: updateUserDto.display_name ?? '',
         name: updateUserDto.name ?? '',
-        profile_url: updateUserDto.profile_url ?? '',
       },
     });
   }

@@ -1,15 +1,10 @@
-import { GameDifficultyNames } from '@dribblio/types';
+import {
+  GameDifficultyNames,
+  HostFormValues,
+  JoinFormValues,
+  UpdateUserDto,
+} from '@dribblio/types';
 import Joi from 'joi';
-
-export type HostFormValues = {
-  isRoundLimit: boolean;
-  config: {
-    scoreLimit?: number;
-    roundLimit?: number;
-    roundTimeLimit: number;
-    gameDifficulty: string;
-  };
-};
 
 export const hostSchema = Joi.object<HostFormValues>({
   isRoundLimit: Joi.boolean().required(),
@@ -36,10 +31,12 @@ export const hostSchema = Joi.object<HostFormValues>({
   return value;
 }, 'Round/Score limit conditional check');
 
-export type JoinFormValues = {
-  roomId: string;
-};
-
 export const joinSchema = Joi.object<JoinFormValues>({
   roomId: Joi.string().required(),
+});
+
+export const updateUserSchema = Joi.object<UpdateUserDto>({
+  display_name: Joi.string().optional(),
+  name: Joi.string().optional(),
+  profile_url: Joi.string().optional(),
 });
