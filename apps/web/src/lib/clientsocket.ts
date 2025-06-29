@@ -2,6 +2,6 @@
 
 import { io } from 'socket.io-client';
 
-export const clientSocket = io(`http://localhost:3002`, {
+export const clientSocket = io(process.env.API_BASE_URL, {
   autoConnect: false,
 });

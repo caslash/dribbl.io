@@ -3,7 +3,7 @@ import { useState } from 'react';
 const useUnveilLogos = (teamHistory: string[]) => {
   const [visibleIndexes, setVisibleIndexes] = useState<number[]>([]);
   const indexArr: number[] = Array.from(Array(teamHistory.length).keys());
-  let remainingTeams = [...indexArr];
+  const remainingTeams = [...indexArr];
 
   const unveilRandomLogoIndex = (unveilInterval: NodeJS.Timeout) => {
     if (remainingTeams.length === 0) {
@@ -14,7 +14,7 @@ const useUnveilLogos = (teamHistory: string[]) => {
     const randomIndex = Math.floor(Math.random() * remainingTeams.length);
     const selectedTeam: number = remainingTeams[randomIndex]!;
 
-    remainingTeams = remainingTeams.splice(randomIndex, 1);
+    remainingTeams.splice(randomIndex, 1);
 
     console.log(`Unveiling team #${selectedTeam + 1}`);
     setVisibleIndexes((prev) => [...prev, selectedTeam]);
