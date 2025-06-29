@@ -24,6 +24,11 @@ The web application is built using Next.js 15 and follows a modern React archite
   - Protected routes with middleware
   - User profile management
   - JWT token handling
+- **Avatar Management**:
+  - Drag-and-drop file uploads
+  - Image cropping and editing
+  - Real-time preview
+  - Secure upload to S3
 
 ## Tech Stack
 
@@ -37,6 +42,8 @@ The web application is built using Next.js 15 and follows a modern React archite
 - React Hook Form for form handling
 - **Auth0 Next.js SDK for authentication**
 - **Next.js Middleware for route protection**
+- **React Image Crop for avatar editing**
+- **React Dropzone for file uploads**
 
 ## Features
 
@@ -76,6 +83,15 @@ The web application is built using Next.js 15 and follows a modern React archite
 - **Session Management**: Automatic session handling and token refresh
 - **Social Login**: Support for Google and other social providers
 
+### Avatar Management
+
+- **Drag-and-Drop Upload**: Intuitive file upload interface
+- **Image Cropping**: Interactive crop tool with aspect ratio lock
+- **Real-time Preview**: Live preview of cropped image
+- **File Validation**: Support for JPG, PNG, GIF, WebP (max 5MB)
+- **Secure Upload**: Direct upload to S3 with signed URLs
+- **Profile Integration**: Seamless integration with user profiles
+
 ### UI Components
 
 The application uses a combination of:
@@ -84,6 +100,7 @@ The application uses a combination of:
 - Tailwind CSS for styling
 - Responsive design for all screen sizes
 - **Auth0 components for authentication flows**
+- **Custom avatar editor with image cropping**
 
 ## Development Setup
 
@@ -158,6 +175,8 @@ src/
 ├── components/          # Reusable UI components
 │   ├── navbar/          # Navigation components
 │   ├── ui/              # Base UI components
+│   ├── avatar-editor.tsx # Avatar editing component
+│   ├── editprofilemodal.tsx # Profile editing modal
 │   └── login-form.tsx   # Authentication form
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions
@@ -188,6 +207,12 @@ src/
 - Lucide React icons
 - Tailwind Variants
 
+### Avatar Management
+
+- **react-image-crop**: Image cropping functionality
+- **react-dropzone**: Drag-and-drop file uploads
+- **@radix-ui/react-avatar**: Avatar display components
+
 ### State Management & Data
 
 - React Hook Form
@@ -211,6 +236,15 @@ src/
 5. **API Integration**: JWT tokens are used for secure API communication
 6. **Logout**: Secure logout with session cleanup
 
+## Avatar Upload Flow
+
+1. **File Selection**: Users can drag and drop or click to select an image
+2. **File Validation**: System validates file type and size (max 5MB)
+3. **Image Cropping**: Interactive crop tool with 1:1 aspect ratio
+4. **Preview**: Real-time preview of the cropped image
+5. **Upload**: Secure upload to S3 via API
+6. **Profile Update**: Avatar URL is automatically updated in user profile
+
 ## Security Features
 
 - **JWT Token Validation**: Secure token-based authentication
@@ -219,6 +253,7 @@ src/
 - **CORS Protection**: Configured for secure cross-origin requests
 - **Input Validation**: Comprehensive form validation
 - **Error Handling**: Secure error responses
+- **File Upload Security**: Secure file upload with validation
 
 ## Future Enhancements
 
@@ -229,6 +264,8 @@ src/
 - **Advanced Analytics**: Detailed game statistics and insights
 - **Progressive Web App**: Offline support and app-like experience
 - **Theme Customization**: User-selectable themes and customization
+- **Image Optimization**: Client-side image compression and optimization
+- **Avatar Templates**: Pre-designed avatar templates and customization options
 
 ## License
 

@@ -15,6 +15,9 @@ The API is built using NestJS and follows a modular architecture:
 - `UsersModule`: User management and profile functionality
   - `UsersController`: User profile endpoints
   - `UsersService`: User data management
+  - `AvatarService`: Avatar upload and signed URL generation
+  - `S3Service`: AWS S3 file upload functionality
+  - `SignedUrlInterceptor`: Automatic signed URL generation for user profiles
 - `DatabaseModule`: Database integration using Prisma with PostgreSQL
   - NBA database for player data
   - Users database for authentication and user profiles
@@ -30,6 +33,8 @@ The API is built using NestJS and follows a modular architecture:
 - **Auth0 for authentication and authorization**
 - **Passport.js for JWT strategy**
 - **JWKS-RSA for token validation**
+- **AWS SDK for S3 and CloudFront integration**
+- **AWS Secrets Manager for secure key storage**
 
 ## Database Schema
 
@@ -113,6 +118,34 @@ AUTH0_SECRET="your-secret"
 AUTH0_SCOPE="openid profile email"
 ```
 
+## Avatar Management
+
+The API provides comprehensive avatar management functionality:
+
+### AWS S3 Integration
+
+- **Secure File Upload**: Upload avatar images to S3 with proper file validation
+- **Automatic File Naming**: Unique file names based on user ID and timestamp
+- **CloudFront Distribution**: Serve avatars through CloudFront for better performance
+- **Signed URLs**: Generate time-limited signed URLs for secure avatar access
+
+### Avatar Service Features
+
+- **Image Upload**: Handle multipart form data for avatar uploads
+- **File Validation**: Validate file types and sizes
+- **Secure Storage**: Store avatars in S3 with proper access controls
+- **Signed URL Generation**: Create time-limited signed URLs for secure access
+- **Automatic URL Signing**: Interceptor automatically signs profile URLs in responses
+
+### Required AWS Environment Variables
+
+```bash
+AWS_S3_BUCKET_NAME="your-s3-bucket-name"
+AWS_CLOUDFRONT_CNAME="your-cloudfront-domain.cloudfront.net"
+AWS_CLOUDFRONT_KEY_PAIR_ID="your-cloudfront-key-pair-id"
+AWS_CLOUDFRONT_PRIVATE_KEY_SECRET_NAME="your-secrets-manager-secret-name"
+```
+
 ## API Endpoints
 
 ### Players API
@@ -131,10 +164,11 @@ Base URL: `/players`
 
 Base URL: `/me` (Protected routes requiring authentication)
 
-| Method | Endpoint | Description                 |
-| ------ | -------- | --------------------------- |
-| GET    | `/`      | Get current user profile    |
-| PATCH  | `/`      | Update current user profile |
+| Method | Endpoint  | Description                 |
+| ------ | --------- | --------------------------- |
+| GET    | `/`       | Get current user profile    |
+| PATCH  | `/`       | Update current user profile |
+| PUT    | `/avatar` | Upload user avatar image    |
 
 ## CareerPath Game
 
@@ -200,11 +234,25 @@ The CareerPath game is a real-time multiplayer/singleplayer game where players m
    AUTH0_SECRET="your-secret"
    AUTH0_SCOPE="openid profile email"
 
+   # AWS Configuration
+   AWS_S3_BUCKET_NAME="your-s3-bucket-name"
+   AWS_CLOUDFRONT_CNAME="your-cloudfront-domain.cloudfront.net"
+   AWS_CLOUDFRONT_KEY_PAIR_ID="your-cloudfront-key-pair-id"
+   AWS_CLOUDFRONT_PRIVATE_KEY_SECRET_NAME="your-secrets-manager-secret-name"
+
    # Server Configuration
    PORT=3002
    ```
 
-3. Set up databases:
+3. Set up AWS services:
+
+   - Create an S3 bucket for avatar storage
+   - Set up CloudFront distribution for secure avatar access
+   - Create a CloudFront key pair for signed URLs
+   - Store the private key in AWS Secrets Manager
+   - Configure CORS on your S3 bucket
+
+4. Set up databases:
 
    ```bash
    # Generate Prisma clients
@@ -214,13 +262,13 @@ The CareerPath game is a real-time multiplayer/singleplayer game where players m
    npm run db:migrate
    ```
 
-4. Start the development server:
+5. Start the development server:
 
    ```bash
    npm run dev
    ```
 
-5. Run tests:
+6. Run tests:
    ```bash
    npm test
    ```
@@ -247,6 +295,33 @@ The CareerPath game uses WebSocket connections for real-time gameplay. The follo
 - `game_state`: Receive game state updates
 - `score_update`: Receive score updates
 
+## Dependencies
+
+### Core Dependencies
+
+- `@nestjs/common`: NestJS core framework
+- `@nestjs/core`: NestJS core functionality
+- `@nestjs/platform-express`: Express platform integration
+- `@nestjs/platform-socket.io`: Socket.IO platform integration
+- `@nestjs/websockets`: WebSocket support
+- `@nestjs/passport`: Passport integration
+- `passport-jwt`: JWT strategy for Passport
+- `jwks-rsa`: JWKS RSA key retrieval
+
+### AWS Dependencies
+
+- `@aws-sdk/client-s3`: S3 client for file uploads
+- `@aws-sdk/client-secrets-manager`: Secrets Manager client
+- `@aws-sdk/cloudfront-signer`: CloudFront signed URL generation
+- `@aws-sdk/lib-storage`: S3 upload utilities
+
+### Database & Validation
+
+- `@dribblio/database`: Shared database package
+- `class-validator`: Request validation
+- `class-transformer`: Object transformation
+- `rxjs`: Reactive programming utilities
+
 ## Security Features
 
 - **JWT Token Validation**: Secure token-based authentication
@@ -254,6 +329,8 @@ The CareerPath game uses WebSocket connections for real-time gameplay. The follo
 - **Rate Limiting**: Built-in protection against abuse
 - **Input Validation**: Comprehensive request validation using class-validator
 - **Error Handling**: Secure error responses without sensitive information
+- **Signed URLs**: Time-limited secure access to avatar images
+- **AWS IAM**: Proper access controls for S3 and CloudFront
 
 ## Future Enhancements
 
@@ -263,6 +340,8 @@ The CareerPath game uses WebSocket connections for real-time gameplay. The follo
 - **Social Features**: Friend system and social interactions
 - **Advanced Analytics**: Detailed game statistics and insights
 - **Cloud Deployment**: Production-ready deployment configuration
+- **Image Processing**: Server-side image optimization and resizing
+- **CDN Integration**: Enhanced content delivery network setup
 
 ## License
 

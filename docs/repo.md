@@ -4411,6 +4411,9 @@ The API is built using NestJS and follows a modular architecture:
 - `UsersModule`: User management and profile functionality
   - `UsersController`: User profile endpoints
   - `UsersService`: User data management
+  - `AvatarService`: Avatar upload and signed URL generation
+  - `S3Service`: AWS S3 file upload functionality
+  - `SignedUrlInterceptor`: Automatic signed URL generation for user profiles
 - `DatabaseModule`: Database integration using Prisma with PostgreSQL
   - NBA database for player data
   - Users database for authentication and user profiles
@@ -4426,6 +4429,8 @@ The API is built using NestJS and follows a modular architecture:
 - **Auth0 for authentication and authorization**
 - **Passport.js for JWT strategy**
 - **JWKS-RSA for token validation**
+- **AWS SDK for S3 and CloudFront integration**
+- **AWS Secrets Manager for secure key storage**
 
 ## Database Schema
 
@@ -4509,6 +4514,34 @@ AUTH0_SECRET="your-secret"
 AUTH0_SCOPE="openid profile email"
 ```
 
+## Avatar Management
+
+The API provides comprehensive avatar management functionality:
+
+### AWS S3 Integration
+
+- **Secure File Upload**: Upload avatar images to S3 with proper file validation
+- **Automatic File Naming**: Unique file names based on user ID and timestamp
+- **CloudFront Distribution**: Serve avatars through CloudFront for better performance
+- **Signed URLs**: Generate time-limited signed URLs for secure avatar access
+
+### Avatar Service Features
+
+- **Image Upload**: Handle multipart form data for avatar uploads
+- **File Validation**: Validate file types and sizes
+- **Secure Storage**: Store avatars in S3 with proper access controls
+- **Signed URL Generation**: Create time-limited signed URLs for secure access
+- **Automatic URL Signing**: Interceptor automatically signs profile URLs in responses
+
+### Required AWS Environment Variables
+
+```bash
+AWS_S3_BUCKET_NAME="your-s3-bucket-name"
+AWS_CLOUDFRONT_CNAME="your-cloudfront-domain.cloudfront.net"
+AWS_CLOUDFRONT_KEY_PAIR_ID="your-cloudfront-key-pair-id"
+AWS_CLOUDFRONT_PRIVATE_KEY_SECRET_NAME="your-secrets-manager-secret-name"
+```
+
 ## API Endpoints
 
 ### Players API
@@ -4527,10 +4560,11 @@ Base URL: `/players`
 
 Base URL: `/me` (Protected routes requiring authentication)
 
-| Method | Endpoint | Description                 |
-| ------ | -------- | --------------------------- |
-| GET    | `/`      | Get current user profile    |
-| PATCH  | `/`      | Update current user profile |
+| Method | Endpoint  | Description                 |
+| ------ | --------- | --------------------------- |
+| GET    | `/`       | Get current user profile    |
+| PATCH  | `/`       | Update current user profile |
+| PUT    | `/avatar` | Upload user avatar image    |
 
 ## CareerPath Game
 
@@ -4596,11 +4630,25 @@ The CareerPath game is a real-time multiplayer/singleplayer game where players m
    AUTH0_SECRET="your-secret"
    AUTH0_SCOPE="openid profile email"
 
+   # AWS Configuration
+   AWS_S3_BUCKET_NAME="your-s3-bucket-name"
+   AWS_CLOUDFRONT_CNAME="your-cloudfront-domain.cloudfront.net"
+   AWS_CLOUDFRONT_KEY_PAIR_ID="your-cloudfront-key-pair-id"
+   AWS_CLOUDFRONT_PRIVATE_KEY_SECRET_NAME="your-secrets-manager-secret-name"
+
    # Server Configuration
    PORT=3002
    ```
 
-3. Set up databases:
+3. Set up AWS services:
+
+   - Create an S3 bucket for avatar storage
+   - Set up CloudFront distribution for secure avatar access
+   - Create a CloudFront key pair for signed URLs
+   - Store the private key in AWS Secrets Manager
+   - Configure CORS on your S3 bucket
+
+4. Set up databases:
 
    ```bash
    # Generate Prisma clients
@@ -4610,13 +4658,13 @@ The CareerPath game is a real-time multiplayer/singleplayer game where players m
    npm run db:migrate
    ```
 
-4. Start the development server:
+5. Start the development server:
 
    ```bash
    npm run dev
    ```
 
-5. Run tests:
+6. Run tests:
    ```bash
    npm test
    ```
@@ -4643,6 +4691,33 @@ The CareerPath game uses WebSocket connections for real-time gameplay. The follo
 - `game_state`: Receive game state updates
 - `score_update`: Receive score updates
 
+## Dependencies
+
+### Core Dependencies
+
+- `@nestjs/common`: NestJS core framework
+- `@nestjs/core`: NestJS core functionality
+- `@nestjs/platform-express`: Express platform integration
+- `@nestjs/platform-socket.io`: Socket.IO platform integration
+- `@nestjs/websockets`: WebSocket support
+- `@nestjs/passport`: Passport integration
+- `passport-jwt`: JWT strategy for Passport
+- `jwks-rsa`: JWKS RSA key retrieval
+
+### AWS Dependencies
+
+- `@aws-sdk/client-s3`: S3 client for file uploads
+- `@aws-sdk/client-secrets-manager`: Secrets Manager client
+- `@aws-sdk/cloudfront-signer`: CloudFront signed URL generation
+- `@aws-sdk/lib-storage`: S3 upload utilities
+
+### Database & Validation
+
+- `@dribblio/database`: Shared database package
+- `class-validator`: Request validation
+- `class-transformer`: Object transformation
+- `rxjs`: Reactive programming utilities
+
 ## Security Features
 
 - **JWT Token Validation**: Secure token-based authentication
@@ -4650,6 +4725,8 @@ The CareerPath game uses WebSocket connections for real-time gameplay. The follo
 - **Rate Limiting**: Built-in protection against abuse
 - **Input Validation**: Comprehensive request validation using class-validator
 - **Error Handling**: Secure error responses without sensitive information
+- **Signed URLs**: Time-limited secure access to avatar images
+- **AWS IAM**: Proper access controls for S3 and CloudFront
 
 ## Future Enhancements
 
@@ -4659,6 +4736,8 @@ The CareerPath game uses WebSocket connections for real-time gameplay. The follo
 - **Social Features**: Friend system and social interactions
 - **Advanced Analytics**: Detailed game statistics and insights
 - **Cloud Deployment**: Production-ready deployment configuration
+- **Image Processing**: Server-side image optimization and resizing
+- **CDN Integration**: Enhanced content delivery network setup
 
 ## License
 
@@ -4999,6 +5078,11 @@ The web application is built using Next.js 15 and follows a modern React archite
   - Protected routes with middleware
   - User profile management
   - JWT token handling
+- **Avatar Management**:
+  - Drag-and-drop file uploads
+  - Image cropping and editing
+  - Real-time preview
+  - Secure upload to S3
 
 ## Tech Stack
 
@@ -5012,6 +5096,8 @@ The web application is built using Next.js 15 and follows a modern React archite
 - React Hook Form for form handling
 - **Auth0 Next.js SDK for authentication**
 - **Next.js Middleware for route protection**
+- **React Image Crop for avatar editing**
+- **React Dropzone for file uploads**
 
 ## Features
 
@@ -5051,6 +5137,15 @@ The web application is built using Next.js 15 and follows a modern React archite
 - **Session Management**: Automatic session handling and token refresh
 - **Social Login**: Support for Google and other social providers
 
+### Avatar Management
+
+- **Drag-and-Drop Upload**: Intuitive file upload interface
+- **Image Cropping**: Interactive crop tool with aspect ratio lock
+- **Real-time Preview**: Live preview of cropped image
+- **File Validation**: Support for JPG, PNG, GIF, WebP (max 5MB)
+- **Secure Upload**: Direct upload to S3 with signed URLs
+- **Profile Integration**: Seamless integration with user profiles
+
 ### UI Components
 
 The application uses a combination of:
@@ -5059,6 +5154,7 @@ The application uses a combination of:
 - Tailwind CSS for styling
 - Responsive design for all screen sizes
 - **Auth0 components for authentication flows**
+- **Custom avatar editor with image cropping**
 
 ## Development Setup
 
@@ -5133,6 +5229,8 @@ src/
 ├── components/          # Reusable UI components
 │   ├── navbar/          # Navigation components
 │   ├── ui/              # Base UI components
+│   ├── avatar-editor.tsx # Avatar editing component
+│   ├── editprofilemodal.tsx # Profile editing modal
 │   └── login-form.tsx   # Authentication form
 ├── hooks/              # Custom React hooks
 ├── lib/                # Utility functions
@@ -5163,6 +5261,12 @@ src/
 - Lucide React icons
 - Tailwind Variants
 
+### Avatar Management
+
+- **react-image-crop**: Image cropping functionality
+- **react-dropzone**: Drag-and-drop file uploads
+- **@radix-ui/react-avatar**: Avatar display components
+
 ### State Management & Data
 
 - React Hook Form
@@ -5186,6 +5290,15 @@ src/
 5. **API Integration**: JWT tokens are used for secure API communication
 6. **Logout**: Secure logout with session cleanup
 
+## Avatar Upload Flow
+
+1. **File Selection**: Users can drag and drop or click to select an image
+2. **File Validation**: System validates file type and size (max 5MB)
+3. **Image Cropping**: Interactive crop tool with 1:1 aspect ratio
+4. **Preview**: Real-time preview of the cropped image
+5. **Upload**: Secure upload to S3 via API
+6. **Profile Update**: Avatar URL is automatically updated in user profile
+
 ## Security Features
 
 - **JWT Token Validation**: Secure token-based authentication
@@ -5194,6 +5307,7 @@ src/
 - **CORS Protection**: Configured for secure cross-origin requests
 - **Input Validation**: Comprehensive form validation
 - **Error Handling**: Secure error responses
+- **File Upload Security**: Secure file upload with validation
 
 ## Future Enhancements
 
@@ -5204,6 +5318,8 @@ src/
 - **Advanced Analytics**: Detailed game statistics and insights
 - **Progressive Web App**: Offline support and app-like experience
 - **Theme Customization**: User-selectable themes and customization
+- **Image Optimization**: Client-side image compression and optimization
+- **Avatar Templates**: Pre-designed avatar templates and customization options
 
 ## License
 
@@ -7252,13 +7368,15 @@ This is a NBA career path guessing game. Guess the NBA player based on the prese
 - Live score updates
 - Competitive gameplay
 
-### Authentication
+### Authentication & User Management
 
 - **Auth0 Integration**: Secure user authentication and authorization
 - **User Profiles**: Personalized user experience with profile management
 - **Protected Routes**: Secure access to user-specific features
 - **Social Login**: Support for Google and other social providers
 - **JWT Tokens**: Secure API access with JWT-based authentication
+- **Avatar Management**: Upload and crop profile pictures with secure S3 storage
+- **Profile Editing**: Update display name and profile information
 
 ## What's inside?
 
@@ -7272,6 +7390,8 @@ This Turborepo includes the following packages/apps:
   - PostgreSQL database integration
   - **Auth0 JWT authentication and authorization**
   - **User management and profile endpoints**
+  - **AWS S3 integration for avatar uploads**
+  - **CloudFront signed URLs for secure avatar access**
 - `web`: a [Next.js](https://nextjs.org/) app that provides:
   - Interactive game interface
   - Real-time multiplayer functionality
@@ -7279,6 +7399,8 @@ This Turborepo includes the following packages/apps:
   - **Auth0 authentication integration**
   - **User profile management**
   - **Protected routes and middleware**
+  - **Avatar editor with image cropping**
+  - **Drag-and-drop file uploads**
 - `@dribblio/database`: a Prisma ORM types library shared by both `web` and `api` applications
   - **NBA database schema** for player data
   - **Users database schema** for authentication and user profiles
@@ -7304,6 +7426,7 @@ This Turborepo has some additional tools already setup for you:
 - PostgreSQL database
 - npm or yarn package manager
 - **Auth0 account and application setup**
+- **AWS account with S3 and CloudFront setup**
 
 ### Setup
 
@@ -7337,6 +7460,12 @@ This Turborepo has some additional tools already setup for you:
    AUTH0_SECRET="your-secret"
    AUTH0_SCOPE="openid profile email"
 
+   # AWS Configuration
+   AWS_S3_BUCKET_NAME="your-s3-bucket-name"
+   AWS_CLOUDFRONT_CNAME="your-cloudfront-domain.cloudfront.net"
+   AWS_CLOUDFRONT_KEY_PAIR_ID="your-cloudfront-key-pair-id"
+   AWS_CLOUDFRONT_PRIVATE_KEY_SECRET_NAME="your-secrets-manager-secret-name"
+
    # Server Configuration
    PORT=3002
    ```
@@ -7363,7 +7492,16 @@ This Turborepo has some additional tools already setup for you:
    - Create an API with appropriate scopes
    - Update the environment variables with your Auth0 configuration
 
-5. **Set up Databases**:
+5. **Set up AWS Services**:
+
+   - Create an S3 bucket for avatar storage
+   - Set up CloudFront distribution for secure avatar access
+   - Create a CloudFront key pair for signed URLs
+   - Store the private key in AWS Secrets Manager
+   - Configure CORS on your S3 bucket
+   - Update the environment variables with your AWS configuration
+
+6. **Set up Databases**:
 
    ```bash
    # Generate Prisma clients
