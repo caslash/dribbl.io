@@ -418,6 +418,101 @@ export class UsersPrismaService extends users.PrismaClient implements OnModuleIn
 }
 ````
 
+## File: apps/api/src/users/avatar.service.ts
+````typescript
+import { S3Service } from '@/users/s3.service';
+import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
+import { getSignedUrl } from '@aws-sdk/cloudfront-signer';
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class AvatarService {
+  private readonly urlExpirySeconds = 15 * 60;
+
+  constructor(private readonly s3Service: S3Service) {}
+
+  private async getCloudFrontPrivateKey() {
+    const secret_name = process.env.AWS_CLOUDFRONT_PRIVATE_KEY_SECRET_NAME;
+
+    const client = new SecretsManagerClient({ region: 'us-east-2' });
+
+    let response;
+
+    try {
+      response = await client.send(new GetSecretValueCommand({ SecretId: secret_name }));
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+
+    if ('SecretString' in response) {
+      return response.SecretString;
+    }
+
+    throw new Error('Failed to get CloudFront private key');
+  }
+
+  // TODO: Move signed url logic to controller with a interceptor
+  async uploadAvatar(userId: string, file: Express.Multer.File) {
+    const now = new Date().toISOString();
+    await this.s3Service.uploadFile(`${userId}-${now}`, file.buffer);
+
+    const encodedUserId = encodeURIComponent(userId);
+    const encodedDate = encodeURIComponent(now);
+
+    const unsignedUrl = `https://${process.env.AWS_CLOUDFRONT_CNAME}/${encodedUserId}-${encodedDate}.jpg`;
+
+    return unsignedUrl;
+  }
+
+  async getSignedUrl(unsignedUrl: string) {
+    const nowMs = Date.now();
+    const expiryDate = new Date(nowMs + this.urlExpirySeconds * 1000);
+
+    const privateKey = await this.getCloudFrontPrivateKey();
+
+    const signedUrl = getSignedUrl({
+      url: unsignedUrl,
+      keyPairId: process.env.AWS_CLOUDFRONT_KEY_PAIR_ID ?? '',
+      dateLessThan: expiryDate,
+      privateKey,
+    });
+
+    return signedUrl;
+  }
+}
+````
+
+## File: apps/api/src/users/s3.service.ts
+````typescript
+import { S3Client } from '@aws-sdk/client-s3';
+import { Upload } from '@aws-sdk/lib-storage';
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class S3Service {
+  constructor(private readonly s3: S3Client) {}
+
+  async uploadFile(userId: string, file: Buffer) {
+    try {
+      const parallelUploads3 = new Upload({
+        client: this.s3,
+        params: {
+          Bucket: process.env.AWS_S3_BUCKET_NAME,
+          Key: `avatars/${userId}.jpg`,
+          Body: file,
+        },
+      });
+
+      await parallelUploads3.done();
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+}
+````
+
 ## File: apps/api/src/users/signedurl.inteceptor.ts
 ````typescript
 import { AvatarService } from '@/users/avatar.service';
@@ -1730,6 +1825,100 @@ export default function TeamLogo({
 }
 ````
 
+## File: apps/web/src/context/dbusercontext.tsx
+````typescript
+'use client';
+
+import { getAccessToken } from '@auth0/nextjs-auth0';
+import { User } from '@dribblio/database/generated/prisma-users/client';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+
+interface DBUserContextType {
+  user: User | undefined;
+
+  /**
+   * Update user fields in the database and sync local state.
+   * @param user - Partial user object with fields to update.
+   */
+  updateUser: (user: Partial<User>) => void;
+
+  /**
+   * Upload a new avatar image to the database and sync local state.
+   * @param avatar - The avatar image file to upload.
+   */
+  uploadAvatar: (avatar: File) => void;
+}
+
+const defaultUserContext: DBUserContextType = {
+  user: undefined,
+  updateUser: () => {},
+  uploadAvatar: () => {},
+};
+
+const DBUserContext = createContext<DBUserContextType | undefined>(undefined);
+export const useDBUser = () => useContext(DBUserContext) ?? defaultUserContext;
+
+export function DBUserProvider({ children }: { children: React.ReactNode | React.ReactNode[] }) {
+  const [user, setUser] = useState<User | undefined>(undefined);
+
+  useEffect(() => {
+    getAccessToken().then((accessToken) => {
+      if (!accessToken) return;
+
+      fetch('/api/me', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+        .then((res) => res.json())
+        .then(setUser);
+    });
+  }, []);
+
+  const updateUser = useCallback((user: Partial<User>) => {
+    getAccessToken().then((accessToken) => {
+      if (!accessToken) return;
+
+      fetch('/api/me', {
+        method: 'PATCH',
+        body: JSON.stringify(user),
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      })
+        .then((res) => res.json())
+        .then(setUser);
+    });
+  }, []);
+
+  const uploadAvatar = useCallback((avatar: File) => {
+    getAccessToken().then((accessToken) => {
+      if (!accessToken) return;
+
+      const formData = new FormData();
+      formData.append('avatar', avatar);
+
+      fetch('/api/me/avatar', {
+        method: 'PUT',
+        body: formData,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+        .then((res) => res.json())
+        .then(setUser);
+    });
+  }, []);
+
+  return (
+    <DBUserContext.Provider value={{ user, updateUser, uploadAvatar }}>
+      {children}
+    </DBUserContext.Provider>
+  );
+}
+````
+
 ## File: apps/web/src/hooks/useConfetti.ts
 ````typescript
 import confetti from 'canvas-confetti';
@@ -1875,6 +2064,51 @@ import { io } from 'socket.io-client';
 
 export const clientSocket = io(`http://localhost:3002`, {
   autoConnect: false,
+});
+````
+
+## File: apps/web/src/lib/schemas.ts
+````typescript
+import {
+  GameDifficultyNames,
+  HostFormValues,
+  JoinFormValues,
+  UpdateUserDto,
+} from '@dribblio/types';
+import Joi from 'joi';
+
+export const hostSchema = Joi.object<HostFormValues>({
+  isRoundLimit: Joi.boolean().required(),
+  config: Joi.object({
+    scoreLimit: Joi.number().optional(),
+    roundLimit: Joi.number().optional(),
+    roundTimeLimit: Joi.number().required(),
+    gameDifficulty: Joi.string()
+      .valid(...GameDifficultyNames)
+      .required(),
+  }),
+}).custom((value, helpers) => {
+  const { isRoundLimit, config } = value;
+  if (isRoundLimit && !config.roundLimit) {
+    return helpers.error('any.custom', {
+      message: 'Round Limit is required when Round Limit mode is selected',
+    });
+  }
+  if (!isRoundLimit && !config.scoreLimit) {
+    return helpers.error('any.custom', {
+      message: 'Score Limit is required when Score Limit mode is selected',
+    });
+  }
+  return value;
+}, 'Round/Score limit conditional check');
+
+export const joinSchema = Joi.object<JoinFormValues>({
+  roomId: Joi.string().required(),
+});
+
+export const updateUserSchema = Joi.object<UpdateUserDto>({
+  display_name: Joi.string().optional(),
+  name: Joi.string().optional(),
 });
 ````
 
@@ -2277,97 +2511,45 @@ describe('RoomService', () => {
 });
 ````
 
-## File: apps/api/src/users/avatar.service.ts
+## File: apps/api/src/users/users.controller.ts
 ````typescript
-import { S3Service } from '@/users/s3.service';
-import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
-import { getSignedUrl } from '@aws-sdk/cloudfront-signer';
-import { Injectable } from '@nestjs/common';
+import { SignedUrlInterceptor } from '@/users/signedurl.inteceptor';
+import { UsersService } from '@/users/users.service';
+import { UpdateUserDto } from '@dribblio/types';
+import {
+  Body,
+  Controller,
+  Get,
+  Patch,
+  Put,
+  Request,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { FileInterceptor } from '@nestjs/platform-express';
 
-@Injectable()
-export class AvatarService {
-  private readonly urlExpirySeconds = 15 * 60;
+@UseGuards(AuthGuard('jwt'))
+@UseInterceptors(SignedUrlInterceptor)
+@Controller('me')
+export class UsersController {
+  constructor(private readonly usersService: UsersService) {}
 
-  constructor(private readonly s3Service: S3Service) {}
-
-  private async getCloudFrontPrivateKey() {
-    const secret_name = process.env.AWS_CLOUDFRONT_PRIVATE_KEY_SECRET_NAME;
-
-    const client = new SecretsManagerClient({ region: 'us-east-2' });
-
-    let response;
-
-    try {
-      response = await client.send(new GetSecretValueCommand({ SecretId: secret_name }));
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-
-    if ('SecretString' in response) {
-      return response.SecretString;
-    }
-
-    throw new Error('Failed to get CloudFront private key');
+  @Get()
+  async get(@Request() req) {
+    return await this.usersService.get(req.user.id);
   }
 
-  // TODO: Move signed url logic to controller with a interceptor
-  async uploadAvatar(userId: string, file: Express.Multer.File) {
-    const now = new Date().toISOString();
-    await this.s3Service.uploadFile(`${userId}-${now}`, file.buffer);
-
-    const encodedUserId = encodeURIComponent(userId);
-    const encodedDate = encodeURIComponent(now);
-
-    const unsignedUrl = `https://${process.env.AWS_CLOUDFRONT_CNAME}/${encodedUserId}-${encodedDate}.jpg`;
-
-    return unsignedUrl;
+  @Patch()
+  async update(@Request() req, @Body() updateUserDto: UpdateUserDto) {
+    return await this.usersService.update(req.user.id, updateUserDto);
   }
 
-  async getSignedUrl(unsignedUrl: string) {
-    const nowMs = Date.now();
-    const expiryDate = new Date(nowMs + this.urlExpirySeconds * 1000);
-
-    const privateKey = await this.getCloudFrontPrivateKey();
-
-    const signedUrl = getSignedUrl({
-      url: unsignedUrl,
-      keyPairId: process.env.AWS_CLOUDFRONT_KEY_PAIR_ID ?? '',
-      dateLessThan: expiryDate,
-      privateKey,
-    });
-
-    return signedUrl;
-  }
-}
-````
-
-## File: apps/api/src/users/s3.service.ts
-````typescript
-import { S3Client } from '@aws-sdk/client-s3';
-import { Upload } from '@aws-sdk/lib-storage';
-import { Injectable } from '@nestjs/common';
-
-@Injectable()
-export class S3Service {
-  constructor(private readonly s3: S3Client) {}
-
-  async uploadFile(userId: string, file: Buffer) {
-    try {
-      const parallelUploads3 = new Upload({
-        client: this.s3,
-        params: {
-          Bucket: process.env.AWS_S3_BUCKET_NAME,
-          Key: `avatars/${userId}.jpg`,
-          Body: file,
-        },
-      });
-
-      await parallelUploads3.done();
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
+  @Put('avatar')
+  @UseInterceptors(FileInterceptor('avatar'))
+  async uploadProfileImage(@Request() req, @UploadedFile() file: Express.Multer.File) {
+    return await this.usersService.uploadProfileImage(req.user.id, file);
   }
 }
 ````
@@ -3090,100 +3272,6 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
         <a href="#">Privacy Policy</a>.
       </div>
     </div>
-  );
-}
-````
-
-## File: apps/web/src/context/dbusercontext.tsx
-````typescript
-'use client';
-
-import { getAccessToken } from '@auth0/nextjs-auth0';
-import { User } from '@dribblio/database/generated/prisma-users/client';
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-
-interface DBUserContextType {
-  user: User | undefined;
-
-  /**
-   * Update user fields in the database and sync local state.
-   * @param user - Partial user object with fields to update.
-   */
-  updateUser: (user: Partial<User>) => void;
-
-  /**
-   * Upload a new avatar image to the database and sync local state.
-   * @param avatar - The avatar image file to upload.
-   */
-  uploadAvatar: (avatar: File) => void;
-}
-
-const defaultUserContext: DBUserContextType = {
-  user: undefined,
-  updateUser: () => {},
-  uploadAvatar: () => {},
-};
-
-const DBUserContext = createContext<DBUserContextType | undefined>(undefined);
-export const useDBUser = () => useContext(DBUserContext) ?? defaultUserContext;
-
-export function DBUserProvider({ children }: { children: React.ReactNode | React.ReactNode[] }) {
-  const [user, setUser] = useState<User | undefined>(undefined);
-
-  useEffect(() => {
-    getAccessToken().then((accessToken) => {
-      if (!accessToken) return;
-
-      fetch('/api/me', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      })
-        .then((res) => res.json())
-        .then(setUser);
-    });
-  }, []);
-
-  const updateUser = useCallback((user: Partial<User>) => {
-    getAccessToken().then((accessToken) => {
-      if (!accessToken) return;
-
-      fetch('/api/me', {
-        method: 'PATCH',
-        body: JSON.stringify(user),
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-      })
-        .then((res) => res.json())
-        .then(setUser);
-    });
-  }, []);
-
-  const uploadAvatar = useCallback((avatar: File) => {
-    getAccessToken().then((accessToken) => {
-      if (!accessToken) return;
-
-      const formData = new FormData();
-      formData.append('avatar', avatar);
-
-      fetch('/api/me/avatar', {
-        method: 'PUT',
-        body: formData,
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      })
-        .then((res) => res.json())
-        .then(setUser);
-    });
-  }, []);
-
-  return (
-    <DBUserContext.Provider value={{ user, updateUser, uploadAvatar }}>
-      {children}
-    </DBUserContext.Provider>
   );
 }
 ````
@@ -4349,47 +4437,862 @@ export class PlayersService {
 }
 ````
 
-## File: apps/api/src/users/users.controller.ts
+## File: apps/api/src/users/users.module.ts
 ````typescript
-import { SignedUrlInterceptor } from '@/users/signedurl.inteceptor';
-import { UsersService } from '@/users/users.service';
+import { AvatarService } from '@/users/avatar.service';
+import { S3Service } from '@/users/s3.service';
+import { S3Client } from '@aws-sdk/client-s3';
+import { Module } from '@nestjs/common';
+import { UsersController } from './users.controller';
+import { UsersService } from './users.service';
+
+@Module({
+  controllers: [UsersController],
+  providers: [
+    UsersService,
+    S3Service,
+    AvatarService,
+    {
+      provide: S3Client,
+      useValue: new S3Client(),
+    },
+  ],
+  exports: [UsersService],
+})
+export class UsersModule {}
+````
+
+## File: apps/api/src/users/users.service.ts
+````typescript
+import { UsersPrismaService } from '@/database/users.prisma.service';
+import { AvatarService } from '@/users/avatar.service';
+import { S3Service } from '@/users/s3.service';
 import { UpdateUserDto } from '@dribblio/types';
-import {
-  Body,
-  Controller,
-  Get,
-  Patch,
-  Put,
-  Request,
-  UploadedFile,
-  UseGuards,
-  UseInterceptors,
-} from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { Injectable } from '@nestjs/common';
 
-@UseGuards(AuthGuard('jwt'))
-@UseInterceptors(SignedUrlInterceptor)
-@Controller('me')
-export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+@Injectable()
+export class UsersService {
+  constructor(
+    private readonly userPrisma: UsersPrismaService,
+    private readonly s3Service: S3Service,
+    private readonly avatarService: AvatarService,
+  ) {}
 
-  @Get()
-  async get(@Request() req) {
-    return await this.usersService.get(req.user.id);
+  async get(id: string) {
+    const user = await this.userPrisma.user.findUnique({
+      where: { id },
+    });
+
+    return user;
   }
 
-  @Patch()
-  async update(@Request() req, @Body() updateUserDto: UpdateUserDto) {
-    return await this.usersService.update(req.user.id, updateUserDto);
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    return await this.userPrisma.user.update({
+      where: { id: id },
+      data: {
+        display_name: updateUserDto.display_name ?? '',
+        name: updateUserDto.name ?? '',
+      },
+    });
   }
 
-  @Put('avatar')
-  @UseInterceptors(FileInterceptor('avatar'))
-  async uploadProfileImage(@Request() req, @UploadedFile() file: Express.Multer.File) {
-    return await this.usersService.uploadProfileImage(req.user.id, file);
+  async uploadProfileImage(userId: string, file: Express.Multer.File) {
+    const profile_url = await this.avatarService.uploadAvatar(userId, file);
+
+    return await this.userPrisma.user.update({
+      where: { id: userId },
+      data: { profile_url },
+    });
   }
 }
+````
+
+## File: apps/web/src/app/singleplayer/page.tsx
+````typescript
+'use client';
+
+import { CorrectAnswer } from '@/components/careerpath/answer';
+import { CareerPath } from '@/components/careerpath/careerpathview';
+import SinglePlayerConfigModal from '@/components/config/singleplayer/configmodal';
+import PlayerSearchBar from '@/components/search/playersearchbar';
+import { Button } from '@/components/ui/button';
+import useConfetti from '@/hooks/useConfetti';
+import useSinglePlayerSocket from '@/hooks/useSinglePlayerSocket';
+import { nba } from '@dribblio/database';
+import { useTheme } from 'next-themes';
+import { toast } from 'react-toastify';
+
+export default function SinglePlayer() {
+  const { theme } = useTheme();
+  const { onConfetti } = useConfetti();
+
+  const correctAction = (validAnswers: nba.Player[]) => {
+    toast(<CorrectAnswer validAnswers={validAnswers} />, { theme });
+    onConfetti();
+  };
+
+  const incorrectAction = () => {
+    toast.error('Incorrect', { theme });
+  };
+
+  const {
+    isConnected,
+    canStartGame,
+    isRoomConfigured,
+    onConfigureRoom,
+    onStartGame,
+    machineState,
+    score,
+    teams,
+    lives,
+    onGuess,
+    onSkip,
+  } = useSinglePlayerSocket({ correctAction, incorrectAction });
+
+  return (
+    <div className="flex flex-col h-full space-y-8">
+      <SinglePlayerConfigModal isOpen={!isRoomConfigured} onConfigureRoom={onConfigureRoom} />
+      <div className="justify-start">
+        <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
+        <p>State: {machineState}</p>
+      </div>
+
+      {isConnected && (
+        <div className="w-full flex flex-col items-center space-y-8">
+          {canStartGame && <Button onClick={onStartGame}>Start Game</Button>}
+          {teams && (
+            <div className="w-full flex flex-col items-center space-y-8">
+              <div className="flex flex-col items-center">
+                <p className="font-black text-2xl">Lives: {lives}</p>
+                <p className="font-black text-2xl">Score: {score}</p>
+              </div>
+              <CareerPath teams={teams} />
+              <PlayerSearchBar className="w-1/2" onSelect={onGuess} />
+              <Button onClick={onSkip}>Skip</Button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+````
+
+## File: apps/web/src/components/config/multiplayer/joinhostmodal.tsx
+````typescript
+'use client';
+
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { hostSchema, joinSchema } from '@/lib/schemas';
+import {
+  GameDifficulties,
+  GameDifficultyNames,
+  GameDifficultySchema,
+  HostFormValues,
+  JoinFormValues,
+  MultiplayerConfig,
+} from '@dribblio/types';
+import { joiResolver } from '@hookform/resolvers/joi';
+import { useForm } from 'react-hook-form';
+
+export default function JoinHostModal({
+  isOpen,
+  onJoinRoom,
+  onHostRoom,
+}: Readonly<{
+  isOpen: boolean;
+  onJoinRoom: (roomId: string) => void;
+  onHostRoom: (config: MultiplayerConfig) => void;
+}>) {
+  return (
+    <Dialog open={isOpen}>
+      <DialogContent
+        className="[&>button]:hidden"
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
+        <DialogHeader>
+          <DialogTitle>Join or Host a Game</DialogTitle>
+        </DialogHeader>
+        <Tabs defaultValue="join">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="join">Join Room</TabsTrigger>
+            <TabsTrigger value="host">Host Room</TabsTrigger>
+          </TabsList>
+          <TabsContent value="join">
+            <JoinForm onJoinRoom={onJoinRoom} />
+          </TabsContent>
+          <TabsContent value="host">
+            <HostForm onHostRoom={onHostRoom} />
+          </TabsContent>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function JoinForm({
+  onJoinRoom,
+}: Readonly<{
+  onJoinRoom: (roomId: string) => void;
+}>) {
+  const form = useForm<JoinFormValues>({
+    resolver: joiResolver(joinSchema),
+    defaultValues: {
+      roomId: '',
+    },
+  });
+
+  function onSubmit(values: JoinFormValues) {
+    onJoinRoom(values.roomId);
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="flex flex-col space-y-4">
+          <FormField
+            control={form.control}
+            name="roomId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Room Code</FormLabel>
+                <FormControl>
+                  <Input placeholder="Room Code" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          ></FormField>
+        </div>
+        <div className="flex justify-end mt-4">
+          <Button type="submit">Join Room</Button>
+        </div>
+      </form>
+    </Form>
+  );
+}
+
+function HostForm({
+  onHostRoom,
+}: Readonly<{
+  onHostRoom: (config: MultiplayerConfig) => void;
+}>) {
+  const form = useForm<HostFormValues>({
+    resolver: joiResolver(hostSchema),
+    defaultValues: {
+      isRoundLimit: false,
+      config: {
+        scoreLimit: 10,
+        roundLimit: 10,
+        roundTimeLimit: 30,
+        gameDifficulty: GameDifficulties.firstAllNBA.name,
+      },
+    },
+  });
+
+  function onSubmit(values: HostFormValues) {
+    const config = {
+      ...values.config,
+      scoreLimit: values.isRoundLimit ? values.config.scoreLimit : undefined,
+      roundLimit: values.isRoundLimit ? values.config.roundLimit : undefined,
+      gameDifficulty: GameDifficultySchema.parse(values.config.gameDifficulty),
+    };
+    onHostRoom(config);
+  }
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="flex flex-col space-y-4">
+          <div className="flex flex-row space-x-4 self-center">
+            <p>Score Limit</p>
+            <FormField
+              control={form.control}
+              name="isRoundLimit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                </FormItem>
+              )}
+            ></FormField>
+            <p>Round Limit</p>
+          </div>
+          {form.watch('isRoundLimit') && (
+            <FormField
+              control={form.control}
+              name="config.roundLimit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Round Limit</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="Round Limit" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            ></FormField>
+          )}
+          {!form.watch('isRoundLimit') && (
+            <FormField
+              control={form.control}
+              name="config.scoreLimit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Score Limit</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="Score Limit" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            ></FormField>
+          )}
+          <FormField
+            control={form.control}
+            name="config.roundTimeLimit"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Round Time Limit</FormLabel>
+                <FormControl>
+                  <Input type="number" placeholder="Round Time Limit" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          ></FormField>
+          <FormField
+            control={form.control}
+            name="config.gameDifficulty"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Difficulty</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select game difficulty" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {GameDifficultyNames.map((mode) => (
+                      <SelectItem key={mode} value={mode}>
+                        {GameDifficultySchema.parse(mode).display_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          ></FormField>
+        </div>
+        <div className="flex justify-end mt-4">
+          <Button type="submit">Create Room</Button>
+        </div>
+      </form>
+    </Form>
+  );
+}
+````
+
+## File: apps/web/src/components/search/playersearchbar.tsx
+````typescript
+import PlayerSearchResult from '@/components/search/playersearchresult';
+import {
+  Command,
+  CommandEmpty,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import { nba } from '@dribblio/database';
+import { useEffect, useState } from 'react';
+
+export default function PlayerSearchBar({
+  className,
+  playerList,
+  onSelect,
+}: Readonly<{
+  className?: string;
+  playerList?: nba.Player[];
+  onSelect?: (id: number) => void;
+}>) {
+  const [search, setSearch] = useState<string>('');
+  const [players, setPlayers] = useState<nba.Player[]>([]);
+
+  useEffect(() => {
+    if (!playerList) {
+      fetch('/api/players')
+        .then((res) => res.json())
+        .then((list: nba.Player[]) =>
+          setPlayers(list.sort((a, b) => a.last_name!.localeCompare(b.last_name!))),
+        );
+    } else {
+      setPlayers(playerList);
+    }
+  }, [playerList]);
+
+  return (
+    <div className={`flex justify-center ${className}`}>
+      <Command
+        className="rounded-lg border shadow-md md:min-w-[450px]"
+        filter={(value, search) => {
+          if (value.toLowerCase().includes(search.toLowerCase())) return 1;
+          return 0;
+        }}
+      >
+        <CommandInput
+          placeholder={`Search ${players?.length} players...`}
+          value={search}
+          onValueChange={setSearch}
+        />
+        <CommandList>
+          <CommandEmpty>No player found</CommandEmpty>
+          {players?.map((player) => (
+            <CommandItem
+              key={player.id}
+              onSelect={() => {
+                if (onSelect) {
+                  onSelect(player.id);
+                }
+                setSearch('');
+              }}
+            >
+              <PlayerSearchResult player={player} />
+            </CommandItem>
+          ))}
+        </CommandList>
+      </Command>
+    </div>
+  );
+}
+````
+
+## File: apps/web/src/config/site.ts
+````typescript
+import { Gamepad2, House, LucideProps, Swords } from 'lucide-react';
+import { ForwardRefExoticComponent, RefAttributes } from 'react';
+
+export type SiteConfig = typeof siteConfig;
+
+type NavItem = {
+  label: string;
+  icon: ForwardRefExoticComponent<Omit<LucideProps, 'ref'> & RefAttributes<SVGSVGElement>>;
+  href: string;
+};
+
+export const siteConfig: { name: string; navItems: NavItem[] } = {
+  name: 'NBA Career Game',
+  navItems: [
+    {
+      label: 'Home',
+      icon: House,
+      href: '/',
+    },
+    {
+      label: 'Single Player',
+      icon: Gamepad2,
+      href: '/singleplayer',
+    },
+    {
+      label: 'Multiplayer',
+      icon: Swords,
+      href: '/multiplayer',
+    },
+  ],
+};
+````
+
+## File: apps/web/src/hooks/usePlayerSearch.ts
+````typescript
+'use client';
+
+import { nba } from '@dribblio/database';
+import { SearchResponse } from '@dribblio/types';
+import { AsyncListLoadOptions, useAsyncList } from '@react-stately/data';
+import { useEffect, useState } from 'react';
+
+const usePlayerSearch = () => {
+  const [playerCount, setPlayerCount] = useState<number>(0);
+
+  useEffect(() => {
+    fetch('/api/players/count')
+      .then((res) => res.json())
+      .then(setPlayerCount);
+  }, [setPlayerCount]);
+
+  const list = useAsyncList<nba.Player>({
+    async load({ signal, filterText }: AsyncListLoadOptions<nba.Player, string>) {
+      const res = await fetch(`/api/players/search?searchTerm=${filterText}`, {
+        signal,
+      });
+      const json: SearchResponse = await res.json();
+
+      return {
+        items: json.results,
+      };
+    },
+  });
+
+  return { playerCount, list };
+};
+
+export default usePlayerSearch;
+````
+
+## File: apps/web/next.config.mjs
+````
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: `http://localhost:3002/api/:path*`,
+      },
+      {
+        source: '/socket.io/:path*',
+        destination: `http://localhost:3002/socket.io/:path*`,
+      },
+    ];
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
+  },
+};
+
+export default nextConfig;
+````
+
+## File: apps/web/tsconfig.json
+````json
+{
+  "extends": "@dribblio/typescript-config/nextjs.json",
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", "next.config.mjs", ".next/types/**/*.ts"],
+  "exclude": ["node_modules", "public"]
+}
+````
+
+## File: packages/eslint-config/base.js
+````javascript
+import js from '@eslint/js';
+import eslintConfigPrettier from 'eslint-config-prettier';
+import jest from 'eslint-plugin-jest';
+import turboPlugin from 'eslint-plugin-turbo';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+
+/**
+ * A shared ESLint configuration for the repository.
+ *
+ * @type {import("eslint").Linter.Config[]}
+ * */
+export const baseConfig = [
+  js.configs.recommended,
+  eslintConfigPrettier,
+  ...tseslint.configs.recommended,
+  {
+    plugins: {
+      tseslint,
+      jest,
+      turbo: turboPlugin,
+    },
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...jest.environments.globals.globals,
+      },
+      parser: tseslint.parser,
+    },
+    settings: {
+      'import/resolver': {
+        alias: {
+          map: [['#', '.src']],
+        },
+      },
+    },
+    rules: {
+      'turbo/no-undeclared-env-vars': 'warn',
+      '@typescript-eslint/no-namespace': 'off',
+      '@typescript-eslint/no-explicit-any': 'warn',
+    },
+  },
+  {
+    ignores: ['dist/**'],
+  },
+];
+````
+
+## File: packages/eslint-config/next.js
+````javascript
+import js from '@eslint/js';
+import { default as pluginNext } from '@next/eslint-plugin-next';
+import eslintConfigPrettier from 'eslint-config-prettier';
+import pluginReactHooks from 'eslint-plugin-react-hooks';
+import tseslint from 'typescript-eslint';
+import { baseConfig } from './base.js';
+
+/**
+ * A custom ESLint configuration for libraries that use Next.js.
+ *
+ * @type {import("eslint").Linter.Config[]}
+ * */
+export const nextJsConfig = [
+  ...baseConfig,
+  js.configs.recommended,
+  eslintConfigPrettier,
+  ...tseslint.configs.recommended,
+  {
+    plugins: {
+      '@next/next': pluginNext,
+    },
+    rules: {
+      ...pluginNext.configs.recommended.rules,
+      ...pluginNext.configs['core-web-vitals'].rules,
+    },
+  },
+  {
+    plugins: {
+      'react-hooks': pluginReactHooks,
+    },
+    settings: { react: { version: 'detect' } },
+    rules: {
+      ...pluginReactHooks.configs.recommended.rules,
+      // React scope no longer necessary with new JSX transform.
+      'react/react-in-jsx-scope': 'off',
+    },
+  },
+];
+````
+
+## File: packages/types/tsconfig.json
+````json
+{
+  "extends": "@dribblio/typescript-config/base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}
+````
+
+## File: apps/api/src/nba/games/careerpath/room/room.service.ts
+````typescript
+import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
+import { RoomFactory } from '@/nba/games/careerpath/room/factory.service';
+import { UsersService } from '@/users/users.service';
+import { users } from '@dribblio/database';
+import {
+  HostRoomMessageBody,
+  JoinRoomMessageBody,
+  MultiplayerConfig,
+  Room,
+  SinglePlayerConfig,
+} from '@dribblio/types';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import ShortUniqueId from 'short-unique-id';
+import { Socket } from 'socket.io';
+
+const uid = new ShortUniqueId({ length: 5, dictionary: 'alpha_upper' });
+
+@Injectable()
+export class RoomService {
+  private rooms: Record<string, Room> = {};
+
+  constructor(
+    @Inject(forwardRef(() => CareerPathGateway))
+    private gateway: CareerPathGateway,
+    private roomFactory: RoomFactory,
+    private usersService: UsersService,
+  ) {}
+
+  async createRoom(
+    socket: Socket,
+    { isMulti, userId, config }: HostRoomMessageBody,
+  ): Promise<Room> {
+    const roomId: string = this.generateUniqueCode();
+
+    if (!this.rooms[roomId]) {
+      this.rooms[roomId] = isMulti
+        ? this.roomFactory.createMultiplayerRoom(socket, roomId, config as MultiplayerConfig)
+        : this.roomFactory.createSinglePlayerRoom(socket, config as SinglePlayerConfig);
+    }
+
+    console.log(`Game machine created for room ${roomId}`);
+
+    await this.joinRoom(socket, { roomId, userId });
+
+    return this.rooms[roomId];
+  }
+
+  destroyRoom(id: string) {
+    delete this.rooms[id];
+    console.log(`Room destroyed for room ${id}`);
+  }
+
+  async joinRoom(socket: Socket, { roomId, userId }: JoinRoomMessageBody): Promise<void> {
+    if (!this.rooms[roomId]) return;
+
+    socket.join(roomId);
+
+    this.roomFactory.setUpListenersOnJoin(socket, this.rooms[roomId]);
+
+    if (this.rooms[roomId].isMulti) {
+      const user = await this.usersService.get(userId);
+
+      if (!user) throw new Error('User not found');
+
+      this.rooms[roomId] = {
+        ...this.rooms[roomId],
+        users: [...this.rooms[roomId].users, user],
+      };
+    } else {
+      this.rooms[roomId] = {
+        ...this.rooms[roomId],
+        users: [
+          ...this.rooms[roomId].users,
+          { id: socket.id, name: 'Guest', display_name: 'Guest', profile_url: '' },
+        ],
+      };
+    }
+
+    const { ...room } = this.rooms[roomId];
+
+    this.gateway.server.to(roomId).emit('room_updated', room);
+  }
+
+  leaveRoom(roomId: string, userId: string): void {
+    let room: Room = this.rooms[roomId];
+
+    if (room) {
+      room = {
+        ...room,
+        users: [...room.users.filter((user: users.User) => user.id !== userId)],
+      };
+
+      if (!room.users.some((user: users.User) => user)) {
+        this.destroyRoom(roomId);
+      } else {
+        this.gateway.server.to(roomId).emit('room_updated', room);
+      }
+    }
+  }
+
+  generateUniqueCode(): string {
+    const roomId = uid.randomUUID();
+    if (roomId in this.rooms) {
+      return this.generateUniqueCode();
+    }
+
+    return roomId;
+  }
+}
+````
+
+## File: apps/api/src/nba/games/careerpath/careerpath.gateway.ts
+````typescript
+import { RoomService } from '@/nba/games/careerpath/room/room.service';
+import { HostRoomMessageBody, JoinRoomMessageBody } from '@dribblio/types';
+import { forwardRef, Inject } from '@nestjs/common';
+import {
+  ConnectedSocket,
+  MessageBody,
+  OnGatewayDisconnect,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
+} from '@nestjs/websockets';
+import { Server, Socket } from 'socket.io';
+
+@WebSocketGateway({ cors: true })
+export class CareerPathGateway implements OnGatewayDisconnect {
+  @WebSocketServer()
+  server: Server;
+
+  constructor(
+    @Inject(forwardRef(() => RoomService))
+    private roomService: RoomService,
+  ) {}
+
+  handleDisconnect(client: Socket) {
+    this.roomService.leaveRoom(Array.from(client.rooms)[1], client.id);
+  }
+
+  @SubscribeMessage('host_room')
+  async handleHostRoom(
+    @MessageBody() config: HostRoomMessageBody,
+    @ConnectedSocket() client: Socket,
+  ) {
+    await this.roomService.createRoom(client, config);
+  }
+
+  @SubscribeMessage('join_room')
+  async handleJoinRoom(
+    @MessageBody() config: JoinRoomMessageBody,
+    @ConnectedSocket() client: Socket,
+  ) {
+    await this.roomService.joinRoom(client, config);
+  }
+}
+````
+
+## File: apps/api/src/nba/nba.module.ts
+````typescript
+import { DatabaseModule } from '@/database/database.module';
+import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
+import { GameService } from '@/nba/games/careerpath/game.service';
+import { RoomFactory } from '@/nba/games/careerpath/room/factory.service';
+import { RoomService } from '@/nba/games/careerpath/room/room.service';
+import { PlayersModule } from '@/nba/player/player.module';
+import { UsersModule } from '@/users/users.module';
+import { Module } from '@nestjs/common';
+
+@Module({
+  imports: [PlayersModule, DatabaseModule, UsersModule],
+  controllers: [],
+  providers: [CareerPathGateway, RoomService, RoomFactory, GameService],
+})
+export class NBAModule {}
 ````
 
 ## File: apps/api/README.md
@@ -4756,70 +5659,93 @@ You are not permitted to:
 Any unauthorized use, reproduction, or distribution of the Software is strictly prohibited and may result in severe legal consequences.
 ````
 
-## File: apps/web/src/app/singleplayer/page.tsx
+## File: apps/web/src/app/multiplayer/page.tsx
 ````typescript
 'use client';
 
-import { CorrectAnswer } from '@/components/careerpath/answer';
 import { CareerPath } from '@/components/careerpath/careerpathview';
-import SinglePlayerConfigModal from '@/components/config/singleplayer/configmodal';
+import JoinHostModal from '@/components/config/multiplayer/joinhostmodal';
 import PlayerSearchBar from '@/components/search/playersearchbar';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import useConfetti from '@/hooks/useConfetti';
-import useSinglePlayerSocket from '@/hooks/useSinglePlayerSocket';
-import { nba } from '@dribblio/database';
-import { useTheme } from 'next-themes';
-import { toast } from 'react-toastify';
+import useMultiplayerSocket from '@/hooks/useMultiplayerSocket';
+import { UserGameInfo } from '@dribblio/types';
+import { User } from 'lucide-react';
 
-export default function SinglePlayer() {
-  const { theme } = useTheme();
-  const { onConfetti } = useConfetti();
-
-  const correctAction = (validAnswers: nba.Player[]) => {
-    toast(<CorrectAnswer validAnswers={validAnswers} />, { theme });
-    onConfetti();
-  };
-
-  const incorrectAction = () => {
-    toast.error('Incorrect', { theme });
-  };
-
+export default function Game() {
   const {
     isConnected,
+    roomId,
+    roundActive,
     canStartGame,
-    isRoomConfigured,
-    onConfigureRoom,
     onStartGame,
-    machineState,
-    score,
+    users,
+    onHostRoom,
+    onJoinRoom,
     teams,
-    lives,
+    players,
     onGuess,
-    onSkip,
-  } = useSinglePlayerSocket({ correctAction, incorrectAction });
+    timeLeft,
+    validAnswers,
+  } = useMultiplayerSocket();
 
   return (
     <div className="flex flex-col h-full space-y-8">
-      <SinglePlayerConfigModal isOpen={!isRoomConfigured} onConfigureRoom={onConfigureRoom} />
+      <JoinHostModal isOpen={!roomId} onJoinRoom={onJoinRoom} onHostRoom={onHostRoom} />
       <div className="justify-start">
         <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
-        <p>State: {machineState}</p>
+        {roomId && <p>{`Room Code: ${roomId}`}</p>}
+        {users.some((user: UserGameInfo) => user) && (
+          <div>
+            <p>Users:</p>
+            <ul>
+              {users.map((user: UserGameInfo) => (
+                <li key={user.info.id}>
+                  <div className="flex flex-row space-x-2 items-center">
+                    {user.info.profile_url ? (
+                      <Avatar>
+                        <AvatarImage
+                          src={user.info.profile_url}
+                          alt={user.info.name ?? ''}
+                          width={24}
+                          height={24}
+                        />
+                      </Avatar>
+                    ) : (
+                      <User />
+                    )}
+                    <p>{user.info.name}</p>
+                    <p>{user.score}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
-      {isConnected && (
+      {canStartGame && (
+        <div>
+          <Button onClick={onStartGame}>Start Game</Button>
+        </div>
+      )}
+
+      {roundActive && (
         <div className="w-full flex flex-col items-center space-y-8">
-          {canStartGame && <Button onClick={onStartGame}>Start Game</Button>}
-          {teams && (
-            <div className="w-full flex flex-col items-center space-y-8">
-              <div className="flex flex-col items-center">
-                <p className="font-black text-2xl">Lives: {lives}</p>
-                <p className="font-black text-2xl">Score: {score}</p>
-              </div>
-              <CareerPath teams={teams} />
-              <PlayerSearchBar className="w-1/2" onSelect={onGuess} />
-              <Button onClick={onSkip}>Skip</Button>
-            </div>
-          )}
+          <p className="text-2xl font-bold">Time Left: {timeLeft}</p>
+          <CareerPath teams={teams!} />
+          <PlayerSearchBar playerList={players} onSelect={onGuess} />
+        </div>
+      )}
+
+      {!roundActive && !canStartGame && (
+        <div>
+          <p>Correct Answers:</p>
+          <ul>
+            {validAnswers.map((answer) => (
+              <li key={answer.id}>{answer.display_first_last}</li>
+            ))}
+          </ul>
         </div>
       )}
     </div>
@@ -4827,227 +5753,173 @@ export default function SinglePlayer() {
 }
 ````
 
-## File: apps/web/src/components/search/playersearchbar.tsx
+## File: apps/web/src/app/page.tsx
 ````typescript
-import PlayerSearchResult from '@/components/search/playersearchresult';
-import {
-  Command,
-  CommandEmpty,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import { nba } from '@dribblio/database';
-import { useEffect, useState } from 'react';
+'use client';
 
-export default function PlayerSearchBar({
-  className,
-  playerList,
-  onSelect,
-}: Readonly<{
-  className?: string;
-  playerList?: nba.Player[];
-  onSelect?: (id: number) => void;
-}>) {
-  const [search, setSearch] = useState<string>('');
-  const [players, setPlayers] = useState<nba.Player[]>([]);
+import GameModeCard from '@/components/gamemodecard';
 
-  useEffect(() => {
-    if (!playerList) {
-      fetch('/api/players')
-        .then((res) => res.json())
-        .then((list: nba.Player[]) =>
-          setPlayers(list.sort((a, b) => a.last_name!.localeCompare(b.last_name!))),
-        );
-    } else {
-      setPlayers(playerList);
-    }
-  }, [playerList]);
-
+export default function Home() {
   return (
-    <div className={`flex justify-center ${className}`}>
-      <Command
-        className="rounded-lg border shadow-md md:min-w-[450px]"
-        filter={(value, search) => {
-          if (value.toLowerCase().includes(search.toLowerCase())) return 1;
-          return 0;
-        }}
-      >
-        <CommandInput
-          placeholder={`Search ${players?.length} players...`}
-          value={search}
-          onValueChange={setSearch}
-        />
-        <CommandList>
-          <CommandEmpty>No player found</CommandEmpty>
-          {players?.map((player) => (
-            <CommandItem
-              key={player.id}
-              onSelect={() => {
-                if (onSelect) {
-                  onSelect(player.id);
-                }
-                setSearch('');
-              }}
-            >
-              <PlayerSearchResult player={player} />
-            </CommandItem>
-          ))}
-        </CommandList>
-      </Command>
+    <div className="h-full flex flex-row justify-center space-x-8">
+      <GameModeCard
+        className="w-1/2"
+        title="Single Player"
+        description="Test your own knowledge, but you only have 5 lives."
+        href="/singleplayer"
+        imageHref="/images/jaylenbrown.jpg"
+      />
+      <GameModeCard
+        className="w-1/2"
+        title="Multiplayer"
+        description="Compete against friends and come out on top."
+        href="/multiplayer"
+        imageHref="/images/jaysontatum.webp"
+      />
     </div>
   );
 }
 ````
 
-## File: apps/web/src/config/site.ts
-````typescript
-import { Gamepad2, House, LucideProps, Swords } from 'lucide-react';
-import { ForwardRefExoticComponent, RefAttributes } from 'react';
-
-export type SiteConfig = typeof siteConfig;
-
-type NavItem = {
-  label: string;
-  icon: ForwardRefExoticComponent<Omit<LucideProps, 'ref'> & RefAttributes<SVGSVGElement>>;
-  href: string;
-};
-
-export const siteConfig: { name: string; navItems: NavItem[] } = {
-  name: 'NBA Career Game',
-  navItems: [
-    {
-      label: 'Home',
-      icon: House,
-      href: '/',
-    },
-    {
-      label: 'Single Player',
-      icon: Gamepad2,
-      href: '/singleplayer',
-    },
-    {
-      label: 'Multiplayer',
-      icon: Swords,
-      href: '/multiplayer',
-    },
-  ],
-};
-````
-
-## File: apps/web/src/hooks/usePlayerSearch.ts
+## File: apps/web/src/hooks/useMultiplayerSocket.ts
 ````typescript
 'use client';
 
-import { nba } from '@dribblio/database';
-import { SearchResponse } from '@dribblio/types';
-import { AsyncListLoadOptions, useAsyncList } from '@react-stately/data';
+import { clientSocket } from '@/lib/clientsocket';
+import { useUser } from '@auth0/nextjs-auth0';
+import { nba, users } from '@dribblio/database';
+import {
+  GameState,
+  HostRoomMessageBody,
+  JoinRoomMessageBody,
+  MultiplayerConfig,
+  UserGameInfo,
+} from '@dribblio/types';
 import { useEffect, useState } from 'react';
 
-const usePlayerSearch = () => {
-  const [playerCount, setPlayerCount] = useState<number>(0);
+type RoomProps = {
+  id: string;
+  users: users.User[];
+};
+
+type RoundProps = {
+  roundActive: boolean;
+  timeLeft: number;
+  users: UserGameInfo[];
+  team_history: string[];
+  players: nba.Player[];
+};
+
+const useMultiplayerSocket = () => {
+  const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [canStartGame, setCanStartGame] = useState<boolean>(false);
+
+  const [roundActive, setRoundActive] = useState<boolean>(false);
+  const [users, setUsers] = useState<UserGameInfo[]>([]);
+  const [roomId, setRoomId] = useState<string | undefined>(undefined);
+  const [validAnswers, setValidAnswers] = useState<nba.Player[]>([]);
+
+  const [teams, setTeams] = useState<string[] | null>(null);
+
+  const [players, setPlayers] = useState<nba.Player[]>([]);
+
+  const [timeLeft, setTimeLeft] = useState<number>(0);
+
+  const { user } = useUser();
+
+  // From Server
+  function onRoomUpdated({ id, users }: RoomProps) {
+    setRoomId(id);
+    setUsers(users.map((user: users.User) => ({ info: user, score: 0 })));
+  }
+  function onNextRound({ roundActive, timeLeft, team_history, users, players }: RoundProps) {
+    setRoundActive(roundActive);
+    setTimeLeft(timeLeft);
+    setUsers(users);
+    setTeams(team_history);
+    setPlayers(players);
+  }
+  function onTimerUpdated({ timeLeft }: { timeLeft: number }) {
+    setTimeLeft(timeLeft);
+  }
+  function onEndRound({ roundActive, users, validAnswers }: GameState) {
+    setRoundActive(roundActive);
+    setUsers(users);
+    setValidAnswers(validAnswers);
+  }
+
+  // To Server
+  function onConnect() {
+    setIsConnected(true);
+  }
+  function onDisconnect() {
+    setIsConnected(false);
+  }
+  function onHostRoom(config: MultiplayerConfig) {
+    if (!user) return;
+
+    const body: HostRoomMessageBody = { isMulti: true, userId: user.sub, config };
+    clientSocket.emit('host_room', body);
+    setCanStartGame(true);
+  }
+  function onJoinRoom(roomId: string) {
+    if (!user) return;
+
+    const body: JoinRoomMessageBody = { roomId, userId: user.sub };
+    clientSocket.emit('join_room', body);
+  }
+  function onStartGame() {
+    setCanStartGame(false);
+    clientSocket.emit('start_game', users);
+  }
+  function onGuess(guessId: number) {
+    if (!user) return;
+
+    clientSocket.emit('client_guess', { userId: user.sub, guessId });
+  }
 
   useEffect(() => {
-    fetch('/api/players/count')
-      .then((res) => res.json())
-      .then(setPlayerCount);
-  }, [setPlayerCount]);
+    setCanStartGame(false);
 
-  const list = useAsyncList<nba.Player>({
-    async load({ signal, filterText }: AsyncListLoadOptions<nba.Player, string>) {
-      const res = await fetch(`/api/players/search?searchTerm=${filterText}`, {
-        signal,
-      });
-      const json: SearchResponse = await res.json();
+    clientSocket.on('connect', onConnect);
+    clientSocket.on('disconnect', onDisconnect);
+    clientSocket.on('room_updated', onRoomUpdated);
+    clientSocket.on('next_round', onNextRound);
+    clientSocket.on('timer_updated', onTimerUpdated);
+    clientSocket.on('end_round', onEndRound);
 
-      return {
-        items: json.results,
-      };
-    },
-  });
+    clientSocket.connect();
 
-  return { playerCount, list };
+    return () => {
+      clientSocket.off('connect', onConnect);
+      clientSocket.off('disconnect', onDisconnect);
+      clientSocket.off('room_updated', onRoomUpdated);
+      clientSocket.off('next_round', onNextRound);
+      clientSocket.off('timer_updated', onTimerUpdated);
+      clientSocket.off('end_round', onEndRound);
+      clientSocket.disconnect();
+    };
+  }, []);
+
+  return {
+    socketId: clientSocket.id,
+    isConnected,
+    roundActive,
+    roomId,
+    canStartGame,
+    onStartGame,
+    users,
+    onHostRoom,
+    onJoinRoom,
+    teams,
+    players,
+    onGuess,
+    timeLeft,
+    validAnswers,
+  };
 };
 
-export default usePlayerSearch;
-````
-
-## File: apps/web/src/lib/schemas.ts
-````typescript
-import {
-  GameDifficultyNames,
-  HostFormValues,
-  JoinFormValues,
-  UpdateUserDto,
-} from '@dribblio/types';
-import Joi from 'joi';
-
-export const hostSchema = Joi.object<HostFormValues>({
-  isRoundLimit: Joi.boolean().required(),
-  config: Joi.object({
-    scoreLimit: Joi.number().optional(),
-    roundLimit: Joi.number().optional(),
-    roundTimeLimit: Joi.number().required(),
-    gameDifficulty: Joi.string()
-      .valid(...GameDifficultyNames)
-      .required(),
-  }),
-}).custom((value, helpers) => {
-  const { isRoundLimit, config } = value;
-  if (isRoundLimit && !config.roundLimit) {
-    return helpers.error('any.custom', {
-      message: 'Round Limit is required when Round Limit mode is selected',
-    });
-  }
-  if (!isRoundLimit && !config.scoreLimit) {
-    return helpers.error('any.custom', {
-      message: 'Score Limit is required when Score Limit mode is selected',
-    });
-  }
-  return value;
-}, 'Round/Score limit conditional check');
-
-export const joinSchema = Joi.object<JoinFormValues>({
-  roomId: Joi.string().required(),
-});
-
-export const updateUserSchema = Joi.object<UpdateUserDto>({
-  display_name: Joi.string().optional(),
-  name: Joi.string().optional(),
-});
-````
-
-## File: apps/web/next.config.mjs
-````
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: `http://localhost:3002/api/:path*`,
-      },
-      {
-        source: '/socket.io/:path*',
-        destination: `http://localhost:3002/socket.io/:path*`,
-      },
-    ];
-  },
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'http',
-        hostname: '**',
-      },
-      {
-        protocol: 'https',
-        hostname: '**',
-      },
-    ],
-  },
-};
-
-export default nextConfig;
+export default useMultiplayerSocket;
 ````
 
 ## File: apps/web/README.md
@@ -5338,597 +6210,6 @@ You are not permitted to:
 Any unauthorized use, reproduction, or distribution of the Software is strictly prohibited and may result in severe legal consequences.
 ````
 
-## File: apps/web/tsconfig.json
-````json
-{
-  "extends": "@dribblio/typescript-config/nextjs.json",
-  "compilerOptions": {
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  },
-  "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", "next.config.mjs", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "public"]
-}
-````
-
-## File: packages/eslint-config/base.js
-````javascript
-import js from '@eslint/js';
-import eslintConfigPrettier from 'eslint-config-prettier';
-import jest from 'eslint-plugin-jest';
-import turboPlugin from 'eslint-plugin-turbo';
-import globals from 'globals';
-import tseslint from 'typescript-eslint';
-
-/**
- * A shared ESLint configuration for the repository.
- *
- * @type {import("eslint").Linter.Config[]}
- * */
-export const baseConfig = [
-  js.configs.recommended,
-  eslintConfigPrettier,
-  ...tseslint.configs.recommended,
-  {
-    plugins: {
-      tseslint,
-      jest,
-      turbo: turboPlugin,
-    },
-    languageOptions: {
-      globals: {
-        ...globals.node,
-        ...jest.environments.globals.globals,
-      },
-      parser: tseslint.parser,
-    },
-    settings: {
-      'import/resolver': {
-        alias: {
-          map: [['#', '.src']],
-        },
-      },
-    },
-    rules: {
-      'turbo/no-undeclared-env-vars': 'warn',
-      '@typescript-eslint/no-namespace': 'off',
-      '@typescript-eslint/no-explicit-any': 'warn',
-    },
-  },
-  {
-    ignores: ['dist/**'],
-  },
-];
-````
-
-## File: packages/eslint-config/next.js
-````javascript
-import js from '@eslint/js';
-import { default as pluginNext } from '@next/eslint-plugin-next';
-import eslintConfigPrettier from 'eslint-config-prettier';
-import pluginReactHooks from 'eslint-plugin-react-hooks';
-import tseslint from 'typescript-eslint';
-import { baseConfig } from './base.js';
-
-/**
- * A custom ESLint configuration for libraries that use Next.js.
- *
- * @type {import("eslint").Linter.Config[]}
- * */
-export const nextJsConfig = [
-  ...baseConfig,
-  js.configs.recommended,
-  eslintConfigPrettier,
-  ...tseslint.configs.recommended,
-  {
-    plugins: {
-      '@next/next': pluginNext,
-    },
-    rules: {
-      ...pluginNext.configs.recommended.rules,
-      ...pluginNext.configs['core-web-vitals'].rules,
-    },
-  },
-  {
-    plugins: {
-      'react-hooks': pluginReactHooks,
-    },
-    settings: { react: { version: 'detect' } },
-    rules: {
-      ...pluginReactHooks.configs.recommended.rules,
-      // React scope no longer necessary with new JSX transform.
-      'react/react-in-jsx-scope': 'off',
-    },
-  },
-];
-````
-
-## File: packages/types/tsconfig.json
-````json
-{
-  "extends": "@dribblio/typescript-config/base.json",
-  "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": "src"
-  },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist"]
-}
-````
-
-## File: apps/api/src/nba/games/careerpath/room/room.service.ts
-````typescript
-import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
-import { RoomFactory } from '@/nba/games/careerpath/room/factory.service';
-import { UsersService } from '@/users/users.service';
-import { users } from '@dribblio/database';
-import {
-  HostRoomMessageBody,
-  JoinRoomMessageBody,
-  MultiplayerConfig,
-  Room,
-  SinglePlayerConfig,
-} from '@dribblio/types';
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import ShortUniqueId from 'short-unique-id';
-import { Socket } from 'socket.io';
-
-const uid = new ShortUniqueId({ length: 5, dictionary: 'alpha_upper' });
-
-@Injectable()
-export class RoomService {
-  private rooms: Record<string, Room> = {};
-
-  constructor(
-    @Inject(forwardRef(() => CareerPathGateway))
-    private gateway: CareerPathGateway,
-    private roomFactory: RoomFactory,
-    private usersService: UsersService,
-  ) {}
-
-  async createRoom(
-    socket: Socket,
-    { isMulti, userId, config }: HostRoomMessageBody,
-  ): Promise<Room> {
-    const roomId: string = this.generateUniqueCode();
-
-    if (!this.rooms[roomId]) {
-      this.rooms[roomId] = isMulti
-        ? this.roomFactory.createMultiplayerRoom(socket, roomId, config as MultiplayerConfig)
-        : this.roomFactory.createSinglePlayerRoom(socket, config as SinglePlayerConfig);
-    }
-
-    console.log(`Game machine created for room ${roomId}`);
-
-    await this.joinRoom(socket, { roomId, userId });
-
-    return this.rooms[roomId];
-  }
-
-  destroyRoom(id: string) {
-    delete this.rooms[id];
-    console.log(`Room destroyed for room ${id}`);
-  }
-
-  async joinRoom(socket: Socket, { roomId, userId }: JoinRoomMessageBody): Promise<void> {
-    if (!this.rooms[roomId]) return;
-
-    socket.join(roomId);
-
-    this.roomFactory.setUpListenersOnJoin(socket, this.rooms[roomId]);
-
-    if (this.rooms[roomId].isMulti) {
-      const user = await this.usersService.get(userId);
-
-      if (!user) throw new Error('User not found');
-
-      this.rooms[roomId] = {
-        ...this.rooms[roomId],
-        users: [...this.rooms[roomId].users, user],
-      };
-    } else {
-      this.rooms[roomId] = {
-        ...this.rooms[roomId],
-        users: [
-          ...this.rooms[roomId].users,
-          { id: socket.id, name: 'Guest', display_name: 'Guest', profile_url: '' },
-        ],
-      };
-    }
-
-    const { ...room } = this.rooms[roomId];
-
-    this.gateway.server.to(roomId).emit('room_updated', room);
-  }
-
-  leaveRoom(roomId: string, userId: string): void {
-    let room: Room = this.rooms[roomId];
-
-    if (room) {
-      room = {
-        ...room,
-        users: [...room.users.filter((user: users.User) => user.id !== userId)],
-      };
-
-      if (!room.users.some((user: users.User) => user)) {
-        this.destroyRoom(roomId);
-      } else {
-        this.gateway.server.to(roomId).emit('room_updated', room);
-      }
-    }
-  }
-
-  generateUniqueCode(): string {
-    const roomId = uid.randomUUID();
-    if (roomId in this.rooms) {
-      return this.generateUniqueCode();
-    }
-
-    return roomId;
-  }
-}
-````
-
-## File: apps/api/src/nba/games/careerpath/careerpath.gateway.ts
-````typescript
-import { RoomService } from '@/nba/games/careerpath/room/room.service';
-import { HostRoomMessageBody, JoinRoomMessageBody } from '@dribblio/types';
-import { forwardRef, Inject } from '@nestjs/common';
-import {
-  ConnectedSocket,
-  MessageBody,
-  OnGatewayDisconnect,
-  SubscribeMessage,
-  WebSocketGateway,
-  WebSocketServer,
-} from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
-
-@WebSocketGateway({ cors: true })
-export class CareerPathGateway implements OnGatewayDisconnect {
-  @WebSocketServer()
-  server: Server;
-
-  constructor(
-    @Inject(forwardRef(() => RoomService))
-    private roomService: RoomService,
-  ) {}
-
-  handleDisconnect(client: Socket) {
-    this.roomService.leaveRoom(Array.from(client.rooms)[1], client.id);
-  }
-
-  @SubscribeMessage('host_room')
-  async handleHostRoom(
-    @MessageBody() config: HostRoomMessageBody,
-    @ConnectedSocket() client: Socket,
-  ) {
-    await this.roomService.createRoom(client, config);
-  }
-
-  @SubscribeMessage('join_room')
-  async handleJoinRoom(
-    @MessageBody() config: JoinRoomMessageBody,
-    @ConnectedSocket() client: Socket,
-  ) {
-    await this.roomService.joinRoom(client, config);
-  }
-}
-````
-
-## File: apps/api/src/nba/nba.module.ts
-````typescript
-import { DatabaseModule } from '@/database/database.module';
-import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
-import { GameService } from '@/nba/games/careerpath/game.service';
-import { RoomFactory } from '@/nba/games/careerpath/room/factory.service';
-import { RoomService } from '@/nba/games/careerpath/room/room.service';
-import { PlayersModule } from '@/nba/player/player.module';
-import { UsersModule } from '@/users/users.module';
-import { Module } from '@nestjs/common';
-
-@Module({
-  imports: [PlayersModule, DatabaseModule, UsersModule],
-  controllers: [],
-  providers: [CareerPathGateway, RoomService, RoomFactory, GameService],
-})
-export class NBAModule {}
-````
-
-## File: apps/api/src/users/users.module.ts
-````typescript
-import { AvatarService } from '@/users/avatar.service';
-import { S3Service } from '@/users/s3.service';
-import { S3Client } from '@aws-sdk/client-s3';
-import { Module } from '@nestjs/common';
-import { UsersController } from './users.controller';
-import { UsersService } from './users.service';
-
-@Module({
-  controllers: [UsersController],
-  providers: [
-    UsersService,
-    S3Service,
-    AvatarService,
-    {
-      provide: S3Client,
-      useValue: new S3Client(),
-    },
-  ],
-  exports: [UsersService],
-})
-export class UsersModule {}
-````
-
-## File: apps/web/src/app/multiplayer/page.tsx
-````typescript
-'use client';
-
-import { CareerPath } from '@/components/careerpath/careerpathview';
-import JoinHostModal from '@/components/config/multiplayer/joinhostmodal';
-import PlayerSearchBar from '@/components/search/playersearchbar';
-import { Avatar, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import useMultiplayerSocket from '@/hooks/useMultiplayerSocket';
-import { UserGameInfo } from '@dribblio/types';
-import { User } from 'lucide-react';
-
-export default function Game() {
-  const {
-    isConnected,
-    roomId,
-    roundActive,
-    canStartGame,
-    onStartGame,
-    users,
-    onHostRoom,
-    onJoinRoom,
-    teams,
-    players,
-    onGuess,
-    timeLeft,
-    validAnswers,
-  } = useMultiplayerSocket();
-
-  return (
-    <div className="flex flex-col h-full space-y-8">
-      <JoinHostModal isOpen={!roomId} onJoinRoom={onJoinRoom} onHostRoom={onHostRoom} />
-      <div className="justify-start">
-        <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
-        {roomId && <p>{`Room Code: ${roomId}`}</p>}
-        {users.some((user: UserGameInfo) => user) && (
-          <div>
-            <p>Users:</p>
-            <ul>
-              {users.map((user: UserGameInfo) => (
-                <li key={user.info.id}>
-                  <div className="flex flex-row space-x-2 items-center">
-                    {user.info.profile_url ? (
-                      <Avatar>
-                        <AvatarImage
-                          src={user.info.profile_url}
-                          alt={user.info.name ?? ''}
-                          width={24}
-                          height={24}
-                        />
-                      </Avatar>
-                    ) : (
-                      <User />
-                    )}
-                    <p>{user.info.name}</p>
-                    <p>{user.score}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
-
-      {canStartGame && (
-        <div>
-          <Button onClick={onStartGame}>Start Game</Button>
-        </div>
-      )}
-
-      {roundActive && (
-        <div className="w-full flex flex-col items-center space-y-8">
-          <p className="text-2xl font-bold">Time Left: {timeLeft}</p>
-          <CareerPath teams={teams!} />
-          <PlayerSearchBar playerList={players} onSelect={onGuess} />
-        </div>
-      )}
-
-      {!roundActive && !canStartGame && (
-        <div>
-          <p>Correct Answers:</p>
-          <ul>
-            {validAnswers.map((answer) => (
-              <li key={answer.id}>{answer.display_first_last}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-}
-````
-
-## File: apps/web/src/app/page.tsx
-````typescript
-'use client';
-
-import GameModeCard from '@/components/gamemodecard';
-
-export default function Home() {
-  return (
-    <div className="h-full flex flex-row justify-center space-x-8">
-      <GameModeCard
-        className="w-1/2"
-        title="Single Player"
-        description="Test your own knowledge, but you only have 5 lives."
-        href="/singleplayer"
-        imageHref="/images/jaylenbrown.jpg"
-      />
-      <GameModeCard
-        className="w-1/2"
-        title="Multiplayer"
-        description="Compete against friends and come out on top."
-        href="/multiplayer"
-        imageHref="/images/jaysontatum.webp"
-      />
-    </div>
-  );
-}
-````
-
-## File: apps/web/src/hooks/useMultiplayerSocket.ts
-````typescript
-'use client';
-
-import { clientSocket } from '@/lib/clientsocket';
-import { useUser } from '@auth0/nextjs-auth0';
-import { nba, users } from '@dribblio/database';
-import {
-  GameState,
-  HostRoomMessageBody,
-  JoinRoomMessageBody,
-  MultiplayerConfig,
-  UserGameInfo,
-} from '@dribblio/types';
-import { useEffect, useState } from 'react';
-
-type RoomProps = {
-  id: string;
-  users: users.User[];
-};
-
-type RoundProps = {
-  roundActive: boolean;
-  timeLeft: number;
-  users: UserGameInfo[];
-  team_history: string[];
-  players: nba.Player[];
-};
-
-const useMultiplayerSocket = () => {
-  const [isConnected, setIsConnected] = useState<boolean>(false);
-  const [canStartGame, setCanStartGame] = useState<boolean>(false);
-
-  const [roundActive, setRoundActive] = useState<boolean>(false);
-  const [users, setUsers] = useState<UserGameInfo[]>([]);
-  const [roomId, setRoomId] = useState<string | undefined>(undefined);
-  const [validAnswers, setValidAnswers] = useState<nba.Player[]>([]);
-
-  const [teams, setTeams] = useState<string[] | null>(null);
-
-  const [players, setPlayers] = useState<nba.Player[]>([]);
-
-  const [timeLeft, setTimeLeft] = useState<number>(0);
-
-  const { user } = useUser();
-
-  // From Server
-  function onRoomUpdated({ id, users }: RoomProps) {
-    setRoomId(id);
-    setUsers(users.map((user: users.User) => ({ info: user, score: 0 })));
-  }
-  function onNextRound({ roundActive, timeLeft, team_history, users, players }: RoundProps) {
-    setRoundActive(roundActive);
-    setTimeLeft(timeLeft);
-    setUsers(users);
-    setTeams(team_history);
-    setPlayers(players);
-  }
-  function onTimerUpdated({ timeLeft }: { timeLeft: number }) {
-    setTimeLeft(timeLeft);
-  }
-  function onEndRound({ roundActive, users, validAnswers }: GameState) {
-    setRoundActive(roundActive);
-    setUsers(users);
-    setValidAnswers(validAnswers);
-  }
-
-  // To Server
-  function onConnect() {
-    setIsConnected(true);
-  }
-  function onDisconnect() {
-    setIsConnected(false);
-  }
-  function onHostRoom(config: MultiplayerConfig) {
-    if (!user) return;
-
-    const body: HostRoomMessageBody = { isMulti: true, userId: user.sub, config };
-    clientSocket.emit('host_room', body);
-    setCanStartGame(true);
-  }
-  function onJoinRoom(roomId: string) {
-    if (!user) return;
-
-    const body: JoinRoomMessageBody = { roomId, userId: user.sub };
-    clientSocket.emit('join_room', body);
-  }
-  function onStartGame() {
-    setCanStartGame(false);
-    clientSocket.emit('start_game', users);
-  }
-  function onGuess(guessId: number) {
-    if (!user) return;
-
-    clientSocket.emit('client_guess', { userId: user.sub, guessId });
-  }
-
-  useEffect(() => {
-    setCanStartGame(false);
-
-    clientSocket.on('connect', onConnect);
-    clientSocket.on('disconnect', onDisconnect);
-    clientSocket.on('room_updated', onRoomUpdated);
-    clientSocket.on('next_round', onNextRound);
-    clientSocket.on('timer_updated', onTimerUpdated);
-    clientSocket.on('end_round', onEndRound);
-
-    clientSocket.connect();
-
-    return () => {
-      clientSocket.off('connect', onConnect);
-      clientSocket.off('disconnect', onDisconnect);
-      clientSocket.off('room_updated', onRoomUpdated);
-      clientSocket.off('next_round', onNextRound);
-      clientSocket.off('timer_updated', onTimerUpdated);
-      clientSocket.off('end_round', onEndRound);
-      clientSocket.disconnect();
-    };
-  }, []);
-
-  return {
-    socketId: clientSocket.id,
-    isConnected,
-    roundActive,
-    roomId,
-    canStartGame,
-    onStartGame,
-    users,
-    onHostRoom,
-    onJoinRoom,
-    teams,
-    players,
-    onGuess,
-    timeLeft,
-    validAnswers,
-  };
-};
-
-export default useMultiplayerSocket;
-````
-
 ## File: packages/database/src/index.ts
 ````typescript
 export * as nba from '../generated/prisma-nba/index.js';
@@ -6185,283 +6466,88 @@ export class PlayersController {
 }
 ````
 
-## File: apps/api/src/users/users.service.ts
-````typescript
-import { UsersPrismaService } from '@/database/users.prisma.service';
-import { AvatarService } from '@/users/avatar.service';
-import { S3Service } from '@/users/s3.service';
-import { UpdateUserDto } from '@dribblio/types';
-import { Injectable } from '@nestjs/common';
-
-@Injectable()
-export class UsersService {
-  constructor(
-    private readonly userPrisma: UsersPrismaService,
-    private readonly s3Service: S3Service,
-    private readonly avatarService: AvatarService,
-  ) {}
-
-  async get(id: string) {
-    const user = await this.userPrisma.user.findUnique({
-      where: { id },
-    });
-
-    return user;
-  }
-
-  async update(id: string, updateUserDto: UpdateUserDto) {
-    return await this.userPrisma.user.update({
-      where: { id: id },
-      data: {
-        display_name: updateUserDto.display_name ?? '',
-        name: updateUserDto.name ?? '',
-      },
-    });
-  }
-
-  async uploadProfileImage(userId: string, file: Express.Multer.File) {
-    const profile_url = await this.avatarService.uploadAvatar(userId, file);
-
-    return await this.userPrisma.user.update({
-      where: { id: userId },
-      data: { profile_url },
-    });
-  }
-}
-````
-
-## File: apps/web/src/components/config/multiplayer/joinhostmodal.tsx
+## File: apps/web/src/components/navbar/navbar.tsx
 ````typescript
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { hostSchema, joinSchema } from '@/lib/schemas';
-import {
-  GameDifficulties,
-  GameDifficultyNames,
-  GameDifficultySchema,
-  HostFormValues,
-  JoinFormValues,
-  MultiplayerConfig,
-} from '@dribblio/types';
-import { joiResolver } from '@hookform/resolvers/joi';
-import { useForm } from 'react-hook-form';
+import { Dock, DockIcon } from '@/components/magicui/dock';
+import ThemeSwitcher from '@/components/navbar/themeswitcher';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { buttonVariants } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { siteConfig } from '@/config/site';
+import { useDBUser } from '@/context/dbusercontext';
+import { cn } from '@/lib/utils';
+import { LogIn, User as UserIcon } from 'lucide-react';
+import NextLink from 'next/link';
 
-export default function JoinHostModal({
-  isOpen,
-  onJoinRoom,
-  onHostRoom,
-}: Readonly<{
-  isOpen: boolean;
-  onJoinRoom: (roomId: string) => void;
-  onHostRoom: (config: MultiplayerConfig) => void;
-}>) {
-  return (
-    <Dialog open={isOpen}>
-      <DialogContent
-        className="[&>button]:hidden"
-        onInteractOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-      >
-        <DialogHeader>
-          <DialogTitle>Join or Host a Game</DialogTitle>
-        </DialogHeader>
-        <Tabs defaultValue="join">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="join">Join Room</TabsTrigger>
-            <TabsTrigger value="host">Host Room</TabsTrigger>
-          </TabsList>
-          <TabsContent value="join">
-            <JoinForm onJoinRoom={onJoinRoom} />
-          </TabsContent>
-          <TabsContent value="host">
-            <HostForm onHostRoom={onHostRoom} />
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function JoinForm({
-  onJoinRoom,
-}: Readonly<{
-  onJoinRoom: (roomId: string) => void;
-}>) {
-  const form = useForm<JoinFormValues>({
-    resolver: joiResolver(joinSchema),
-    defaultValues: {
-      roomId: '',
-    },
-  });
-
-  function onSubmit(values: JoinFormValues) {
-    onJoinRoom(values.roomId);
-  }
+export default function NBANavbar({ className }: Readonly<{ className?: string }>) {
+  const { user } = useDBUser();
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="flex flex-col space-y-4">
-          <FormField
-            control={form.control}
-            name="roomId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Room Code</FormLabel>
-                <FormControl>
-                  <Input placeholder="Room Code" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          ></FormField>
-        </div>
-        <div className="flex justify-end mt-4">
-          <Button type="submit">Join Room</Button>
-        </div>
-      </form>
-    </Form>
-  );
-}
-
-function HostForm({
-  onHostRoom,
-}: Readonly<{
-  onHostRoom: (config: MultiplayerConfig) => void;
-}>) {
-  const form = useForm<HostFormValues>({
-    resolver: joiResolver(hostSchema),
-    defaultValues: {
-      isRoundLimit: false,
-      config: {
-        scoreLimit: 10,
-        roundLimit: 10,
-        roundTimeLimit: 30,
-        gameDifficulty: GameDifficulties.firstAllNBA.name,
-      },
-    },
-  });
-
-  function onSubmit(values: HostFormValues) {
-    const config = {
-      ...values.config,
-      scoreLimit: values.isRoundLimit ? values.config.scoreLimit : undefined,
-      roundLimit: values.isRoundLimit ? values.config.roundLimit : undefined,
-      gameDifficulty: GameDifficultySchema.parse(values.config.gameDifficulty),
-    };
-    onHostRoom(config);
-  }
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="flex flex-col space-y-4">
-          <div className="flex flex-row space-x-4 self-center">
-            <p>Score Limit</p>
-            <FormField
-              control={form.control}
-              name="isRoundLimit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                </FormItem>
-              )}
-            ></FormField>
-            <p>Round Limit</p>
-          </div>
-          {form.watch('isRoundLimit') && (
-            <FormField
-              control={form.control}
-              name="config.roundLimit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Round Limit</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="Round Limit" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            ></FormField>
-          )}
-          {!form.watch('isRoundLimit') && (
-            <FormField
-              control={form.control}
-              name="config.scoreLimit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Score Limit</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="Score Limit" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            ></FormField>
-          )}
-          <FormField
-            control={form.control}
-            name="config.roundTimeLimit"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Round Time Limit</FormLabel>
-                <FormControl>
-                  <Input type="number" placeholder="Round Time Limit" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          ></FormField>
-          <FormField
-            control={form.control}
-            name="config.gameDifficulty"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Difficulty</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select game difficulty" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {GameDifficultyNames.map((mode) => (
-                      <SelectItem key={mode} value={mode}>
-                        {GameDifficultySchema.parse(mode).display_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          ></FormField>
-        </div>
-        <div className="flex justify-end mt-4">
-          <Button type="submit">Create Room</Button>
-        </div>
-      </form>
-    </Form>
+    <div className={`${className}`}>
+      <TooltipProvider>
+        <Dock className="rounded-full" iconMagnification={60} iconDistance={25}>
+          <DockIcon>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                {user ? (
+                  <NextLink href="/profile">
+                    {user.profile_url ? (
+                      <Avatar>
+                        <AvatarImage
+                          src={user.profile_url}
+                          alt="Profile"
+                          width={32}
+                          height={32}
+                          className="rounded-full"
+                        />
+                        <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <UserIcon />
+                    )}
+                  </NextLink>
+                ) : (
+                  <a
+                    href="/auth/login"
+                    className={cn(
+                      buttonVariants({ variant: 'ghost', size: 'icon', className: 'rounded-full' }),
+                    )}
+                  >
+                    <LogIn />
+                  </a>
+                )}
+              </TooltipTrigger>
+              <TooltipContent>{user ? <p>Profile</p> : <p>Login</p>}</TooltipContent>
+            </Tooltip>
+          </DockIcon>
+          <Separator orientation="vertical" className="h-full py-2" />
+          {siteConfig.navItems.map((item) => (
+            <DockIcon key={item.label}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <NextLink
+                    href={item.href}
+                    className={cn(
+                      buttonVariants({ variant: 'ghost', size: 'icon', className: 'rounded-full' }),
+                    )}
+                  >
+                    <item.icon />
+                  </NextLink>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{item.label}</p>
+                </TooltipContent>
+              </Tooltip>
+            </DockIcon>
+          ))}
+          <Separator orientation="vertical" className="h-full py-2" />
+          <ThemeSwitcher />
+        </Dock>
+      </TooltipProvider>
+    </div>
   );
 }
 ````
@@ -6605,6 +6691,15 @@ const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketP
 };
 
 export default useSinglePlayerSocket;
+````
+
+## File: packages/database/.gitignore
+````
+node_modules
+# Keep environment variables out of version control
+.env
+
+**/generated/
 ````
 
 ## File: packages/types/src/statemachine/singleplayer/gamemachine.ts
@@ -6880,99 +6975,26 @@ import { UsersModule } from './users/users.module';
 export class AppModule {}
 ````
 
-## File: apps/web/src/components/navbar/navbar.tsx
+## File: apps/api/src/main.ts
 ````typescript
-'use client';
+import { AppModule } from '@/app.module';
+import { ValidationPipe } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
+import * as dotenv from 'dotenv';
+import * as express from 'express';
 
-import { Dock, DockIcon } from '@/components/magicui/dock';
-import ThemeSwitcher from '@/components/navbar/themeswitcher';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { buttonVariants } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { siteConfig } from '@/config/site';
-import { useDBUser } from '@/context/dbusercontext';
-import { cn } from '@/lib/utils';
-import { LogIn, User as UserIcon } from 'lucide-react';
-import NextLink from 'next/link';
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
 
-export default function NBANavbar({ className }: Readonly<{ className?: string }>) {
-  const { user } = useDBUser();
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
 
-  return (
-    <div className={`${className}`}>
-      <TooltipProvider>
-        <Dock className="rounded-full" iconMagnification={60} iconDistance={25}>
-          <DockIcon>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                {user ? (
-                  <NextLink href="/profile">
-                    {user.profile_url ? (
-                      <Avatar>
-                        <AvatarImage
-                          src={user.profile_url}
-                          alt="Profile"
-                          width={32}
-                          height={32}
-                          className="rounded-full"
-                        />
-                        <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                    ) : (
-                      <UserIcon />
-                    )}
-                  </NextLink>
-                ) : (
-                  <a
-                    href="/auth/login"
-                    className={cn(
-                      buttonVariants({ variant: 'ghost', size: 'icon', className: 'rounded-full' }),
-                    )}
-                  >
-                    <LogIn />
-                  </a>
-                )}
-              </TooltipTrigger>
-              <TooltipContent>{user ? <p>Profile</p> : <p>Login</p>}</TooltipContent>
-            </Tooltip>
-          </DockIcon>
-          <Separator orientation="vertical" className="h-full py-2" />
-          {siteConfig.navItems.map((item) => (
-            <DockIcon key={item.label}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <NextLink
-                    href={item.href}
-                    className={cn(
-                      buttonVariants({ variant: 'ghost', size: 'icon', className: 'rounded-full' }),
-                    )}
-                  >
-                    <item.icon />
-                  </NextLink>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{item.label}</p>
-                </TooltipContent>
-              </Tooltip>
-            </DockIcon>
-          ))}
-          <Separator orientation="vertical" className="h-full py-2" />
-          <ThemeSwitcher />
-        </Dock>
-      </TooltipProvider>
-    </div>
-  );
+  app.useGlobalPipes(new ValidationPipe());
+  app.setGlobalPrefix('/api');
+  await app.listen(process.env.PORT ?? 3002);
 }
-````
-
-## File: packages/database/.gitignore
-````
-node_modules
-# Keep environment variables out of version control
-.env
-
-**/generated/
+dotenv.config();
+bootstrap();
 ````
 
 ## File: packages/types/src/statemachine/actors.ts
@@ -7074,26 +7096,58 @@ export * from './websocket/index.js';
 }
 ````
 
-## File: apps/api/src/main.ts
+## File: apps/web/src/app/profile/page.tsx
 ````typescript
-import { AppModule } from '@/app.module';
-import { ValidationPipe } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
-import * as dotenv from 'dotenv';
-import * as express from 'express';
+'use client';
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+import { AvatarEditor } from '@/components/avatar-editor';
+import EditProfileModal from '@/components/editprofilemodal';
+import { Button } from '@/components/ui/button';
+import { useDBUser } from '@/context/dbusercontext';
+import { Pencil } from 'lucide-react';
+import Image from 'next/image';
+import NextLink from 'next/link';
 
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
+export default function ProfilePage() {
+  const { user } = useDBUser();
 
-  app.useGlobalPipes(new ValidationPipe());
-  app.setGlobalPrefix('/api');
-  await app.listen(process.env.PORT ?? 3002);
+  return (
+    <>
+      <div className="flex flex-col h-full items-center space-y-8 pt-12">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="relative">
+            <Image
+              src={user?.profile_url ?? ''}
+              alt="Profile"
+              width={100}
+              height={100}
+              className="rounded-full"
+            />
+            <div className="absolute bottom-0 right-0">
+              <AvatarEditor>
+                <Button variant="outline" size="icon" className="rounded-full size-8">
+                  <Pencil />
+                </Button>
+              </AvatarEditor>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center space-y-2">
+            <span className="text-2xl font-bold">Hello {user?.name}!</span>
+            <span className="text-sm text-muted-foreground">{`@${user?.display_name}`}</span>
+          </div>
+
+          <EditProfileModal />
+        </div>
+        <div>
+          <Button asChild>
+            <NextLink href="/auth/logout">Logout</NextLink>
+          </Button>
+        </div>
+      </div>
+    </>
+  );
 }
-dotenv.config();
-bootstrap();
 ````
 
 ## File: packages/types/src/statemachine/multiplayer/gamemachine.ts
@@ -7280,57 +7334,170 @@ export function createMultiplayerMachine(
 }
 ````
 
-## File: apps/web/src/app/profile/page.tsx
-````typescript
-'use client';
+## File: apps/api/package.json
+````json
+{
+  "name": "api",
+  "version": "0.0.1",
+  "description": "",
+  "author": "",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "nest build",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "start": "nest start",
+    "dev": "nest start --watch",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/main",
+    "lint": "jest --config=jest.lint.config.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "test:e2e": "jest --config ./test/jest-e2e.json"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.832.0",
+    "@aws-sdk/client-secrets-manager": "^3.830.0",
+    "@aws-sdk/cloudfront-signer": "^3.821.0",
+    "@aws-sdk/lib-storage": "^3.832.0",
+    "@dribblio/database": "*",
+    "@nestjs/common": "^11.0.1",
+    "@nestjs/core": "^11.0.1",
+    "@nestjs/mapped-types": "*",
+    "@nestjs/passport": "^11.0.5",
+    "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/platform-socket.io": "^11.1.2",
+    "@nestjs/websockets": "^11.1.2",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.2",
+    "dotenv": "^16.5.0",
+    "eslint-plugin-jest": "^28.13.0",
+    "jwks-rsa": "^3.2.0",
+    "nestjs-cls": "^6.0.1",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "@dribblio/types": "*",
+    "@eslint/eslintrc": "^3.2.0",
+    "@eslint/js": "^9.18.0",
+    "@nestjs/cli": "^11.0.0",
+    "@nestjs/schematics": "^11.0.0",
+    "@nestjs/testing": "^11.0.1",
+    "@swc/cli": "^0.6.0",
+    "@swc/core": "^1.10.7",
+    "@types/express": "^5.0.0",
+    "@types/jest": "^29.5.14",
+    "@types/multer": "^1.4.13",
+    "@types/node": "^22.10.7",
+    "@types/passport-jwt": "^4.0.1",
+    "@types/supertest": "^6.0.2",
+    "eslint": "^9.18.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.2",
+    "globals": "^16.0.0",
+    "jest": "^29.7.0",
+    "jest-runner-eslint": "^2.2.1",
+    "prettier": "^3.4.2",
+    "source-map-support": "^0.5.21",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.2.5",
+    "ts-loader": "^9.5.2",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.20.0"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node"
+  }
+}
+````
 
-import { AvatarEditor } from '@/components/avatar-editor';
-import EditProfileModal from '@/components/editprofilemodal';
-import { Button } from '@/components/ui/button';
-import { useDBUser } from '@/context/dbusercontext';
-import { Pencil } from 'lucide-react';
-import Image from 'next/image';
-import NextLink from 'next/link';
-
-export default function ProfilePage() {
-  const { user } = useDBUser();
-
-  return (
-    <>
-      <div className="flex flex-col h-full items-center space-y-8 pt-12">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="relative">
-            <Image
-              src={user?.profile_url ?? ''}
-              alt="Profile"
-              width={100}
-              height={100}
-              className="rounded-full"
-            />
-            <div className="absolute bottom-0 right-0">
-              <AvatarEditor>
-                <Button variant="outline" size="icon" className="rounded-full size-8">
-                  <Pencil />
-                </Button>
-              </AvatarEditor>
-            </div>
-          </div>
-
-          <div className="flex flex-col items-center space-y-2">
-            <span className="text-2xl font-bold">Hello {user?.name}!</span>
-            <span className="text-sm text-muted-foreground">{`@${user?.display_name}`}</span>
-          </div>
-
-          <EditProfileModal />
-        </div>
-        <div>
-          <Button asChild>
-            <NextLink href="/auth/logout">Logout</NextLink>
-          </Button>
-        </div>
-      </div>
-    </>
-  );
+## File: apps/web/package.json
+````json
+{
+  "name": "web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack --port 3000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "jest --config=jest.lint.config.ts",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@auth0/nextjs-auth0": "^4.6.1",
+    "@dribblio/database": "*",
+    "@hookform/resolvers": "^5.1.1",
+    "@radix-ui/react-avatar": "^1.1.10",
+    "@radix-ui/react-dialog": "^1.1.14",
+    "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-select": "^2.2.5",
+    "@radix-ui/react-separator": "^1.1.7",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@radix-ui/react-switch": "^1.2.5",
+    "@radix-ui/react-tabs": "^1.1.12",
+    "@radix-ui/react-tooltip": "^1.2.7",
+    "@react-stately/data": "^3.13.0",
+    "@tailwindcss/postcss": "^4.1.7",
+    "canvas-confetti": "^1.9.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
+    "eslint-plugin-jest": "^28.13.0",
+    "joi": "^17.13.3",
+    "lucide-react": "^0.511.0",
+    "motion": "^12.15.0",
+    "next": "^15.3.0",
+    "next-themes": "^0.4.6",
+    "react": "^19.1.0",
+    "react-avatar-editor": "^14.0.0-beta.6",
+    "react-dom": "^19.1.0",
+    "react-dropzone": "^14.3.8",
+    "react-image-crop": "^11.0.10",
+    "react-toastify": "^11.0.5",
+    "short-unique-id": "^5.3.2",
+    "socket.io-client": "^4.8.1",
+    "tailwind-merge": "^3.0.2",
+    "tailwindcss-animate": "^1.0.7",
+    "unique-username-generator": "^1.4.0"
+  },
+  "devDependencies": {
+    "@dribblio/eslint-config": "*",
+    "@dribblio/types": "*",
+    "@dribblio/typescript-config": "*",
+    "@types/canvas-confetti": "^1.9.0",
+    "@types/node": "^22.15.3",
+    "@types/react": "19.1.0",
+    "@types/react-dom": "19.1.1",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^9.25.0",
+    "jest-runner-eslint": "^2.2.1",
+    "postcss": "^8",
+    "tailwind-variants": "^0.3.1",
+    "tailwindcss": "^3.4.17",
+    "typescript": "5.8.2"
+  }
 }
 ````
 
@@ -7572,173 +7739,6 @@ Learn more about the power of Turborepo:
 - [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
 - [Configuration Options](https://turborepo.com/docs/reference/configuration)
 - [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
-````
-
-## File: apps/api/package.json
-````json
-{
-  "name": "api",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
-  "private": true,
-  "license": "UNLICENSED",
-  "scripts": {
-    "build": "nest build",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "nest start",
-    "dev": "nest start --watch",
-    "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main",
-    "lint": "jest --config=jest.lint.config.ts",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
-  },
-  "dependencies": {
-    "@aws-sdk/client-s3": "^3.832.0",
-    "@aws-sdk/client-secrets-manager": "^3.830.0",
-    "@aws-sdk/cloudfront-signer": "^3.821.0",
-    "@aws-sdk/lib-storage": "^3.832.0",
-    "@dribblio/database": "*",
-    "@nestjs/common": "^11.0.1",
-    "@nestjs/core": "^11.0.1",
-    "@nestjs/mapped-types": "*",
-    "@nestjs/passport": "^11.0.5",
-    "@nestjs/platform-express": "^11.0.1",
-    "@nestjs/platform-socket.io": "^11.1.2",
-    "@nestjs/websockets": "^11.1.2",
-    "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.2",
-    "dotenv": "^16.5.0",
-    "eslint-plugin-jest": "^28.13.0",
-    "jwks-rsa": "^3.2.0",
-    "nestjs-cls": "^6.0.1",
-    "passport": "^0.7.0",
-    "passport-jwt": "^4.0.1",
-    "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
-  },
-  "devDependencies": {
-    "@dribblio/types": "*",
-    "@eslint/eslintrc": "^3.2.0",
-    "@eslint/js": "^9.18.0",
-    "@nestjs/cli": "^11.0.0",
-    "@nestjs/schematics": "^11.0.0",
-    "@nestjs/testing": "^11.0.1",
-    "@swc/cli": "^0.6.0",
-    "@swc/core": "^1.10.7",
-    "@types/express": "^5.0.0",
-    "@types/jest": "^29.5.14",
-    "@types/multer": "^1.4.13",
-    "@types/node": "^22.10.7",
-    "@types/passport-jwt": "^4.0.1",
-    "@types/supertest": "^6.0.2",
-    "eslint": "^9.18.0",
-    "eslint-config-prettier": "^10.0.1",
-    "eslint-plugin-prettier": "^5.2.2",
-    "globals": "^16.0.0",
-    "jest": "^29.7.0",
-    "jest-runner-eslint": "^2.2.1",
-    "prettier": "^3.4.2",
-    "source-map-support": "^0.5.21",
-    "supertest": "^7.0.0",
-    "ts-jest": "^29.2.5",
-    "ts-loader": "^9.5.2",
-    "ts-node": "^10.9.2",
-    "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.7.3",
-    "typescript-eslint": "^8.20.0"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
-  }
-}
-````
-
-## File: apps/web/package.json
-````json
-{
-  "name": "web",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev --turbopack --port 3000",
-    "build": "next build",
-    "start": "next start",
-    "lint": "jest --config=jest.lint.config.ts",
-    "check-types": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@auth0/nextjs-auth0": "^4.6.1",
-    "@dribblio/database": "*",
-    "@hookform/resolvers": "^5.1.1",
-    "@radix-ui/react-avatar": "^1.1.10",
-    "@radix-ui/react-dialog": "^1.1.14",
-    "@radix-ui/react-label": "^2.1.7",
-    "@radix-ui/react-select": "^2.2.5",
-    "@radix-ui/react-separator": "^1.1.7",
-    "@radix-ui/react-slot": "^1.2.3",
-    "@radix-ui/react-switch": "^1.2.5",
-    "@radix-ui/react-tabs": "^1.1.12",
-    "@radix-ui/react-tooltip": "^1.2.7",
-    "@react-stately/data": "^3.13.0",
-    "@tailwindcss/postcss": "^4.1.7",
-    "canvas-confetti": "^1.9.3",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "cmdk": "^1.1.1",
-    "eslint-plugin-jest": "^28.13.0",
-    "joi": "^17.13.3",
-    "lucide-react": "^0.511.0",
-    "motion": "^12.15.0",
-    "next": "^15.3.0",
-    "next-themes": "^0.4.6",
-    "react": "^19.1.0",
-    "react-avatar-editor": "^14.0.0-beta.6",
-    "react-dom": "^19.1.0",
-    "react-dropzone": "^14.3.8",
-    "react-image-crop": "^11.0.10",
-    "react-toastify": "^11.0.5",
-    "short-unique-id": "^5.3.2",
-    "socket.io-client": "^4.8.1",
-    "tailwind-merge": "^3.0.2",
-    "tailwindcss-animate": "^1.0.7",
-    "unique-username-generator": "^1.4.0"
-  },
-  "devDependencies": {
-    "@dribblio/eslint-config": "*",
-    "@dribblio/types": "*",
-    "@dribblio/typescript-config": "*",
-    "@types/canvas-confetti": "^1.9.0",
-    "@types/node": "^22.15.3",
-    "@types/react": "19.1.0",
-    "@types/react-dom": "19.1.1",
-    "autoprefixer": "^10.4.21",
-    "eslint": "^9.25.0",
-    "jest-runner-eslint": "^2.2.1",
-    "postcss": "^8",
-    "tailwind-variants": "^0.3.1",
-    "tailwindcss": "^3.4.17",
-    "typescript": "5.8.2"
-  }
-}
 ````
 
 ## File: package.json
