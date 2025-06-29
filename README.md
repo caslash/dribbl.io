@@ -30,13 +30,15 @@ This is a NBA career path guessing game. Guess the NBA player based on the prese
 - Live score updates
 - Competitive gameplay
 
-### Authentication
+### Authentication & User Management
 
 - **Auth0 Integration**: Secure user authentication and authorization
 - **User Profiles**: Personalized user experience with profile management
 - **Protected Routes**: Secure access to user-specific features
 - **Social Login**: Support for Google and other social providers
 - **JWT Tokens**: Secure API access with JWT-based authentication
+- **Avatar Management**: Upload and crop profile pictures with secure S3 storage
+- **Profile Editing**: Update display name and profile information
 
 ## What's inside?
 
@@ -50,6 +52,8 @@ This Turborepo includes the following packages/apps:
   - PostgreSQL database integration
   - **Auth0 JWT authentication and authorization**
   - **User management and profile endpoints**
+  - **AWS S3 integration for avatar uploads**
+  - **CloudFront signed URLs for secure avatar access**
 - `web`: a [Next.js](https://nextjs.org/) app that provides:
   - Interactive game interface
   - Real-time multiplayer functionality
@@ -57,6 +61,8 @@ This Turborepo includes the following packages/apps:
   - **Auth0 authentication integration**
   - **User profile management**
   - **Protected routes and middleware**
+  - **Avatar editor with image cropping**
+  - **Drag-and-drop file uploads**
 - `@dribblio/database`: a Prisma ORM types library shared by both `web` and `api` applications
   - **NBA database schema** for player data
   - **Users database schema** for authentication and user profiles
@@ -82,6 +88,7 @@ This Turborepo has some additional tools already setup for you:
 - PostgreSQL database
 - npm or yarn package manager
 - **Auth0 account and application setup**
+- **AWS account with S3 and CloudFront setup**
 
 ### Setup
 
@@ -115,6 +122,12 @@ This Turborepo has some additional tools already setup for you:
    AUTH0_SECRET="your-secret"
    AUTH0_SCOPE="openid profile email"
 
+   # AWS Configuration
+   AWS_S3_BUCKET_NAME="your-s3-bucket-name"
+   AWS_CLOUDFRONT_CNAME="your-cloudfront-domain.cloudfront.net"
+   AWS_CLOUDFRONT_KEY_PAIR_ID="your-cloudfront-key-pair-id"
+   AWS_CLOUDFRONT_PRIVATE_KEY_SECRET_NAME="your-secrets-manager-secret-name"
+
    # Server Configuration
    PORT=3002
    ```
@@ -141,7 +154,16 @@ This Turborepo has some additional tools already setup for you:
    - Create an API with appropriate scopes
    - Update the environment variables with your Auth0 configuration
 
-5. **Set up Databases**:
+5. **Set up AWS Services**:
+
+   - Create an S3 bucket for avatar storage
+   - Set up CloudFront distribution for secure avatar access
+   - Create a CloudFront key pair for signed URLs
+   - Store the private key in AWS Secrets Manager
+   - Configure CORS on your S3 bucket
+   - Update the environment variables with your AWS configuration
+
+6. **Set up Databases**:
 
    ```bash
    # Generate Prisma clients

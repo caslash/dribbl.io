@@ -12,6 +12,8 @@
     "typescript": "latest"
   },
   "dependencies": {
+    "class-validator": "^0.14.2",
+    "joi": "^17.13.3",
     "socket.io": "^4.8.1",
     "xstate": "^5.19.2",
     "zod": "^3.25.28"
