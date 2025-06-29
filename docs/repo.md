@@ -243,240 +243,6 @@ turbo.json
 
 # Files
 
-## File: apps/web/src/components/avatar-editor.tsx
-````typescript
-/* eslint-disable @next/next/no-img-element */
-'use client';
-
-import React, { useCallback, useState } from 'react';
-import { FileWithPath, useDropzone } from 'react-dropzone';
-import ReactCrop, { centerCrop, makeAspectCrop, type Crop, type PixelCrop } from 'react-image-crop';
-
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { useDBUser } from '@/context/dbusercontext';
-import { Crop as CropIcon, Upload, X } from 'lucide-react';
-import 'react-image-crop/dist/ReactCrop.css';
-
-export type FileWithPreview = FileWithPath & {
-  preview: string;
-};
-
-interface AvatarEditorProps {
-  children: React.ReactNode;
-}
-
-export function AvatarEditor({ children }: AvatarEditorProps) {
-  const { uploadAvatar } = useDBUser();
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<FileWithPreview | null>(null);
-  const [crop, setCrop] = useState<Crop>();
-  const [croppedImageUrl, setCroppedImageUrl] = useState<string>('');
-  const [isUploading, setIsUploading] = useState(false);
-
-  const imgRef = React.useRef<HTMLImageElement | null>(null);
-
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (file) {
-      const fileWithPreview = Object.assign(file, {
-        preview: URL.createObjectURL(file),
-      });
-      setSelectedFile(fileWithPreview);
-    }
-  }, []);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp'],
-    },
-    maxFiles: 1,
-    maxSize: 5 * 1024 * 1024,
-  });
-
-  function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
-    const { width, height } = e.currentTarget;
-    setCrop(centerAspectCrop(width, height, 1));
-  }
-
-  function onCropComplete(crop: PixelCrop) {
-    if (imgRef.current && crop.width && crop.height) {
-      const croppedImageUrl = getCroppedImg(imgRef.current, crop);
-      setCroppedImageUrl(croppedImageUrl);
-    }
-  }
-
-  function getCroppedImg(image: HTMLImageElement, crop: PixelCrop): string {
-    const canvas = document.createElement('canvas');
-    const scaleX = image.naturalWidth / image.width;
-    const scaleY = image.naturalHeight / image.height;
-
-    canvas.width = crop.width * scaleX;
-    canvas.height = crop.height * scaleY;
-
-    const ctx = canvas.getContext('2d');
-
-    if (ctx) {
-      ctx.imageSmoothingEnabled = false;
-
-      ctx.drawImage(
-        image,
-        crop.x * scaleX,
-        crop.y * scaleY,
-        crop.width * scaleX,
-        crop.height * scaleY,
-        0,
-        0,
-        crop.width * scaleX,
-        crop.height * scaleY,
-      );
-    }
-
-    return canvas.toDataURL('image/png', 1.0);
-  }
-
-  async function handleCropAndUpload() {
-    if (!croppedImageUrl) return;
-
-    try {
-      setIsUploading(true);
-
-      const response = await fetch(croppedImageUrl);
-      const blob = await response.blob();
-      const file = new File([blob], 'avatar.png', { type: 'image/png' });
-
-      await uploadAvatar(file);
-
-      setDialogOpen(false);
-      setSelectedFile(null);
-      setCroppedImageUrl('');
-      setCrop(undefined);
-
-      if (selectedFile?.preview) {
-        URL.revokeObjectURL(selectedFile.preview);
-      }
-    } catch (error) {
-      console.error('Error uploading avatar:', error);
-      alert('Failed to upload avatar. Please try again.');
-    } finally {
-      setIsUploading(false);
-    }
-  }
-
-  function handleCancel() {
-    setDialogOpen(false);
-    setSelectedFile(null);
-    setCroppedImageUrl('');
-    setCrop(undefined);
-
-    if (selectedFile?.preview) {
-      URL.revokeObjectURL(selectedFile.preview);
-    }
-  }
-
-  return (
-    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Edit Avatar</DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          {!selectedFile ? (
-            <div
-              {...getRootProps()}
-              className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-                isDragActive
-                  ? 'border-primary bg-primary/5'
-                  : 'border-muted-foreground/25 hover:border-primary/50'
-              }`}
-            >
-              <input {...getInputProps()} />
-              <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              {isDragActive ? (
-                <p className="text-sm text-muted-foreground">Drop the image here...</p>
-              ) : (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Upload an image</p>
-                  <p className="text-xs text-muted-foreground">
-                    Drag and drop an image here, or click to select
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Supports: JPG, PNG, GIF, WebP (max 5MB)
-                  </p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="relative">
-                <ReactCrop
-                  crop={crop}
-                  onChange={(_, percentCrop) => setCrop(percentCrop)}
-                  onComplete={onCropComplete}
-                  aspect={1}
-                  className="w-full"
-                >
-                  <img
-                    ref={imgRef}
-                    src={selectedFile.preview}
-                    alt="Crop preview"
-                    className="max-h-96 w-full object-contain"
-                    onLoad={onImageLoad}
-                  />
-                </ReactCrop>
-              </div>
-
-              <div className="text-xs text-muted-foreground text-center">
-                Drag to move, resize corners to crop. The image will be cropped to a 100x100 square.
-              </div>
-            </div>
-          )}
-
-          <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={handleCancel} disabled={isUploading}>
-              <X className="mr-2 h-4 w-4" />
-              Cancel
-            </Button>
-            {selectedFile && (
-              <Button onClick={handleCropAndUpload} disabled={!croppedImageUrl || isUploading}>
-                <CropIcon className="mr-2 h-4 w-4" />
-                {isUploading ? 'Uploading...' : 'Save Avatar'}
-              </Button>
-            )}
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: number): Crop {
-  return centerCrop(
-    makeAspectCrop(
-      {
-        unit: '%',
-        width: 50,
-        height: 50,
-      },
-      aspect,
-      mediaWidth,
-      mediaHeight,
-    ),
-    mediaWidth,
-    mediaHeight,
-  );
-}
-````
-
 ## File: .cursor/rules/nestjs.mdc
 ````
 ---
@@ -1573,6 +1339,240 @@ TooltipContent.displayName = TooltipPrimitive.Content.displayName;
 export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger };
 ````
 
+## File: apps/web/src/components/avatar-editor.tsx
+````typescript
+/* eslint-disable @next/next/no-img-element */
+'use client';
+
+import React, { useCallback, useState } from 'react';
+import { FileWithPath, useDropzone } from 'react-dropzone';
+import ReactCrop, { centerCrop, makeAspectCrop, type Crop, type PixelCrop } from 'react-image-crop';
+
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { useDBUser } from '@/context/dbusercontext';
+import { Crop as CropIcon, Upload, X } from 'lucide-react';
+import 'react-image-crop/dist/ReactCrop.css';
+
+export type FileWithPreview = FileWithPath & {
+  preview: string;
+};
+
+interface AvatarEditorProps {
+  children: React.ReactNode;
+}
+
+export function AvatarEditor({ children }: AvatarEditorProps) {
+  const { uploadAvatar } = useDBUser();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<FileWithPreview | null>(null);
+  const [crop, setCrop] = useState<Crop>();
+  const [croppedImageUrl, setCroppedImageUrl] = useState<string>('');
+  const [isUploading, setIsUploading] = useState(false);
+
+  const imgRef = React.useRef<HTMLImageElement | null>(null);
+
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    if (file) {
+      const fileWithPreview = Object.assign(file, {
+        preview: URL.createObjectURL(file),
+      });
+      setSelectedFile(fileWithPreview);
+    }
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp'],
+    },
+    maxFiles: 1,
+    maxSize: 5 * 1024 * 1024,
+  });
+
+  function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
+    const { width, height } = e.currentTarget;
+    setCrop(centerAspectCrop(width, height, 1));
+  }
+
+  function onCropComplete(crop: PixelCrop) {
+    if (imgRef.current && crop.width && crop.height) {
+      const croppedImageUrl = getCroppedImg(imgRef.current, crop);
+      setCroppedImageUrl(croppedImageUrl);
+    }
+  }
+
+  function getCroppedImg(image: HTMLImageElement, crop: PixelCrop): string {
+    const canvas = document.createElement('canvas');
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+
+    canvas.width = crop.width * scaleX;
+    canvas.height = crop.height * scaleY;
+
+    const ctx = canvas.getContext('2d');
+
+    if (ctx) {
+      ctx.imageSmoothingEnabled = false;
+
+      ctx.drawImage(
+        image,
+        crop.x * scaleX,
+        crop.y * scaleY,
+        crop.width * scaleX,
+        crop.height * scaleY,
+        0,
+        0,
+        crop.width * scaleX,
+        crop.height * scaleY,
+      );
+    }
+
+    return canvas.toDataURL('image/png', 1.0);
+  }
+
+  async function handleCropAndUpload() {
+    if (!croppedImageUrl) return;
+
+    try {
+      setIsUploading(true);
+
+      const response = await fetch(croppedImageUrl);
+      const blob = await response.blob();
+      const file = new File([blob], 'avatar.png', { type: 'image/png' });
+
+      await uploadAvatar(file);
+
+      setDialogOpen(false);
+      setSelectedFile(null);
+      setCroppedImageUrl('');
+      setCrop(undefined);
+
+      if (selectedFile?.preview) {
+        URL.revokeObjectURL(selectedFile.preview);
+      }
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      alert('Failed to upload avatar. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
+  function handleCancel() {
+    setDialogOpen(false);
+    setSelectedFile(null);
+    setCroppedImageUrl('');
+    setCrop(undefined);
+
+    if (selectedFile?.preview) {
+      URL.revokeObjectURL(selectedFile.preview);
+    }
+  }
+
+  return (
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Edit Avatar</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {!selectedFile ? (
+            <div
+              {...getRootProps()}
+              className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+                isDragActive
+                  ? 'border-primary bg-primary/5'
+                  : 'border-muted-foreground/25 hover:border-primary/50'
+              }`}
+            >
+              <input {...getInputProps()} />
+              <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              {isDragActive ? (
+                <p className="text-sm text-muted-foreground">Drop the image here...</p>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Upload an image</p>
+                  <p className="text-xs text-muted-foreground">
+                    Drag and drop an image here, or click to select
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Supports: JPG, PNG, GIF, WebP (max 5MB)
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="relative">
+                <ReactCrop
+                  crop={crop}
+                  onChange={(_, percentCrop) => setCrop(percentCrop)}
+                  onComplete={onCropComplete}
+                  aspect={1}
+                  className="w-full"
+                >
+                  <img
+                    ref={imgRef}
+                    src={selectedFile.preview}
+                    alt="Crop preview"
+                    className="max-h-96 w-full object-contain"
+                    onLoad={onImageLoad}
+                  />
+                </ReactCrop>
+              </div>
+
+              <div className="text-xs text-muted-foreground text-center">
+                Drag to move, resize corners to crop. The image will be cropped to a 100x100 square.
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={handleCancel} disabled={isUploading}>
+              <X className="mr-2 h-4 w-4" />
+              Cancel
+            </Button>
+            {selectedFile && (
+              <Button onClick={handleCropAndUpload} disabled={!croppedImageUrl || isUploading}>
+                <CropIcon className="mr-2 h-4 w-4" />
+                {isUploading ? 'Uploading...' : 'Save Avatar'}
+              </Button>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: number): Crop {
+  return centerCrop(
+    makeAspectCrop(
+      {
+        unit: '%',
+        width: 50,
+        height: 50,
+      },
+      aspect,
+      mediaWidth,
+      mediaHeight,
+    ),
+    mediaWidth,
+    mediaHeight,
+  );
+}
+````
+
 ## File: apps/web/src/components/editprofilemodal.tsx
 ````typescript
 import { Button } from '@/components/ui/button';
@@ -1726,100 +1726,6 @@ export default function TeamLogo({
         <rect height="100%" width="100%" fillOpacity={0} />
       </svg>
     </div>
-  );
-}
-````
-
-## File: apps/web/src/context/dbusercontext.tsx
-````typescript
-'use client';
-
-import { getAccessToken } from '@auth0/nextjs-auth0';
-import { User } from '@dribblio/database/generated/prisma-users/client';
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-
-interface DBUserContextType {
-  user: User | undefined;
-
-  /**
-   * Update user fields in the database and sync local state.
-   * @param user - Partial user object with fields to update.
-   */
-  updateUser: (user: Partial<User>) => void;
-
-  /**
-   * Upload a new avatar image to the database and sync local state.
-   * @param avatar - The avatar image file to upload.
-   */
-  uploadAvatar: (avatar: File) => void;
-}
-
-const defaultUserContext: DBUserContextType = {
-  user: undefined,
-  updateUser: () => {},
-  uploadAvatar: () => {},
-};
-
-const DBUserContext = createContext<DBUserContextType | undefined>(undefined);
-export const useDBUser = () => useContext(DBUserContext) ?? defaultUserContext;
-
-export function DBUserProvider({ children }: { children: React.ReactNode | React.ReactNode[] }) {
-  const [user, setUser] = useState<User | undefined>(undefined);
-
-  useEffect(() => {
-    getAccessToken().then((accessToken) => {
-      if (!accessToken) return;
-
-      fetch('/api/me', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      })
-        .then((res) => res.json())
-        .then(setUser);
-    });
-  }, []);
-
-  const updateUser = useCallback((user: Partial<User>) => {
-    getAccessToken().then((accessToken) => {
-      if (!accessToken) return;
-
-      fetch('/api/me', {
-        method: 'PATCH',
-        body: JSON.stringify(user),
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-      })
-        .then((res) => res.json())
-        .then(setUser);
-    });
-  }, []);
-
-  const uploadAvatar = useCallback((avatar: File) => {
-    getAccessToken().then((accessToken) => {
-      if (!accessToken) return;
-
-      const formData = new FormData();
-      formData.append('avatar', avatar);
-
-      fetch('/api/me/avatar', {
-        method: 'PUT',
-        body: formData,
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      })
-        .then((res) => res.json())
-        .then(setUser);
-    });
-  }, []);
-
-  return (
-    <DBUserContext.Provider value={{ user, updateUser, uploadAvatar }}>
-      {children}
-    </DBUserContext.Provider>
   );
 }
 ````
@@ -3188,49 +3094,98 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
 }
 ````
 
-## File: apps/web/src/lib/schemas.ts
+## File: apps/web/src/context/dbusercontext.tsx
 ````typescript
-import {
-  GameDifficultyNames,
-  HostFormValues,
-  JoinFormValues,
-  UpdateUserDto,
-} from '@dribblio/types';
-import Joi from 'joi';
+'use client';
 
-export const hostSchema = Joi.object<HostFormValues>({
-  isRoundLimit: Joi.boolean().required(),
-  config: Joi.object({
-    scoreLimit: Joi.number().optional(),
-    roundLimit: Joi.number().optional(),
-    roundTimeLimit: Joi.number().required(),
-    gameDifficulty: Joi.string()
-      .valid(...GameDifficultyNames)
-      .required(),
-  }),
-}).custom((value, helpers) => {
-  const { isRoundLimit, config } = value;
-  if (isRoundLimit && !config.roundLimit) {
-    return helpers.error('any.custom', {
-      message: 'Round Limit is required when Round Limit mode is selected',
+import { getAccessToken } from '@auth0/nextjs-auth0';
+import { User } from '@dribblio/database/generated/prisma-users/client';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+
+interface DBUserContextType {
+  user: User | undefined;
+
+  /**
+   * Update user fields in the database and sync local state.
+   * @param user - Partial user object with fields to update.
+   */
+  updateUser: (user: Partial<User>) => void;
+
+  /**
+   * Upload a new avatar image to the database and sync local state.
+   * @param avatar - The avatar image file to upload.
+   */
+  uploadAvatar: (avatar: File) => void;
+}
+
+const defaultUserContext: DBUserContextType = {
+  user: undefined,
+  updateUser: () => {},
+  uploadAvatar: () => {},
+};
+
+const DBUserContext = createContext<DBUserContextType | undefined>(undefined);
+export const useDBUser = () => useContext(DBUserContext) ?? defaultUserContext;
+
+export function DBUserProvider({ children }: { children: React.ReactNode | React.ReactNode[] }) {
+  const [user, setUser] = useState<User | undefined>(undefined);
+
+  useEffect(() => {
+    getAccessToken().then((accessToken) => {
+      if (!accessToken) return;
+
+      fetch('/api/me', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+        .then((res) => res.json())
+        .then(setUser);
     });
-  }
-  if (!isRoundLimit && !config.scoreLimit) {
-    return helpers.error('any.custom', {
-      message: 'Score Limit is required when Score Limit mode is selected',
+  }, []);
+
+  const updateUser = useCallback((user: Partial<User>) => {
+    getAccessToken().then((accessToken) => {
+      if (!accessToken) return;
+
+      fetch('/api/me', {
+        method: 'PATCH',
+        body: JSON.stringify(user),
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      })
+        .then((res) => res.json())
+        .then(setUser);
     });
-  }
-  return value;
-}, 'Round/Score limit conditional check');
+  }, []);
 
-export const joinSchema = Joi.object<JoinFormValues>({
-  roomId: Joi.string().required(),
-});
+  const uploadAvatar = useCallback((avatar: File) => {
+    getAccessToken().then((accessToken) => {
+      if (!accessToken) return;
 
-export const updateUserSchema = Joi.object<UpdateUserDto>({
-  display_name: Joi.string().optional(),
-  name: Joi.string().optional(),
-});
+      const formData = new FormData();
+      formData.append('avatar', avatar);
+
+      fetch('/api/me/avatar', {
+        method: 'PUT',
+        body: formData,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+        .then((res) => res.json())
+        .then(setUser);
+    });
+  }, []);
+
+  return (
+    <DBUserContext.Provider value={{ user, updateUser, uploadAvatar }}>
+      {children}
+    </DBUserContext.Provider>
+  );
+}
 ````
 
 ## File: apps/web/src/lib/utils.ts
@@ -4938,6 +4893,51 @@ const usePlayerSearch = () => {
 export default usePlayerSearch;
 ````
 
+## File: apps/web/src/lib/schemas.ts
+````typescript
+import {
+  GameDifficultyNames,
+  HostFormValues,
+  JoinFormValues,
+  UpdateUserDto,
+} from '@dribblio/types';
+import Joi from 'joi';
+
+export const hostSchema = Joi.object<HostFormValues>({
+  isRoundLimit: Joi.boolean().required(),
+  config: Joi.object({
+    scoreLimit: Joi.number().optional(),
+    roundLimit: Joi.number().optional(),
+    roundTimeLimit: Joi.number().required(),
+    gameDifficulty: Joi.string()
+      .valid(...GameDifficultyNames)
+      .required(),
+  }),
+}).custom((value, helpers) => {
+  const { isRoundLimit, config } = value;
+  if (isRoundLimit && !config.roundLimit) {
+    return helpers.error('any.custom', {
+      message: 'Round Limit is required when Round Limit mode is selected',
+    });
+  }
+  if (!isRoundLimit && !config.scoreLimit) {
+    return helpers.error('any.custom', {
+      message: 'Score Limit is required when Score Limit mode is selected',
+    });
+  }
+  return value;
+}, 'Round/Score limit conditional check');
+
+export const joinSchema = Joi.object<JoinFormValues>({
+  roomId: Joi.string().required(),
+});
+
+export const updateUserSchema = Joi.object<UpdateUserDto>({
+  display_name: Joi.string().optional(),
+  name: Joi.string().optional(),
+});
+````
+
 ## File: apps/web/next.config.mjs
 ````
 /** @type {import('next').NextConfig} */
@@ -5672,242 +5672,6 @@ export default function Home() {
 }
 ````
 
-## File: apps/web/src/components/config/multiplayer/joinhostmodal.tsx
-````typescript
-'use client';
-
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { hostSchema, joinSchema } from '@/lib/schemas';
-import {
-  GameDifficulties,
-  GameDifficultyNames,
-  GameDifficultySchema,
-  HostFormValues,
-  JoinFormValues,
-  MultiplayerConfig,
-} from '@dribblio/types';
-import { joiResolver } from '@hookform/resolvers/joi';
-import { useForm } from 'react-hook-form';
-
-export default function JoinHostModal({
-  isOpen,
-  onJoinRoom,
-  onHostRoom,
-}: Readonly<{
-  isOpen: boolean;
-  onJoinRoom: (roomId: string) => void;
-  onHostRoom: (config: MultiplayerConfig) => void;
-}>) {
-  return (
-    <Dialog open={isOpen}>
-      <DialogContent
-        className="[&>button]:hidden"
-        onInteractOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-      >
-        <DialogHeader>
-          <DialogTitle>Join or Host a Game</DialogTitle>
-        </DialogHeader>
-        <Tabs defaultValue="join">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="join">Join Room</TabsTrigger>
-            <TabsTrigger value="host">Host Room</TabsTrigger>
-          </TabsList>
-          <TabsContent value="join">
-            <JoinForm onJoinRoom={onJoinRoom} />
-          </TabsContent>
-          <TabsContent value="host">
-            <HostForm onHostRoom={onHostRoom} />
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function JoinForm({
-  onJoinRoom,
-}: Readonly<{
-  onJoinRoom: (roomId: string) => void;
-}>) {
-  const form = useForm<JoinFormValues>({
-    resolver: joiResolver(joinSchema),
-    defaultValues: {
-      roomId: '',
-    },
-  });
-
-  function onSubmit(values: JoinFormValues) {
-    onJoinRoom(values.roomId);
-  }
-
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="flex flex-col space-y-4">
-          <FormField
-            control={form.control}
-            name="roomId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Room Code</FormLabel>
-                <FormControl>
-                  <Input placeholder="Room Code" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          ></FormField>
-        </div>
-        <div className="flex justify-end mt-4">
-          <Button type="submit">Join Room</Button>
-        </div>
-      </form>
-    </Form>
-  );
-}
-
-function HostForm({
-  onHostRoom,
-}: Readonly<{
-  onHostRoom: (config: MultiplayerConfig) => void;
-}>) {
-  const form = useForm<HostFormValues>({
-    resolver: joiResolver(hostSchema),
-    defaultValues: {
-      isRoundLimit: false,
-      config: {
-        scoreLimit: undefined,
-        roundLimit: undefined,
-        roundTimeLimit: 30,
-        gameDifficulty: GameDifficulties.firstAllNBA.name,
-      },
-    },
-  });
-
-  function onSubmit(values: HostFormValues) {
-    const config = {
-      ...values.config,
-      scoreLimit: values.isRoundLimit ? undefined : values.config.scoreLimit,
-      roundLimit: values.isRoundLimit ? values.config.roundLimit : undefined,
-      gameDifficulty: GameDifficultySchema.parse(values.config.gameDifficulty),
-    };
-    onHostRoom(config);
-  }
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="flex flex-col space-y-4">
-          <div className="flex flex-row space-x-4 self-center">
-            <p>Score Limit</p>
-            <FormField
-              control={form.control}
-              name="isRoundLimit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                </FormItem>
-              )}
-            ></FormField>
-            <p>Round Limit</p>
-          </div>
-          {form.watch('isRoundLimit') && (
-            <FormField
-              control={form.control}
-              name="config.roundLimit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Round Limit</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="Round Limit" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            ></FormField>
-          )}
-          {!form.watch('isRoundLimit') && (
-            <FormField
-              control={form.control}
-              name="config.scoreLimit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Score Limit</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="Score Limit" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            ></FormField>
-          )}
-          <FormField
-            control={form.control}
-            name="config.roundTimeLimit"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Round Time Limit</FormLabel>
-                <FormControl>
-                  <Input type="number" placeholder="Round Time Limit" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          ></FormField>
-          <FormField
-            control={form.control}
-            name="config.gameDifficulty"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Difficulty</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select game difficulty" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {GameDifficultyNames.map((mode) => (
-                      <SelectItem key={mode} value={mode}>
-                        {GameDifficultySchema.parse(mode).display_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          ></FormField>
-        </div>
-        <div className="flex justify-end mt-4">
-          <Button type="submit">Create Room</Button>
-        </div>
-      </form>
-    </Form>
-  );
-}
-````
-
 ## File: apps/web/src/hooks/useMultiplayerSocket.ts
 ````typescript
 'use client';
@@ -6350,88 +6114,238 @@ export class UsersService {
 }
 ````
 
-## File: apps/web/src/components/navbar/navbar.tsx
+## File: apps/web/src/components/config/multiplayer/joinhostmodal.tsx
 ````typescript
 'use client';
 
-import { Dock, DockIcon } from '@/components/magicui/dock';
-import ThemeSwitcher from '@/components/navbar/themeswitcher';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { buttonVariants } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { siteConfig } from '@/config/site';
-import { useDBUser } from '@/context/dbusercontext';
-import { cn } from '@/lib/utils';
-import { LogIn, User as UserIcon } from 'lucide-react';
-import NextLink from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { hostSchema, joinSchema } from '@/lib/schemas';
+import {
+  GameDifficulties,
+  GameDifficultyNames,
+  GameDifficultySchema,
+  HostFormValues,
+  JoinFormValues,
+  MultiplayerConfig,
+} from '@dribblio/types';
+import { joiResolver } from '@hookform/resolvers/joi';
+import { useForm } from 'react-hook-form';
 
-export default function NBANavbar({ className }: Readonly<{ className?: string }>) {
-  const { user } = useDBUser();
+export default function JoinHostModal({
+  isOpen,
+  onJoinRoom,
+  onHostRoom,
+}: Readonly<{
+  isOpen: boolean;
+  onJoinRoom: (roomId: string) => void;
+  onHostRoom: (config: MultiplayerConfig) => void;
+}>) {
+  return (
+    <Dialog open={isOpen}>
+      <DialogContent
+        className="[&>button]:hidden"
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
+        <DialogHeader>
+          <DialogTitle>Join or Host a Game</DialogTitle>
+        </DialogHeader>
+        <Tabs defaultValue="join">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="join">Join Room</TabsTrigger>
+            <TabsTrigger value="host">Host Room</TabsTrigger>
+          </TabsList>
+          <TabsContent value="join">
+            <JoinForm onJoinRoom={onJoinRoom} />
+          </TabsContent>
+          <TabsContent value="host">
+            <HostForm onHostRoom={onHostRoom} />
+          </TabsContent>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function JoinForm({
+  onJoinRoom,
+}: Readonly<{
+  onJoinRoom: (roomId: string) => void;
+}>) {
+  const form = useForm<JoinFormValues>({
+    resolver: joiResolver(joinSchema),
+    defaultValues: {
+      roomId: '',
+    },
+  });
+
+  function onSubmit(values: JoinFormValues) {
+    onJoinRoom(values.roomId);
+  }
 
   return (
-    <div className={`${className}`}>
-      <TooltipProvider>
-        <Dock className="rounded-full" iconMagnification={60} iconDistance={25}>
-          <DockIcon>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                {user ? (
-                  <NextLink href="/profile">
-                    {user.profile_url ? (
-                      <Avatar>
-                        <AvatarImage
-                          src={user.profile_url}
-                          alt="Profile"
-                          width={32}
-                          height={32}
-                          className="rounded-full"
-                        />
-                        <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                    ) : (
-                      <UserIcon />
-                    )}
-                  </NextLink>
-                ) : (
-                  <a
-                    href="/auth/login"
-                    className={cn(
-                      buttonVariants({ variant: 'ghost', size: 'icon', className: 'rounded-full' }),
-                    )}
-                  >
-                    <LogIn />
-                  </a>
-                )}
-              </TooltipTrigger>
-              <TooltipContent>{user ? <p>Profile</p> : <p>Login</p>}</TooltipContent>
-            </Tooltip>
-          </DockIcon>
-          <Separator orientation="vertical" className="h-full py-2" />
-          {siteConfig.navItems.map((item) => (
-            <DockIcon key={item.label}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <NextLink
-                    href={item.href}
-                    className={cn(
-                      buttonVariants({ variant: 'ghost', size: 'icon', className: 'rounded-full' }),
-                    )}
-                  >
-                    <item.icon />
-                  </NextLink>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{item.label}</p>
-                </TooltipContent>
-              </Tooltip>
-            </DockIcon>
-          ))}
-          <Separator orientation="vertical" className="h-full py-2" />
-          <ThemeSwitcher />
-        </Dock>
-      </TooltipProvider>
-    </div>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="flex flex-col space-y-4">
+          <FormField
+            control={form.control}
+            name="roomId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Room Code</FormLabel>
+                <FormControl>
+                  <Input placeholder="Room Code" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          ></FormField>
+        </div>
+        <div className="flex justify-end mt-4">
+          <Button type="submit">Join Room</Button>
+        </div>
+      </form>
+    </Form>
+  );
+}
+
+function HostForm({
+  onHostRoom,
+}: Readonly<{
+  onHostRoom: (config: MultiplayerConfig) => void;
+}>) {
+  const form = useForm<HostFormValues>({
+    resolver: joiResolver(hostSchema),
+    defaultValues: {
+      isRoundLimit: false,
+      config: {
+        scoreLimit: 10,
+        roundLimit: 10,
+        roundTimeLimit: 30,
+        gameDifficulty: GameDifficulties.firstAllNBA.name,
+      },
+    },
+  });
+
+  function onSubmit(values: HostFormValues) {
+    const config = {
+      ...values.config,
+      scoreLimit: values.isRoundLimit ? values.config.scoreLimit : undefined,
+      roundLimit: values.isRoundLimit ? values.config.roundLimit : undefined,
+      gameDifficulty: GameDifficultySchema.parse(values.config.gameDifficulty),
+    };
+    onHostRoom(config);
+  }
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="flex flex-col space-y-4">
+          <div className="flex flex-row space-x-4 self-center">
+            <p>Score Limit</p>
+            <FormField
+              control={form.control}
+              name="isRoundLimit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                </FormItem>
+              )}
+            ></FormField>
+            <p>Round Limit</p>
+          </div>
+          {form.watch('isRoundLimit') && (
+            <FormField
+              control={form.control}
+              name="config.roundLimit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Round Limit</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="Round Limit" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            ></FormField>
+          )}
+          {!form.watch('isRoundLimit') && (
+            <FormField
+              control={form.control}
+              name="config.scoreLimit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Score Limit</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="Score Limit" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            ></FormField>
+          )}
+          <FormField
+            control={form.control}
+            name="config.roundTimeLimit"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Round Time Limit</FormLabel>
+                <FormControl>
+                  <Input type="number" placeholder="Round Time Limit" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          ></FormField>
+          <FormField
+            control={form.control}
+            name="config.gameDifficulty"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Difficulty</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select game difficulty" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {GameDifficultyNames.map((mode) => (
+                      <SelectItem key={mode} value={mode}>
+                        {GameDifficultySchema.parse(mode).display_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          ></FormField>
+        </div>
+        <div className="flex justify-end mt-4">
+          <Button type="submit">Create Room</Button>
+        </div>
+      </form>
+    </Form>
   );
 }
 ````
@@ -6848,6 +6762,92 @@ import { UsersModule } from './users/users.module';
   providers: [],
 })
 export class AppModule {}
+````
+
+## File: apps/web/src/components/navbar/navbar.tsx
+````typescript
+'use client';
+
+import { Dock, DockIcon } from '@/components/magicui/dock';
+import ThemeSwitcher from '@/components/navbar/themeswitcher';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { buttonVariants } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { siteConfig } from '@/config/site';
+import { useDBUser } from '@/context/dbusercontext';
+import { cn } from '@/lib/utils';
+import { LogIn, User as UserIcon } from 'lucide-react';
+import NextLink from 'next/link';
+
+export default function NBANavbar({ className }: Readonly<{ className?: string }>) {
+  const { user } = useDBUser();
+
+  return (
+    <div className={`${className}`}>
+      <TooltipProvider>
+        <Dock className="rounded-full" iconMagnification={60} iconDistance={25}>
+          <DockIcon>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                {user ? (
+                  <NextLink href="/profile">
+                    {user.profile_url ? (
+                      <Avatar>
+                        <AvatarImage
+                          src={user.profile_url}
+                          alt="Profile"
+                          width={32}
+                          height={32}
+                          className="rounded-full"
+                        />
+                        <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <UserIcon />
+                    )}
+                  </NextLink>
+                ) : (
+                  <a
+                    href="/auth/login"
+                    className={cn(
+                      buttonVariants({ variant: 'ghost', size: 'icon', className: 'rounded-full' }),
+                    )}
+                  >
+                    <LogIn />
+                  </a>
+                )}
+              </TooltipTrigger>
+              <TooltipContent>{user ? <p>Profile</p> : <p>Login</p>}</TooltipContent>
+            </Tooltip>
+          </DockIcon>
+          <Separator orientation="vertical" className="h-full py-2" />
+          {siteConfig.navItems.map((item) => (
+            <DockIcon key={item.label}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <NextLink
+                    href={item.href}
+                    className={cn(
+                      buttonVariants({ variant: 'ghost', size: 'icon', className: 'rounded-full' }),
+                    )}
+                  >
+                    <item.icon />
+                  </NextLink>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{item.label}</p>
+                </TooltipContent>
+              </Tooltip>
+            </DockIcon>
+          ))}
+          <Separator orientation="vertical" className="h-full py-2" />
+          <ThemeSwitcher />
+        </Dock>
+      </TooltipProvider>
+    </div>
+  );
+}
 ````
 
 ## File: packages/database/.gitignore
