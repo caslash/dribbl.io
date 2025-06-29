@@ -120,8 +120,8 @@ function HostForm({
     defaultValues: {
       isRoundLimit: false,
       config: {
-        scoreLimit: undefined,
-        roundLimit: undefined,
+        scoreLimit: 10,
+        roundLimit: 10,
         roundTimeLimit: 30,
         gameDifficulty: GameDifficulties.firstAllNBA.name,
       },
@@ -131,7 +131,7 @@ function HostForm({
   function onSubmit(values: HostFormValues) {
     const config = {
       ...values.config,
-      scoreLimit: values.isRoundLimit ? undefined : values.config.scoreLimit,
+      scoreLimit: values.isRoundLimit ? values.config.scoreLimit : undefined,
       roundLimit: values.isRoundLimit ? values.config.roundLimit : undefined,
       gameDifficulty: GameDifficultySchema.parse(values.config.gameDifficulty),
     };
