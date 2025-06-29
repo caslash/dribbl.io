@@ -14,7 +14,11 @@
         "AUTH0_CLIENT_SECRET",
         "AUTH0_SECRET",
         "AUTH0_SCOPE",
-        "PORT"
+        "PORT",
+        "AWS_S3_BUCKET_NAME",
+        "AWS_CLOUDFRONT_CNAME",
+        "AWS_CLOUDFRONT_KEY_PAIR_ID",
+        "AWS_CLOUDFRONT_PRIVATE_KEY_SECRET_NAME"
       ]
     },
     "build": {
@@ -29,7 +33,11 @@
         "AUTH0_CLIENT_SECRET",
         "AUTH0_SECRET",
         "AUTH0_SCOPE",
-        "PORT"
+        "PORT",
+        "AWS_S3_BUCKET_NAME",
+        "AWS_CLOUDFRONT_CNAME",
+        "AWS_CLOUDFRONT_KEY_PAIR_ID",
+        "AWS_CLOUDFRONT_PRIVATE_KEY_SECRET_NAME"
       ]
     },
     "lint": {

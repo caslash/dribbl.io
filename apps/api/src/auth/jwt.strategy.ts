@@ -53,6 +53,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         },
       });
     }
-    return done(null, user);
+
+    return done(null, { id: user.id });
   }
 }
