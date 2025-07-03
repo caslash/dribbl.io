@@ -3,7 +3,7 @@
   "ui": "tui",
   "tasks": {
     "start": {
-      "dependsOn": ["^start"],
+      "dependsOn": ["^start", "build", "lint"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"],
       "env": [
@@ -23,7 +23,7 @@
       ]
     },
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["lint", "^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"],
       "env": [
@@ -41,6 +41,11 @@
         "AWS_CLOUDFRONT_KEY_PAIR_ID",
         "AWS_CLOUDFRONT_PRIVATE_KEY_SECRET_NAME"
       ]
+    },
+    "test": {
+      "dependsOn": ["^test"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["coverage/**"]
     },
     "lint": {
       "dependsOn": ["^lint"]
