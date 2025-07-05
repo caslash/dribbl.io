@@ -10,15 +10,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { singlePlayerConfigSchema } from '@/lib/schemas';
 import {
   GameDifficulties,
   GameDifficultyNames,
   GameDifficultySchema,
   SinglePlayerConfig,
+  SinglePlayerFormValues,
 } from '@dribblio/types';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { joiResolver } from '@hookform/resolvers/joi';
+import { Switch } from '@radix-ui/react-switch';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 
 export default function SinglePlayerConfigModal({
   isOpen,
@@ -43,25 +45,39 @@ export default function SinglePlayerConfigModal({
 function SinglePlayerForm({
   onConfigureRoom,
 }: Readonly<{ onConfigureRoom: (config: SinglePlayerConfig) => void }>) {
-  const formSchema = z.object({
-    gameDifficulty: z.enum(GameDifficultyNames as [string, ...string[]]),
-  });
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<SinglePlayerFormValues>({
+    resolver: joiResolver(singlePlayerConfigSchema),
     defaultValues: {
+      hasUnlimitedLives: false,
       gameDifficulty: GameDifficulties.currentPlayers.name,
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    onConfigureRoom({ gameDifficulty: GameDifficultySchema.parse(values.gameDifficulty) });
+  function onSubmit(values: SinglePlayerFormValues) {
+    const lives = values.hasUnlimitedLives ? undefined : 5;
+
+    onConfigureRoom({
+      lives,
+      gameDifficulty: GameDifficultySchema.parse(values.gameDifficulty),
+    });
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex flex-col space-y-4">
+          <FormField
+            control={form.control}
+            name="hasUnlimitedLives"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Unlimited Lives?</FormLabel>
+                <FormControl>
+                  <Switch checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name="gameDifficulty"
@@ -84,7 +100,7 @@ function SinglePlayerForm({
                 </Select>
               </FormItem>
             )}
-          ></FormField>
+          />
           <div className="flex justify-end mt-4">
             <Button type="submit">Create Game</Button>
           </div>

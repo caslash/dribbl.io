@@ -33,17 +33,19 @@ export function DBUserProvider({ children }: { children: React.ReactNode | React
   const [user, setUser] = useState<User | undefined>(undefined);
 
   useEffect(() => {
-    getAccessToken().then((accessToken) => {
-      if (!accessToken) return;
+    getAccessToken()
+      .then((accessToken) => {
+        if (!accessToken) return;
 
-      fetch('/api/me', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        fetch('/api/me', {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        })
+          .then((res) => res.json())
+          .then(setUser);
       })
-        .then((res) => res.json())
-        .then(setUser);
-    });
+      .catch(() => {});
   }, []);
 
   const updateUser = useCallback((user: Partial<User>) => {

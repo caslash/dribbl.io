@@ -2,6 +2,7 @@ import {
   GameDifficultyNames,
   HostFormValues,
   JoinFormValues,
+  SinglePlayerFormValues,
   UpdateUserDto,
 } from '@dribblio/types';
 import Joi from 'joi';
@@ -38,4 +39,11 @@ export const joinSchema = Joi.object<JoinFormValues>({
 export const updateUserSchema = Joi.object<UpdateUserDto>({
   display_name: Joi.string().optional(),
   name: Joi.string().optional(),
+});
+
+export const singlePlayerConfigSchema = Joi.object<SinglePlayerFormValues>({
+  lives: Joi.number().optional(),
+  gameDifficulty: Joi.string()
+    .valid(...GameDifficultyNames)
+    .required(),
 });

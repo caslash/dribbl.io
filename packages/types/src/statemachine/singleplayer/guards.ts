@@ -11,4 +11,5 @@ export const isCorrectSinglePlayer = ({ context, event }: GuardProps): boolean =
   return !!context.gameState.validAnswers.find((player) => player.id === guessId);
 };
 
-export const hasLives = ({ context }: GuardProps): boolean => context.gameState.lives > 0;
+export const hasLives = ({ context }: GuardProps): boolean =>
+  context.gameState.lives ? context.gameState.lives > 0 : true;

@@ -153,7 +153,7 @@ function HostForm({
                   </FormControl>
                 </FormItem>
               )}
-            ></FormField>
+            />
             <p>Round Limit</p>
           </div>
           {form.watch('isRoundLimit') && (
@@ -169,7 +169,7 @@ function HostForm({
                   <FormMessage />
                 </FormItem>
               )}
-            ></FormField>
+            />
           )}
           {!form.watch('isRoundLimit') && (
             <FormField
@@ -184,7 +184,7 @@ function HostForm({
                   <FormMessage />
                 </FormItem>
               )}
-            ></FormField>
+            />
           )}
           <FormField
             control={form.control}
@@ -198,7 +198,7 @@ function HostForm({
                 <FormMessage />
               </FormItem>
             )}
-          ></FormField>
+          />
           <FormField
             control={form.control}
             name="config.gameDifficulty"
@@ -221,7 +221,7 @@ function HostForm({
                 </Select>
               </FormItem>
             )}
-          ></FormField>
+          />
         </div>
         <div className="flex justify-end mt-4">
           <Button type="submit">Create Room</Button>

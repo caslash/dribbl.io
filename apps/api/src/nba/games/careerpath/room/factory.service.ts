@@ -29,7 +29,7 @@ export class RoomFactory {
       isMulti: false,
     };
 
-    room.statemachine = createSinglePlayerMachine(socket, room.config, this.gameService);
+    room.statemachine = createSinglePlayerMachine(socket, config, this.gameService);
 
     socket.on('start_game', () => {
       room.statemachine?.subscribe((s) => {
