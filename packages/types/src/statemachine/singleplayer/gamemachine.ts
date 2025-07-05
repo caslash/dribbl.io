@@ -81,7 +81,7 @@ export function createSinglePlayerMachine(
         states: {
           startingGame: {
             entry: assign(({ context }) => ({
-              gameState: { ...context.gameState, lives: 4 },
+              gameState: { ...context.gameState, lives: context.config.lives },
             })),
             always: { target: 'generatingRound' },
           },

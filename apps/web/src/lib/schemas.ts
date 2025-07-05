@@ -42,7 +42,7 @@ export const updateUserSchema = Joi.object<UpdateUserDto>({
 });
 
 export const singlePlayerConfigSchema = Joi.object<SinglePlayerFormValues>({
-  lives: Joi.number().optional(),
+  hasUnlimitedLives: Joi.boolean().required(),
   gameDifficulty: Joi.string()
     .valid(...GameDifficultyNames)
     .required(),

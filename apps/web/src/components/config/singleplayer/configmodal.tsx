@@ -19,8 +19,8 @@ import {
   SinglePlayerFormValues,
 } from '@dribblio/types';
 import { joiResolver } from '@hookform/resolvers/joi';
-import { Switch } from '@radix-ui/react-switch';
 import { useForm } from 'react-hook-form';
+import { Switch } from '@/components/ui/switch';
 
 export default function SinglePlayerConfigModal({
   isOpen,
@@ -54,7 +54,7 @@ function SinglePlayerForm({
   });
 
   function onSubmit(values: SinglePlayerFormValues) {
-    const lives = values.hasUnlimitedLives ? undefined : 5;
+    const lives = values.hasUnlimitedLives ? undefined : 4;
 
     onConfigureRoom({
       lives,
@@ -70,7 +70,7 @@ function SinglePlayerForm({
             control={form.control}
             name="hasUnlimitedLives"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="flex flex-row items-center justify-between">
                 <FormLabel>Unlimited Lives?</FormLabel>
                 <FormControl>
                   <Switch checked={field.value} onCheckedChange={field.onChange} />

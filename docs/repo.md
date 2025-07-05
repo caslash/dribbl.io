@@ -68,6 +68,7 @@ apps/
         player/
           player.controller.ts
           player.module.ts
+          player.service.spec.ts
           player.service.ts
         nba.module.ts
       users/
@@ -83,6 +84,7 @@ apps/
       app.e2e-spec.ts
       jest-e2e.json
     eslint.config.mjs
+    jest.config.ts
     jest.lint.config.ts
     nest-cli.json
     package.json
@@ -196,11 +198,12 @@ packages/
     src/
       dtos/
         index.ts
-        updateuser.dto.ts
+        updateuser.ts
       forms/
         hostform.ts
         index.ts
         joinform.ts
+        singleplayerform.ts
       responses/
         index.ts
         searchresponse.ts
@@ -418,6 +421,37 @@ export class UsersPrismaService extends users.PrismaClient implements OnModuleIn
 }
 ````
 
+## File: apps/api/src/nba/player/player.service.spec.ts
+````typescript
+import { NBAPrismaService } from '@/database/nba.prisma.service';
+import { PlayersService } from '@/nba/player/player.service';
+import { Test, TestingModule } from '@nestjs/testing';
+
+const mockPrisma = {
+  player: {
+    findMany: jest.fn(),
+    count: jest.fn(),
+    findFirst: jest.fn(),
+  },
+};
+
+describe('PlayersService', () => {
+  let service: PlayersService;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [PlayersService, { provide: NBAPrismaService, useValue: mockPrisma }],
+    }).compile();
+
+    service = module.get<PlayersService>(PlayersService);
+  });
+
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
+});
+````
+
 ## File: apps/api/src/users/avatar.service.ts
 ````typescript
 import { S3Service } from '@/users/s3.service';
@@ -550,6 +584,29 @@ export class SignedUrlInterceptor implements NestInterceptor {
     "^.+\\.(t|j)s$": "ts-jest"
   }
 }
+````
+
+## File: apps/api/jest.config.ts
+````typescript
+import type { Config } from 'jest';
+
+const config: Config = {
+  preset: 'ts-jest',
+  testEnvironment: 'node',
+  rootDir: './src',
+  moduleFileExtensions: ['js', 'json', 'ts'],
+  testRegex: '\\.(spec|test)\\.ts$',
+  transform: {
+    '^.+\\.ts$': 'ts-jest',
+  },
+  moduleNameMapper: {
+    '@/(.*)$': '<rootDir>/$1',
+  },
+  collectCoverageFrom: ['**/*.(t|j)s'],
+  coverageDirectory: '../coverage',
+};
+
+export default config;
 ````
 
 ## File: apps/api/jest.lint.config.ts
@@ -1712,7 +1769,6 @@ export default function EditProfileModal() {
           </DialogHeader>
           <form
             onSubmit={form.handleSubmit((values: UpdateUserDto) => {
-              console.log('values', values);
               updateUser(values);
             })}
           >
@@ -1825,100 +1881,6 @@ export default function TeamLogo({
 }
 ````
 
-## File: apps/web/src/context/dbusercontext.tsx
-````typescript
-'use client';
-
-import { getAccessToken } from '@auth0/nextjs-auth0';
-import { User } from '@dribblio/database/generated/prisma-users/client';
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-
-interface DBUserContextType {
-  user: User | undefined;
-
-  /**
-   * Update user fields in the database and sync local state.
-   * @param user - Partial user object with fields to update.
-   */
-  updateUser: (user: Partial<User>) => void;
-
-  /**
-   * Upload a new avatar image to the database and sync local state.
-   * @param avatar - The avatar image file to upload.
-   */
-  uploadAvatar: (avatar: File) => void;
-}
-
-const defaultUserContext: DBUserContextType = {
-  user: undefined,
-  updateUser: () => {},
-  uploadAvatar: () => {},
-};
-
-const DBUserContext = createContext<DBUserContextType | undefined>(undefined);
-export const useDBUser = () => useContext(DBUserContext) ?? defaultUserContext;
-
-export function DBUserProvider({ children }: { children: React.ReactNode | React.ReactNode[] }) {
-  const [user, setUser] = useState<User | undefined>(undefined);
-
-  useEffect(() => {
-    getAccessToken().then((accessToken) => {
-      if (!accessToken) return;
-
-      fetch('/api/me', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      })
-        .then((res) => res.json())
-        .then(setUser);
-    });
-  }, []);
-
-  const updateUser = useCallback((user: Partial<User>) => {
-    getAccessToken().then((accessToken) => {
-      if (!accessToken) return;
-
-      fetch('/api/me', {
-        method: 'PATCH',
-        body: JSON.stringify(user),
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-      })
-        .then((res) => res.json())
-        .then(setUser);
-    });
-  }, []);
-
-  const uploadAvatar = useCallback((avatar: File) => {
-    getAccessToken().then((accessToken) => {
-      if (!accessToken) return;
-
-      const formData = new FormData();
-      formData.append('avatar', avatar);
-
-      fetch('/api/me/avatar', {
-        method: 'PUT',
-        body: formData,
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      })
-        .then((res) => res.json())
-        .then(setUser);
-    });
-  }, []);
-
-  return (
-    <DBUserContext.Provider value={{ user, updateUser, uploadAvatar }}>
-      {children}
-    </DBUserContext.Provider>
-  );
-}
-````
-
 ## File: apps/web/src/hooks/useConfetti.ts
 ````typescript
 import confetti from 'canvas-confetti';
@@ -1958,36 +1920,6 @@ const useConfetti = () => {
 };
 
 export default useConfetti;
-````
-
-## File: apps/web/src/hooks/useUnveilLogos.ts
-````typescript
-import { useState } from 'react';
-
-const useUnveilLogos = (teamHistory: string[]) => {
-  const [visibleIndexes, setVisibleIndexes] = useState<number[]>([]);
-  const indexArr: number[] = Array.from(Array(teamHistory.length).keys());
-  let remainingTeams = [...indexArr];
-
-  const unveilRandomLogoIndex = (unveilInterval: NodeJS.Timeout) => {
-    if (remainingTeams.length === 0) {
-      clearInterval(unveilInterval);
-      return;
-    }
-
-    const randomIndex = Math.floor(Math.random() * remainingTeams.length);
-    const selectedTeam: number = remainingTeams[randomIndex]!;
-
-    remainingTeams = remainingTeams.splice(randomIndex, 1);
-
-    console.log(`Unveiling team #${selectedTeam + 1}`);
-    setVisibleIndexes((prev) => [...prev, selectedTeam]);
-  };
-
-  return { visibleIndexes, unveilRandomLogoIndex };
-};
-
-export default useUnveilLogos;
 ````
 
 ## File: apps/web/src/icons/iconsvgprops.tsx
@@ -2053,62 +1985,6 @@ export const auth0 = new Auth0Client({
     audience: process.env.AUTH0_AUDIENCE,
     scope: process.env.AUTH0_SCOPE,
   },
-});
-````
-
-## File: apps/web/src/lib/clientsocket.ts
-````typescript
-'use client';
-
-import { io } from 'socket.io-client';
-
-export const clientSocket = io(`http://localhost:3002`, {
-  autoConnect: false,
-});
-````
-
-## File: apps/web/src/lib/schemas.ts
-````typescript
-import {
-  GameDifficultyNames,
-  HostFormValues,
-  JoinFormValues,
-  UpdateUserDto,
-} from '@dribblio/types';
-import Joi from 'joi';
-
-export const hostSchema = Joi.object<HostFormValues>({
-  isRoundLimit: Joi.boolean().required(),
-  config: Joi.object({
-    scoreLimit: Joi.number().optional(),
-    roundLimit: Joi.number().optional(),
-    roundTimeLimit: Joi.number().required(),
-    gameDifficulty: Joi.string()
-      .valid(...GameDifficultyNames)
-      .required(),
-  }),
-}).custom((value, helpers) => {
-  const { isRoundLimit, config } = value;
-  if (isRoundLimit && !config.roundLimit) {
-    return helpers.error('any.custom', {
-      message: 'Round Limit is required when Round Limit mode is selected',
-    });
-  }
-  if (!isRoundLimit && !config.scoreLimit) {
-    return helpers.error('any.custom', {
-      message: 'Score Limit is required when Score Limit mode is selected',
-    });
-  }
-  return value;
-}, 'Round/Score limit conditional check');
-
-export const joinSchema = Joi.object<JoinFormValues>({
-  roomId: Joi.string().required(),
-});
-
-export const updateUserSchema = Joi.object<UpdateUserDto>({
-  display_name: Joi.string().optional(),
-  name: Joi.string().optional(),
 });
 ````
 
@@ -2344,12 +2220,7 @@ provider = "postgresql"
 Collection of internal eslint configurations.
 ````
 
-## File: packages/types/src/dtos/index.ts
-````typescript
-export * from './updateuser.dto.js';
-````
-
-## File: packages/types/src/dtos/updateuser.dto.ts
+## File: packages/types/src/dtos/updateuser.ts
 ````typescript
 import { IsOptional, IsString } from 'class-validator';
 
@@ -2377,16 +2248,18 @@ export type HostFormValues = {
 };
 ````
 
-## File: packages/types/src/forms/index.ts
-````typescript
-export * from './hostform.js';
-export * from './joinform.js';
-````
-
 ## File: packages/types/src/forms/joinform.ts
 ````typescript
 export type JoinFormValues = {
   roomId: string;
+};
+````
+
+## File: packages/types/src/forms/singleplayerform.ts
+````typescript
+export type SinglePlayerFormValues = {
+  hasUnlimitedLives: boolean;
+  gameDifficulty: string;
 };
 ````
 
@@ -2487,28 +2360,6 @@ export type Auth0JwtPayload = {
   scope?: string; // Scopes granted
   sub: string; // Subject (user ID)
 };
-````
-
-## File: apps/api/src/nba/games/careerpath/room/room.service.spec.ts
-````typescript
-import { RoomService } from '@/nba/games/careerpath/room/room.service';
-import { Test, TestingModule } from '@nestjs/testing';
-
-describe('RoomService', () => {
-  let service: RoomService;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [RoomService],
-    }).compile();
-
-    service = module.get<RoomService>(RoomService);
-  });
-
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
 ````
 
 ## File: apps/api/src/users/users.controller.ts
@@ -2773,105 +2624,6 @@ const IncorrectAnswer = ({ possibleAnswers }: Readonly<{ possibleAnswers: nba.Pl
 };
 
 export { CorrectAnswer, IncorrectAnswer };
-````
-
-## File: apps/web/src/components/config/singleplayer/configmodal.tsx
-````typescript
-'use client';
-
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  GameDifficulties,
-  GameDifficultyNames,
-  GameDifficultySchema,
-  SinglePlayerConfig,
-} from '@dribblio/types';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-
-export default function SinglePlayerConfigModal({
-  isOpen,
-  onConfigureRoom,
-}: Readonly<{ isOpen: boolean; onConfigureRoom: (config: SinglePlayerConfig) => void }>) {
-  return (
-    <Dialog open={isOpen}>
-      <DialogContent
-        className="[&>button]:hidden"
-        onInteractOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-      >
-        <DialogHeader>
-          <DialogTitle>Single Player</DialogTitle>
-        </DialogHeader>
-        <SinglePlayerForm onConfigureRoom={onConfigureRoom} />
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function SinglePlayerForm({
-  onConfigureRoom,
-}: Readonly<{ onConfigureRoom: (config: SinglePlayerConfig) => void }>) {
-  const formSchema = z.object({
-    gameDifficulty: z.enum(GameDifficultyNames as [string, ...string[]]),
-  });
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      gameDifficulty: GameDifficulties.currentPlayers.name,
-    },
-  });
-
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    onConfigureRoom({ gameDifficulty: GameDifficultySchema.parse(values.gameDifficulty) });
-  }
-
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="flex flex-col space-y-4">
-          <FormField
-            control={form.control}
-            name="gameDifficulty"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Difficulty</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select game difficulty" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {GameDifficultyNames.map((mode) => (
-                      <SelectItem key={mode} value={mode}>
-                        {GameDifficultySchema.parse(mode).display_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          ></FormField>
-          <div className="flex justify-end mt-4">
-            <Button type="submit">Create Game</Button>
-          </div>
-        </div>
-      </form>
-    </Form>
-  );
-}
 ````
 
 ## File: apps/web/src/components/search/playersearchresult.tsx
@@ -3276,6 +3028,196 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
 }
 ````
 
+## File: apps/web/src/context/dbusercontext.tsx
+````typescript
+'use client';
+
+import { getAccessToken } from '@auth0/nextjs-auth0';
+import { User } from '@dribblio/database/generated/prisma-users/client';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+
+interface DBUserContextType {
+  user: User | undefined;
+
+  /**
+   * Update user fields in the database and sync local state.
+   * @param user - Partial user object with fields to update.
+   */
+  updateUser: (user: Partial<User>) => void;
+
+  /**
+   * Upload a new avatar image to the database and sync local state.
+   * @param avatar - The avatar image file to upload.
+   */
+  uploadAvatar: (avatar: File) => void;
+}
+
+const defaultUserContext: DBUserContextType = {
+  user: undefined,
+  updateUser: () => {},
+  uploadAvatar: () => {},
+};
+
+const DBUserContext = createContext<DBUserContextType | undefined>(undefined);
+export const useDBUser = () => useContext(DBUserContext) ?? defaultUserContext;
+
+export function DBUserProvider({ children }: { children: React.ReactNode | React.ReactNode[] }) {
+  const [user, setUser] = useState<User | undefined>(undefined);
+
+  useEffect(() => {
+    getAccessToken()
+      .then((accessToken) => {
+        if (!accessToken) return;
+
+        fetch('/api/me', {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        })
+          .then((res) => res.json())
+          .then(setUser);
+      })
+      .catch(() => {});
+  }, []);
+
+  const updateUser = useCallback((user: Partial<User>) => {
+    getAccessToken().then((accessToken) => {
+      if (!accessToken) return;
+
+      fetch('/api/me', {
+        method: 'PATCH',
+        body: JSON.stringify(user),
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      })
+        .then((res) => res.json())
+        .then(setUser);
+    });
+  }, []);
+
+  const uploadAvatar = useCallback((avatar: File) => {
+    getAccessToken().then((accessToken) => {
+      if (!accessToken) return;
+
+      const formData = new FormData();
+      formData.append('avatar', avatar);
+
+      fetch('/api/me/avatar', {
+        method: 'PUT',
+        body: formData,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+        .then((res) => res.json())
+        .then(setUser);
+    });
+  }, []);
+
+  return (
+    <DBUserContext.Provider value={{ user, updateUser, uploadAvatar }}>
+      {children}
+    </DBUserContext.Provider>
+  );
+}
+````
+
+## File: apps/web/src/hooks/useUnveilLogos.ts
+````typescript
+import { useState } from 'react';
+
+const useUnveilLogos = (teamHistory: string[]) => {
+  const [visibleIndexes, setVisibleIndexes] = useState<number[]>([]);
+  const indexArr: number[] = Array.from(Array(teamHistory.length).keys());
+  const remainingTeams = [...indexArr];
+
+  const unveilRandomLogoIndex = (unveilInterval: NodeJS.Timeout) => {
+    if (remainingTeams.length === 0) {
+      clearInterval(unveilInterval);
+      return;
+    }
+
+    const randomIndex = Math.floor(Math.random() * remainingTeams.length);
+    const selectedTeam: number = remainingTeams[randomIndex]!;
+
+    remainingTeams.splice(randomIndex, 1);
+
+    console.log(`Unveiling team #${selectedTeam + 1}`);
+    setVisibleIndexes((prev) => [...prev, selectedTeam]);
+  };
+
+  return { visibleIndexes, unveilRandomLogoIndex };
+};
+
+export default useUnveilLogos;
+````
+
+## File: apps/web/src/lib/clientsocket.ts
+````typescript
+'use client';
+
+import { io } from 'socket.io-client';
+
+export const clientSocket = io(process.env.API_BASE_URL || 'http://localhost:3002', {
+  autoConnect: false,
+});
+````
+
+## File: apps/web/src/lib/schemas.ts
+````typescript
+import {
+  GameDifficultyNames,
+  HostFormValues,
+  JoinFormValues,
+  SinglePlayerFormValues,
+  UpdateUserDto,
+} from '@dribblio/types';
+import Joi from 'joi';
+
+export const hostSchema = Joi.object<HostFormValues>({
+  isRoundLimit: Joi.boolean().required(),
+  config: Joi.object({
+    scoreLimit: Joi.number().optional(),
+    roundLimit: Joi.number().optional(),
+    roundTimeLimit: Joi.number().required(),
+    gameDifficulty: Joi.string()
+      .valid(...GameDifficultyNames)
+      .required(),
+  }),
+}).custom((value, helpers) => {
+  const { isRoundLimit, config } = value;
+  if (isRoundLimit && !config.roundLimit) {
+    return helpers.error('any.custom', {
+      message: 'Round Limit is required when Round Limit mode is selected',
+    });
+  }
+  if (!isRoundLimit && !config.scoreLimit) {
+    return helpers.error('any.custom', {
+      message: 'Score Limit is required when Score Limit mode is selected',
+    });
+  }
+  return value;
+}, 'Round/Score limit conditional check');
+
+export const joinSchema = Joi.object<JoinFormValues>({
+  roomId: Joi.string().required(),
+});
+
+export const updateUserSchema = Joi.object<UpdateUserDto>({
+  display_name: Joi.string().optional(),
+  name: Joi.string().optional(),
+});
+
+export const singlePlayerConfigSchema = Joi.object<SinglePlayerFormValues>({
+  hasUnlimitedLives: Joi.boolean().required(),
+  gameDifficulty: Joi.string()
+    .valid(...GameDifficultyNames)
+    .required(),
+});
+````
+
 ## File: apps/web/src/lib/utils.ts
 ````typescript
 import { clsx, type ClassValue } from 'clsx';
@@ -3405,76 +3347,6 @@ import { nextJsConfig } from '@dribblio/eslint-config/next-js';
 export default nextJsConfig;
 ````
 
-## File: apps/web/tailwind.config.ts
-````typescript
-export default {
-  content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
-  ],
-  theme: {
-    extend: {
-      fontFamily: {
-        sf: ['var(--font-sf)'],
-      },
-      zIndex: {
-        60: '60',
-      },
-      borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
-      },
-      colors: {
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
-        card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
-        },
-        popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
-        },
-        primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
-        },
-        secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))',
-        },
-        muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
-        },
-        accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
-        },
-        destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
-        },
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        chart: {
-          '1': 'hsl(var(--chart-1))',
-          '2': 'hsl(var(--chart-2))',
-          '3': 'hsl(var(--chart-3))',
-          '4': 'hsl(var(--chart-4))',
-          '5': 'hsl(var(--chart-5))',
-        },
-      },
-    },
-  },
-  darkMode: ['class'],
-  plugins: [require('tailwindcss-animate')],
-};
-````
-
 ## File: packages/database/prisma-users/schema.prisma
 ````
 // This is your Prisma schema file,
@@ -3543,13 +3415,16 @@ export const nba_prisma = globalForPrisma.nba_prisma || new NBAPrismaClient();
 }
 ````
 
-## File: packages/types/src/responses/searchresponse.ts
+## File: packages/types/src/dtos/index.ts
 ````typescript
-import { nba } from '@dribblio/database';
+export * from './updateuser.js';
+````
 
-export interface SearchResponse {
-  results: nba.Player[];
-}
+## File: packages/types/src/forms/index.ts
+````typescript
+export * from './hostform.js';
+export * from './joinform.js';
+export * from './singleplayerform.js';
 ````
 
 ## File: packages/types/src/statemachine/multiplayer/actions.ts
@@ -3615,101 +3490,6 @@ export const timeExpired = ({ context }: GuardProps): boolean => {
 export * from './actions.js';
 export * from './gamemachine.js';
 export * from './guards.js';
-````
-
-## File: packages/types/src/statemachine/singleplayer/actions.ts
-````typescript
-import { AnyEventObject } from 'xstate';
-import { SinglePlayerContext } from './gamemachine.js';
-
-type ActionProps = {
-  context: SinglePlayerContext;
-  event: AnyEventObject;
-};
-
-export const waitForUser = ({ context }: ActionProps) => {
-  try {
-    const { socket } = context;
-
-    socket?.emit('waiting_for_user');
-  } catch (err) {
-    throw Error(`Socket could not be found: ${err}`);
-  }
-};
-
-export const sendPlayerToClient = ({ context }: ActionProps) => {
-  try {
-    const { socket, gameState } = context;
-    const { score, validAnswers, lives } = gameState;
-
-    const team_history = validAnswers[0]?.team_history?.split(',');
-
-    socket?.emit('next_round', { score, team_history, lives: lives + 1 });
-  } catch (err) {
-    throw Error(`Socket could not be found: ${err}`);
-  }
-};
-
-export const notifyCorrectGuess = ({ context }: ActionProps) => {
-  try {
-    const { socket, gameState } = context;
-    const { validAnswers } = gameState;
-
-    socket?.emit('correct_guess', { validAnswers });
-  } catch (err) {
-    throw Error(`Socket could not be found: ${err}`);
-  }
-};
-
-export const notifyIncorrectGuess = ({ context }: ActionProps) => {
-  try {
-    const { socket, gameState } = context;
-    const { lives } = gameState;
-
-    socket?.emit('incorrect_guess', { lives: lives + 1 });
-  } catch (err) {
-    throw Error(`Socket could not be found: ${err}`);
-  }
-};
-
-export const notifySkipRound = ({ context }: ActionProps) => {
-  try {
-    const { socket, gameState } = context;
-    const { lives } = gameState;
-
-    socket?.emit('round_skipped', { lives: lives + 1 });
-  } catch (err) {
-    throw Error(`Socket could not be found: ${err}`);
-  }
-};
-
-export const notifyGameOver = ({ context }: ActionProps) => {
-  try {
-    const { socket } = context;
-
-    socket?.emit('game_over');
-  } catch (err) {
-    throw Error(`Socket could not be found: ${err}`);
-  }
-};
-````
-
-## File: packages/types/src/statemachine/singleplayer/guards.ts
-````typescript
-import { AnyEventObject } from 'xstate';
-import { SinglePlayerContext } from './gamemachine.js';
-
-type GuardProps = {
-  context: SinglePlayerContext;
-  event: AnyEventObject;
-};
-
-export const isCorrectSinglePlayer = ({ context, event }: GuardProps): boolean => {
-  const { guessId } = event.guess;
-  return !!context.gameState.validAnswers.find((player) => player.id === guessId);
-};
-
-export const hasLives = ({ context }: GuardProps): boolean => context.gameState.lives > 0;
 ````
 
 ## File: packages/types/src/statemachine/singleplayer/index.ts
@@ -3872,23 +3652,6 @@ export const GameDifficultySchema = z
     const difficulty = GameDifficulties.allModes.find((mode) => mode.name === val);
     return difficulty!;
   });
-````
-
-## File: packages/types/src/websocket/messagebodies.ts
-````typescript
-import { MultiplayerConfig } from '../statemachine/multiplayer/gamemachine.js';
-import { SinglePlayerConfig } from '../statemachine/singleplayer/gamemachine.js';
-
-export interface HostRoomMessageBody {
-  isMulti: boolean;
-  userId: string;
-  config: MultiplayerConfig | SinglePlayerConfig;
-}
-
-export interface JoinRoomMessageBody {
-  roomId: string;
-  userId: string;
-}
 ````
 
 ## File: packages/typescript-config/base.json
@@ -4338,6 +4101,54 @@ import { Global, Module } from '@nestjs/common';
 export class DatabaseModule {}
 ````
 
+## File: apps/api/src/nba/games/careerpath/room/room.service.spec.ts
+````typescript
+import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
+import { RoomFactory } from '@/nba/games/careerpath/room/factory.service';
+import { RoomService } from '@/nba/games/careerpath/room/room.service';
+import { UsersService } from '@/users/users.service';
+import { Test, TestingModule } from '@nestjs/testing';
+
+const mockCareerPathGateway = {
+  createRoom: jest.fn(),
+  destroyRoom: jest.fn(),
+  joinRoom: jest.fn(),
+  leaveRoom: jest.fn(),
+  generateUniqueCode: jest.fn(),
+};
+const mockRoomFactory = {
+  createMultiplayerRoom: jest.fn(),
+  createSinglePlayerRoom: jest.fn(),
+  setUpListenersOnJoin: jest.fn(),
+};
+const mockUsersService = {
+  get: jest.fn(),
+  update: jest.fn(),
+  uploadProfileImage: jest.fn(),
+};
+
+describe('RoomService', () => {
+  let service: RoomService;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        RoomService,
+        { provide: CareerPathGateway, useValue: mockCareerPathGateway },
+        { provide: RoomFactory, useValue: mockRoomFactory },
+        { provide: UsersService, useValue: mockUsersService },
+      ],
+    }).compile();
+
+    service = module.get<RoomService>(RoomService);
+  });
+
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
+});
+````
+
 ## File: apps/api/src/nba/games/careerpath/careerpath.module.ts
 ````typescript
 import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
@@ -4563,7 +4374,7 @@ export default function SinglePlayer() {
           {teams && (
             <div className="w-full flex flex-col items-center space-y-8">
               <div className="flex flex-col items-center">
-                <p className="font-black text-2xl">Lives: {lives}</p>
+                <p className="font-black text-2xl">Lives: {lives ?? 'Unlimited'}</p>
                 <p className="font-black text-2xl">Score: {score}</p>
               </div>
               <CareerPath teams={teams} />
@@ -4578,21 +4389,13 @@ export default function SinglePlayer() {
 }
 ````
 
-## File: apps/web/src/components/config/multiplayer/joinhostmodal.tsx
+## File: apps/web/src/components/config/singleplayer/configmodal.tsx
 ````typescript
 'use client';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import {
   Select,
   SelectContent,
@@ -4600,29 +4403,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { hostSchema, joinSchema } from '@/lib/schemas';
+import { singlePlayerConfigSchema } from '@/lib/schemas';
 import {
   GameDifficulties,
   GameDifficultyNames,
   GameDifficultySchema,
-  HostFormValues,
-  JoinFormValues,
-  MultiplayerConfig,
+  SinglePlayerConfig,
+  SinglePlayerFormValues,
 } from '@dribblio/types';
 import { joiResolver } from '@hookform/resolvers/joi';
 import { useForm } from 'react-hook-form';
+import { Switch } from '@/components/ui/switch';
 
-export default function JoinHostModal({
+export default function SinglePlayerConfigModal({
   isOpen,
-  onJoinRoom,
-  onHostRoom,
-}: Readonly<{
-  isOpen: boolean;
-  onJoinRoom: (roomId: string) => void;
-  onHostRoom: (config: MultiplayerConfig) => void;
-}>) {
+  onConfigureRoom,
+}: Readonly<{ isOpen: boolean; onConfigureRoom: (config: SinglePlayerConfig) => void }>) {
   return (
     <Dialog open={isOpen}>
       <DialogContent
@@ -4631,39 +4427,32 @@ export default function JoinHostModal({
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>Join or Host a Game</DialogTitle>
+          <DialogTitle>Single Player</DialogTitle>
         </DialogHeader>
-        <Tabs defaultValue="join">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="join">Join Room</TabsTrigger>
-            <TabsTrigger value="host">Host Room</TabsTrigger>
-          </TabsList>
-          <TabsContent value="join">
-            <JoinForm onJoinRoom={onJoinRoom} />
-          </TabsContent>
-          <TabsContent value="host">
-            <HostForm onHostRoom={onHostRoom} />
-          </TabsContent>
-        </Tabs>
+        <SinglePlayerForm onConfigureRoom={onConfigureRoom} />
       </DialogContent>
     </Dialog>
   );
 }
 
-function JoinForm({
-  onJoinRoom,
-}: Readonly<{
-  onJoinRoom: (roomId: string) => void;
-}>) {
-  const form = useForm<JoinFormValues>({
-    resolver: joiResolver(joinSchema),
+function SinglePlayerForm({
+  onConfigureRoom,
+}: Readonly<{ onConfigureRoom: (config: SinglePlayerConfig) => void }>) {
+  const form = useForm<SinglePlayerFormValues>({
+    resolver: joiResolver(singlePlayerConfigSchema),
     defaultValues: {
-      roomId: '',
+      hasUnlimitedLives: false,
+      gameDifficulty: GameDifficulties.currentPlayers.name,
     },
   });
 
-  function onSubmit(values: JoinFormValues) {
-    onJoinRoom(values.roomId);
+  function onSubmit(values: SinglePlayerFormValues) {
+    const lives = values.hasUnlimitedLives ? undefined : 4;
+
+    onConfigureRoom({
+      lives,
+      gameDifficulty: GameDifficultySchema.parse(values.gameDifficulty),
+    });
   }
 
   return (
@@ -4672,118 +4461,19 @@ function JoinForm({
         <div className="flex flex-col space-y-4">
           <FormField
             control={form.control}
-            name="roomId"
+            name="hasUnlimitedLives"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Room Code</FormLabel>
+              <FormItem className="flex flex-row items-center justify-between">
+                <FormLabel>Unlimited Lives?</FormLabel>
                 <FormControl>
-                  <Input placeholder="Room Code" {...field} />
+                  <Switch checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
-                <FormMessage />
               </FormItem>
             )}
-          ></FormField>
-        </div>
-        <div className="flex justify-end mt-4">
-          <Button type="submit">Join Room</Button>
-        </div>
-      </form>
-    </Form>
-  );
-}
-
-function HostForm({
-  onHostRoom,
-}: Readonly<{
-  onHostRoom: (config: MultiplayerConfig) => void;
-}>) {
-  const form = useForm<HostFormValues>({
-    resolver: joiResolver(hostSchema),
-    defaultValues: {
-      isRoundLimit: false,
-      config: {
-        scoreLimit: 10,
-        roundLimit: 10,
-        roundTimeLimit: 30,
-        gameDifficulty: GameDifficulties.firstAllNBA.name,
-      },
-    },
-  });
-
-  function onSubmit(values: HostFormValues) {
-    const config = {
-      ...values.config,
-      scoreLimit: values.isRoundLimit ? values.config.scoreLimit : undefined,
-      roundLimit: values.isRoundLimit ? values.config.roundLimit : undefined,
-      gameDifficulty: GameDifficultySchema.parse(values.config.gameDifficulty),
-    };
-    onHostRoom(config);
-  }
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="flex flex-col space-y-4">
-          <div className="flex flex-row space-x-4 self-center">
-            <p>Score Limit</p>
-            <FormField
-              control={form.control}
-              name="isRoundLimit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                </FormItem>
-              )}
-            ></FormField>
-            <p>Round Limit</p>
-          </div>
-          {form.watch('isRoundLimit') && (
-            <FormField
-              control={form.control}
-              name="config.roundLimit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Round Limit</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="Round Limit" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            ></FormField>
-          )}
-          {!form.watch('isRoundLimit') && (
-            <FormField
-              control={form.control}
-              name="config.scoreLimit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Score Limit</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="Score Limit" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            ></FormField>
-          )}
+          />
           <FormField
             control={form.control}
-            name="config.roundTimeLimit"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Round Time Limit</FormLabel>
-                <FormControl>
-                  <Input type="number" placeholder="Round Time Limit" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          ></FormField>
-          <FormField
-            control={form.control}
-            name="config.gameDifficulty"
+            name="gameDifficulty"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Difficulty</FormLabel>
@@ -4803,10 +4493,10 @@ function HostForm({
                 </Select>
               </FormItem>
             )}
-          ></FormField>
-        </div>
-        <div className="flex justify-end mt-4">
-          <Button type="submit">Create Room</Button>
+          />
+          <div className="flex justify-end mt-4">
+            <Button type="submit">Create Game</Button>
+          </div>
         </div>
       </form>
     </Form>
@@ -4922,43 +4612,6 @@ export const siteConfig: { name: string; navItems: NavItem[] } = {
 };
 ````
 
-## File: apps/web/src/hooks/usePlayerSearch.ts
-````typescript
-'use client';
-
-import { nba } from '@dribblio/database';
-import { SearchResponse } from '@dribblio/types';
-import { AsyncListLoadOptions, useAsyncList } from '@react-stately/data';
-import { useEffect, useState } from 'react';
-
-const usePlayerSearch = () => {
-  const [playerCount, setPlayerCount] = useState<number>(0);
-
-  useEffect(() => {
-    fetch('/api/players/count')
-      .then((res) => res.json())
-      .then(setPlayerCount);
-  }, [setPlayerCount]);
-
-  const list = useAsyncList<nba.Player>({
-    async load({ signal, filterText }: AsyncListLoadOptions<nba.Player, string>) {
-      const res = await fetch(`/api/players/search?searchTerm=${filterText}`, {
-        signal,
-      });
-      const json: SearchResponse = await res.json();
-
-      return {
-        items: json.results,
-      };
-    },
-  });
-
-  return { playerCount, list };
-};
-
-export default usePlayerSearch;
-````
-
 ## File: apps/web/next.config.mjs
 ````
 /** @type {import('next').NextConfig} */
@@ -4990,6 +4643,76 @@ const nextConfig = {
 };
 
 export default nextConfig;
+````
+
+## File: apps/web/tailwind.config.ts
+````typescript
+export default {
+  content: [
+    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  theme: {
+    extend: {
+      fontFamily: {
+        sf: ['var(--font-sf)'],
+      },
+      zIndex: {
+        60: '60',
+      },
+      borderRadius: {
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
+      },
+      colors: {
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        card: {
+          DEFAULT: 'hsl(var(--card))',
+          foreground: 'hsl(var(--card-foreground))',
+        },
+        popover: {
+          DEFAULT: 'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))',
+        },
+        primary: {
+          DEFAULT: 'hsl(var(--primary))',
+          foreground: 'hsl(var(--primary-foreground))',
+        },
+        secondary: {
+          DEFAULT: 'hsl(var(--secondary))',
+          foreground: 'hsl(var(--secondary-foreground))',
+        },
+        muted: {
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))',
+        },
+        accent: {
+          DEFAULT: 'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))',
+        },
+        destructive: {
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))',
+        },
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        chart: {
+          '1': 'hsl(var(--chart-1))',
+          '2': 'hsl(var(--chart-2))',
+          '3': 'hsl(var(--chart-3))',
+          '4': 'hsl(var(--chart-4))',
+          '5': 'hsl(var(--chart-5))',
+        },
+      },
+    },
+  },
+  darkMode: ['class'],
+  plugins: [import('tailwindcss-animate')],
+};
 ````
 
 ## File: apps/web/tsconfig.json
@@ -5101,6 +4824,128 @@ export const nextJsConfig = [
     },
   },
 ];
+````
+
+## File: packages/types/src/responses/searchresponse.ts
+````typescript
+import { nba } from '@dribblio/database';
+
+export type SearchResponse = {
+  results: nba.Player[];
+};
+````
+
+## File: packages/types/src/statemachine/singleplayer/actions.ts
+````typescript
+import { AnyEventObject } from 'xstate';
+import { SinglePlayerContext } from './gamemachine.js';
+
+type ActionProps = {
+  context: SinglePlayerContext;
+  event: AnyEventObject;
+};
+
+export const waitForUser = ({ context }: ActionProps) => {
+  try {
+    const { socket } = context;
+
+    socket?.emit('waiting_for_user');
+  } catch (err) {
+    throw Error(`Socket could not be found: ${err}`);
+  }
+};
+
+export const sendPlayerToClient = ({ context }: ActionProps) => {
+  try {
+    const { socket, gameState } = context;
+    const { score, validAnswers, lives } = gameState;
+
+    const team_history = validAnswers[0]?.team_history?.split(',');
+
+    socket?.emit('next_round', { score, team_history, lives: lives ? lives + 1 : undefined });
+  } catch (err) {
+    throw Error(`Socket could not be found: ${err}`);
+  }
+};
+
+export const notifyCorrectGuess = ({ context }: ActionProps) => {
+  try {
+    const { socket, gameState } = context;
+    const { validAnswers } = gameState;
+
+    socket?.emit('correct_guess', { validAnswers });
+  } catch (err) {
+    throw Error(`Socket could not be found: ${err}`);
+  }
+};
+
+export const notifyIncorrectGuess = ({ context }: ActionProps) => {
+  try {
+    const { socket, gameState } = context;
+    const { lives } = gameState;
+
+    socket?.emit('incorrect_guess', { lives: lives ? lives + 1 : undefined });
+  } catch (err) {
+    throw Error(`Socket could not be found: ${err}`);
+  }
+};
+
+export const notifySkipRound = ({ context }: ActionProps) => {
+  try {
+    const { socket, gameState } = context;
+    const { lives } = gameState;
+
+    socket?.emit('round_skipped', { lives: lives ? lives + 1 : undefined });
+  } catch (err) {
+    throw Error(`Socket could not be found: ${err}`);
+  }
+};
+
+export const notifyGameOver = ({ context }: ActionProps) => {
+  try {
+    const { socket } = context;
+
+    socket?.emit('game_over');
+  } catch (err) {
+    throw Error(`Socket could not be found: ${err}`);
+  }
+};
+````
+
+## File: packages/types/src/statemachine/singleplayer/guards.ts
+````typescript
+import { AnyEventObject } from 'xstate';
+import { SinglePlayerContext } from './gamemachine.js';
+
+type GuardProps = {
+  context: SinglePlayerContext;
+  event: AnyEventObject;
+};
+
+export const isCorrectSinglePlayer = ({ context, event }: GuardProps): boolean => {
+  const { guessId } = event.guess;
+  return !!context.gameState.validAnswers.find((player) => player.id === guessId);
+};
+
+export const hasLives = ({ context }: GuardProps): boolean =>
+  context.gameState.lives ? context.gameState.lives > 0 : true;
+````
+
+## File: packages/types/src/websocket/messagebodies.ts
+````typescript
+import { MultiplayerConfig } from '../statemachine/multiplayer/gamemachine.js';
+import { SinglePlayerConfig } from '../statemachine/singleplayer/gamemachine.js';
+
+export type HostRoomMessageBody = {
+  isMulti: boolean;
+  userId: string;
+  config: MultiplayerConfig | SinglePlayerConfig;
+};
+
+export type JoinRoomMessageBody = {
+  roomId: string;
+  userId: string;
+};
 ````
 
 ## File: packages/types/tsconfig.json
@@ -5668,9 +5513,12 @@ import JoinHostModal from '@/components/config/multiplayer/joinhostmodal';
 import PlayerSearchBar from '@/components/search/playersearchbar';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogTitle, DialogContent, DialogHeader } from '@/components/ui/dialog';
+import { useDBUser } from '@/context/dbusercontext';
 import useMultiplayerSocket from '@/hooks/useMultiplayerSocket';
 import { UserGameInfo } from '@dribblio/types';
 import { User } from 'lucide-react';
+import Link from 'next/link';
 
 export default function Game() {
   const {
@@ -5689,64 +5537,84 @@ export default function Game() {
     validAnswers,
   } = useMultiplayerSocket();
 
+  const { user } = useDBUser();
+
   return (
     <div className="flex flex-col h-full space-y-8">
-      <JoinHostModal isOpen={!roomId} onJoinRoom={onJoinRoom} onHostRoom={onHostRoom} />
-      <div className="justify-start">
-        <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
-        {roomId && <p>{`Room Code: ${roomId}`}</p>}
-        {users.some((user: UserGameInfo) => user) && (
-          <div>
-            <p>Users:</p>
-            <ul>
-              {users.map((user: UserGameInfo) => (
-                <li key={user.info.id}>
-                  <div className="flex flex-row space-x-2 items-center">
-                    {user.info.profile_url ? (
-                      <Avatar>
-                        <AvatarImage
-                          src={user.info.profile_url}
-                          alt={user.info.name ?? ''}
-                          width={24}
-                          height={24}
-                        />
-                      </Avatar>
-                    ) : (
-                      <User />
-                    )}
-                    <p>{user.info.name}</p>
-                    <p>{user.score}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
+      {!user ? (
+        <>
+          <Dialog open={true}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Multiplayer Unavailable</DialogTitle>
+              </DialogHeader>
+              <p>In order to play multiplayer, you must be logged in.</p>
+              <Button asChild>
+                <Link href="/auth/login">Login</Link>
+              </Button>
+            </DialogContent>
+          </Dialog>
+        </>
+      ) : (
+        <>
+          <JoinHostModal isOpen={!roomId} onJoinRoom={onJoinRoom} onHostRoom={onHostRoom} />
+          <div className="justify-start">
+            <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
+            {roomId && <p>{`Room Code: ${roomId}`}</p>}
+            {users.some((user: UserGameInfo) => user) && (
+              <div>
+                <p>Users:</p>
+                <ul>
+                  {users.map((user: UserGameInfo) => (
+                    <li key={user.info.id}>
+                      <div className="flex flex-row space-x-2 items-center">
+                        {user.info.profile_url ? (
+                          <Avatar>
+                            <AvatarImage
+                              src={user.info.profile_url}
+                              alt={user.info.name ?? ''}
+                              width={24}
+                              height={24}
+                            />
+                          </Avatar>
+                        ) : (
+                          <User />
+                        )}
+                        <p>{user.info.name}</p>
+                        <p>{user.score}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      {canStartGame && (
-        <div>
-          <Button onClick={onStartGame}>Start Game</Button>
-        </div>
-      )}
+          {canStartGame && (
+            <div>
+              <Button onClick={onStartGame}>Start Game</Button>
+            </div>
+          )}
 
-      {roundActive && (
-        <div className="w-full flex flex-col items-center space-y-8">
-          <p className="text-2xl font-bold">Time Left: {timeLeft}</p>
-          <CareerPath teams={teams!} />
-          <PlayerSearchBar playerList={players} onSelect={onGuess} />
-        </div>
-      )}
+          {roundActive && (
+            <div className="w-full flex flex-col items-center space-y-8">
+              <p className="text-2xl font-bold">Time Left: {timeLeft}</p>
+              <CareerPath teams={teams!} />
+              <PlayerSearchBar playerList={players} onSelect={onGuess} />
+            </div>
+          )}
 
-      {!roundActive && !canStartGame && (
-        <div>
-          <p>Correct Answers:</p>
-          <ul>
-            {validAnswers.map((answer) => (
-              <li key={answer.id}>{answer.display_first_last}</li>
-            ))}
-          </ul>
-        </div>
+          {!roundActive && !canStartGame && (
+            <div>
+              <p>Correct Answers:</p>
+              <ul>
+                {validAnswers.map((answer) => (
+                  <li key={answer.id}>{answer.display_first_last}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -5777,6 +5645,242 @@ export default function Home() {
         imageHref="/images/jaysontatum.webp"
       />
     </div>
+  );
+}
+````
+
+## File: apps/web/src/components/config/multiplayer/joinhostmodal.tsx
+````typescript
+'use client';
+
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { hostSchema, joinSchema } from '@/lib/schemas';
+import {
+  GameDifficulties,
+  GameDifficultyNames,
+  GameDifficultySchema,
+  HostFormValues,
+  JoinFormValues,
+  MultiplayerConfig,
+} from '@dribblio/types';
+import { joiResolver } from '@hookform/resolvers/joi';
+import { useForm } from 'react-hook-form';
+
+export default function JoinHostModal({
+  isOpen,
+  onJoinRoom,
+  onHostRoom,
+}: Readonly<{
+  isOpen: boolean;
+  onJoinRoom: (roomId: string) => void;
+  onHostRoom: (config: MultiplayerConfig) => void;
+}>) {
+  return (
+    <Dialog open={isOpen}>
+      <DialogContent
+        className="[&>button]:hidden"
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
+        <DialogHeader>
+          <DialogTitle>Join or Host a Game</DialogTitle>
+        </DialogHeader>
+        <Tabs defaultValue="join">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="join">Join Room</TabsTrigger>
+            <TabsTrigger value="host">Host Room</TabsTrigger>
+          </TabsList>
+          <TabsContent value="join">
+            <JoinForm onJoinRoom={onJoinRoom} />
+          </TabsContent>
+          <TabsContent value="host">
+            <HostForm onHostRoom={onHostRoom} />
+          </TabsContent>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function JoinForm({
+  onJoinRoom,
+}: Readonly<{
+  onJoinRoom: (roomId: string) => void;
+}>) {
+  const form = useForm<JoinFormValues>({
+    resolver: joiResolver(joinSchema),
+    defaultValues: {
+      roomId: '',
+    },
+  });
+
+  function onSubmit(values: JoinFormValues) {
+    onJoinRoom(values.roomId);
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="flex flex-col space-y-4">
+          <FormField
+            control={form.control}
+            name="roomId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Room Code</FormLabel>
+                <FormControl>
+                  <Input placeholder="Room Code" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          ></FormField>
+        </div>
+        <div className="flex justify-end mt-4">
+          <Button type="submit">Join Room</Button>
+        </div>
+      </form>
+    </Form>
+  );
+}
+
+function HostForm({
+  onHostRoom,
+}: Readonly<{
+  onHostRoom: (config: MultiplayerConfig) => void;
+}>) {
+  const form = useForm<HostFormValues>({
+    resolver: joiResolver(hostSchema),
+    defaultValues: {
+      isRoundLimit: false,
+      config: {
+        scoreLimit: 10,
+        roundLimit: 10,
+        roundTimeLimit: 30,
+        gameDifficulty: GameDifficulties.firstAllNBA.name,
+      },
+    },
+  });
+
+  function onSubmit(values: HostFormValues) {
+    const config = {
+      ...values.config,
+      scoreLimit: values.isRoundLimit ? values.config.scoreLimit : undefined,
+      roundLimit: values.isRoundLimit ? values.config.roundLimit : undefined,
+      gameDifficulty: GameDifficultySchema.parse(values.config.gameDifficulty),
+    };
+    onHostRoom(config);
+  }
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="flex flex-col space-y-4">
+          <div className="flex flex-row space-x-4 self-center">
+            <p>Score Limit</p>
+            <FormField
+              control={form.control}
+              name="isRoundLimit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <p>Round Limit</p>
+          </div>
+          {form.watch('isRoundLimit') && (
+            <FormField
+              control={form.control}
+              name="config.roundLimit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Round Limit</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="Round Limit" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+          {!form.watch('isRoundLimit') && (
+            <FormField
+              control={form.control}
+              name="config.scoreLimit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Score Limit</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="Score Limit" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+          <FormField
+            control={form.control}
+            name="config.roundTimeLimit"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Round Time Limit</FormLabel>
+                <FormControl>
+                  <Input type="number" placeholder="Round Time Limit" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="config.gameDifficulty"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Difficulty</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select game difficulty" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {GameDifficultyNames.map((mode) => (
+                      <SelectItem key={mode} value={mode}>
+                        {GameDifficultySchema.parse(mode).display_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          />
+        </div>
+        <div className="flex justify-end mt-4">
+          <Button type="submit">Create Room</Button>
+        </div>
+      </form>
+    </Form>
   );
 }
 ````
@@ -5920,6 +6024,43 @@ const useMultiplayerSocket = () => {
 };
 
 export default useMultiplayerSocket;
+````
+
+## File: apps/web/src/hooks/usePlayerSearch.ts
+````typescript
+'use client';
+
+import { nba } from '@dribblio/database';
+import { SearchResponse } from '@dribblio/types';
+import { AsyncListLoadOptions, useAsyncList } from '@react-stately/data';
+import { useEffect, useState } from 'react';
+
+const usePlayerSearch = () => {
+  const [playerCount, setPlayerCount] = useState<number>(0);
+
+  useEffect(() => {
+    fetch('/api/players/count')
+      .then((res) => res.json())
+      .then(setPlayerCount);
+  }, []);
+
+  const list = useAsyncList<nba.Player>({
+    async load({ signal, filterText }: AsyncListLoadOptions<nba.Player, string>) {
+      const res = await fetch(`/api/players/search?searchTerm=${filterText}`, {
+        signal,
+      });
+      const json: SearchResponse = await res.json();
+
+      return {
+        items: json.results,
+      };
+    },
+  });
+
+  return { playerCount, list };
+};
+
+export default usePlayerSearch;
 ````
 
 ## File: apps/web/README.md
@@ -6261,22 +6402,6 @@ export * from './playerguess.js';
 export * from './room.js';
 ````
 
-## File: packages/types/src/websocket/room.ts
-````typescript
-import { users } from '@dribblio/database';
-import { Actor, AnyStateMachine } from 'xstate';
-import { MultiplayerConfig } from '../statemachine/multiplayer/gamemachine.js';
-import { SinglePlayerConfig } from '../statemachine/singleplayer/gamemachine.js';
-
-export interface Room {
-  id: string;
-  statemachine: Actor<AnyStateMachine> | undefined;
-  users: users.User[];
-  config: SinglePlayerConfig | MultiplayerConfig;
-  isMulti: boolean;
-}
-````
-
 ## File: .gitignore
 ````
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
@@ -6328,92 +6453,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 **/*-lock.json
-````
-
-## File: apps/api/src/nba/games/careerpath/room/factory.service.ts
-````typescript
-import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
-import { GameService } from '@/nba/games/careerpath/game.service';
-import { users } from '@dribblio/database';
-import {
-  createMultiplayerMachine,
-  createSinglePlayerMachine,
-  MultiplayerConfig,
-  PlayerGuess,
-  Room,
-  SinglePlayerConfig,
-} from '@dribblio/types';
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { Socket } from 'socket.io';
-
-@Injectable()
-export class RoomFactory {
-  constructor(
-    @Inject(forwardRef(() => CareerPathGateway))
-    private gateway: CareerPathGateway,
-    private gameService: GameService,
-  ) {}
-
-  createSinglePlayerRoom(socket: Socket, config: SinglePlayerConfig): Room {
-    const room: Room = {
-      id: '',
-      statemachine: undefined,
-      users: [],
-      config,
-      isMulti: false,
-    };
-
-    room.statemachine = createSinglePlayerMachine(socket, room.config, this.gameService);
-
-    socket.on('start_game', () => {
-      room.statemachine?.subscribe((s) => {
-        socket.emit('state_change', s.value);
-      });
-
-      socket.on('skip_round', () => room.statemachine?.send({ type: 'SKIP' }));
-
-      socket.on('disconnect', () => {
-        room.statemachine?.stop();
-      });
-
-      room.statemachine?.send({ type: 'START_GAME', socket });
-    });
-
-    return room;
-  }
-
-  createMultiplayerRoom(socket: Socket, roomId: string, config: MultiplayerConfig): Room {
-    const room: Room = {
-      id: roomId,
-      statemachine: undefined,
-      users: [],
-      config: config,
-      isMulti: true,
-    };
-
-    room.statemachine = createMultiplayerMachine(this.gateway.server, room, this.gameService);
-
-    socket.on('start_game', (users: users.User[]) => {
-      room.statemachine?.subscribe((s) => {
-        this.gateway.server.to(room.id).emit('state_change', s.value);
-      });
-
-      room.statemachine?.send({ type: 'START_GAME', users });
-    });
-
-    return room;
-  }
-
-  setUpListenersOnJoin(socket: Socket, room: Room) {
-    socket.on('client_guess', (guess: PlayerGuess) => {
-      room.statemachine?.send({ type: 'CLIENT_GUESS', guess });
-    });
-
-    socket.on('disconnect', () => {
-      room.statemachine?.stop();
-    });
-  }
-}
 ````
 
 ## File: apps/api/src/nba/player/player.controller.ts
@@ -6592,7 +6631,7 @@ const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketP
 
   const [score, setScore] = useState<number>(0);
   const [teams, setTeams] = useState<string[] | null>(null);
-  const [lives, setLives] = useState<number>(0);
+  const [lives, setLives] = useState<number | undefined>(undefined);
 
   // From Server
   function onStateChange({ gameActive }: StateProps) {
@@ -6702,174 +6741,20 @@ node_modules
 **/generated/
 ````
 
-## File: packages/types/src/statemachine/singleplayer/gamemachine.ts
+## File: packages/types/src/websocket/room.ts
 ````typescript
-import { nba } from '@dribblio/database';
-import { Socket } from 'socket.io';
-import { Actor, AnyStateMachine, assign, createActor, enqueueActions, setup } from 'xstate';
-import { generateRound } from '../actors.js';
-import { GameDifficulty } from '../gamedifficulties.js';
-import { BaseGameService } from '../gameservice.js';
-import {
-  notifyCorrectGuess,
-  notifyGameOver,
-  notifyIncorrectGuess,
-  notifySkipRound,
-  sendPlayerToClient,
-  waitForUser,
-} from './actions.js';
-import { hasLives, isCorrectSinglePlayer } from './guards.js';
+import { users } from '@dribblio/database';
+import { Actor, AnyStateMachine } from 'xstate';
+import { MultiplayerConfig } from '../statemachine/multiplayer/gamemachine.js';
+import { SinglePlayerConfig } from '../statemachine/singleplayer/gamemachine.js';
 
-export type SinglePlayerConfig = {
-  gameDifficulty: GameDifficulty;
+export type Room = {
+  id: string;
+  statemachine: Actor<AnyStateMachine> | undefined;
+  users: users.User[];
+  config: SinglePlayerConfig | MultiplayerConfig;
+  isMulti: boolean;
 };
-
-export type SinglePlayerContext = {
-  socket: Socket;
-  config: SinglePlayerConfig;
-  gameState: {
-    score: number;
-    validAnswers: nba.Player[];
-    lives: number;
-  };
-};
-
-export function createSinglePlayerMachine(
-  socket: Socket,
-  config: SinglePlayerConfig,
-  gameService: BaseGameService,
-): Actor<AnyStateMachine> {
-  const gameMachine = setup({
-    types: {} as {
-      context: SinglePlayerContext;
-    },
-    actions: {
-      waitForUser,
-      sendPlayerToClient,
-      notifyCorrectGuess,
-      notifyIncorrectGuess,
-      notifySkipRound,
-      notifyGameOver,
-    },
-    actors: {
-      generateRound,
-    },
-    guards: {
-      isCorrectSinglePlayer,
-      hasLives,
-    },
-  }).createMachine({
-    /** @xstate-layout N4IgpgJg5mDOIC5QHECGBbMACAsqgxgBYCWAdmAHQDuqxALmVAGID2ATmpgMp2pt0BiLgBUAggCVhAfWSicAUQDaABgC6iUAAcWsesRakNIAB6IATAFYLFAJyWA7ABZlNgGyvlAZk8BGMwBoQAE9EAA4fTwpHR09Q6LtlZQszMwBfVMDObDwiMkooDDBRfAYAN0pYXn5GLIEVdSQQbV0GAyNTBD9XUIoXT3szV3tk0OGLQJCERx8eqwjhn26zRc90zMLcAhJyCgLMYrL8sHI2VAZSKHEWAFdSCAEIA0oyUpYAa0oszdydvaKS4jlXbHMCnc6XG53BAvFj4M76Uj1epGZp6NqNDpdHp9AZDEZjCaICyxKKhVxmez2FahZRmRxrEBfHLbfKFA6Ayg0PQXVgca5wWACADCABkAJLyABy0mQAFV5FwuMjGqjWoYMYhXFYKOELC4LDZaRFXD5CQhXM5ehbPMoLRFHGYbAymVs8rs2QCgVzwbzkPzYIKuABpMUABWVWh0aPVoExiRsFHsZIdjnCNhtMzNVLMOpNoTpnhsBsWFmdG2Zbr+7KBsDexE0mkYV1u9wjTSjavaiCxvXTuOGZlGVjNrhtiYN9k80WmrhsPh8Zcw3xZ7v2noqdYbTchrZ8DUjLQRXc6g2xfcGA6H42CiAGPgoyXTynCjlnowXGUZ5ddvw9hwomhsLCAo1P6gptqqR4auaDoPhSjrdDSnhDGalg5nOdgmlqoQ4fYWqLtkP6smu-6AcBAagQKdR7iiHZQbGmqwckAxuDhXgoTe5qhAmOE2HhZKTj4yj2E6n4uj8xH-KRQH4CBFx+lRihmPu7aHuiDEwTmzEIWxyH2GaoSFhQ3RFjMU5uD4FiuARy6Vn+HKrmAADy5RsHUai0WpMYmOY2p2BYTguO4Xi+AEnHhBQngpDYqbPsShnpukn6kCwEBwEY4ksp50bHgAtK4Zq5dYNglaVZWlchNkVjs3qML6hQ8HwdDZZ20EOmadjGWS2GGdMd5VURjnVmALX0T5CCFgmMwpK+sQOvOAVmiWD5uFO85CTE0RpGJ34SUN64UJUTU1IUo3qeN84uBQPipv0lLTFF3FmoWkQ0s4qYWAtnhWPSO1LtVknDcCJzwhczZ3Gd3mYo4c6RSFSTpq++aOCOyj3rxgyJFjQmln9hF7VWB21Ty7AKQGkPHvmsxCYWdp4bdWbKI4tipn4aNONEU4DQT9k1pujZgzuFPQZd1h4UWUUuHhThZhEvSOsMpURDMuPrP9g2E9J5G6PJYHCxp0T2Nd+Z0qOcTLJZ+mcfYTNdc+sQI4Ok7cyumsOX8LmgvrF3JOj3FmLEs4WPmw7hWO33BcHuruPYSWpEAA */
-    id: `single-game-machine`,
-    initial: 'waitingForGameStart',
-    context: {
-      socket,
-      config,
-      gameState: {
-        score: 0,
-        validAnswers: [],
-        lives: 0,
-      },
-    },
-    states: {
-      waitingForGameStart: {
-        entry: assign({
-          gameState: { score: 0, validAnswers: [], lives: 0 },
-        }),
-        on: {
-          START_GAME: 'gameActive',
-        },
-      },
-
-      gameActive: {
-        initial: 'startingGame',
-        states: {
-          startingGame: {
-            entry: assign(({ context }) => ({
-              gameState: { ...context.gameState, lives: 4 },
-            })),
-            always: { target: 'generatingRound' },
-          },
-          generatingRound: {
-            invoke: {
-              src: 'generateRound',
-              input: { difficulty: config.gameDifficulty, gameService },
-              onDone: {
-                target: 'waitingForGuess',
-                actions: enqueueActions(({ context, event, enqueue }) => {
-                  enqueue.assign({
-                    gameState: {
-                      ...context.gameState,
-                      validAnswers: event.output.validAnswers,
-                    },
-                  });
-                  enqueue('sendPlayerToClient');
-                }),
-              },
-            },
-          },
-          waitingForGuess: {
-            on: {
-              CLIENT_GUESS: 'processingGuess',
-              SKIP: 'skippingRound',
-            },
-          },
-          skippingRound: {
-            always: [
-              {
-                guard: 'hasLives',
-                target: 'generatingRound',
-                actions: enqueueActions(({ context, enqueue }) => {
-                  enqueue.assign({
-                    gameState: { ...context.gameState, lives: context.gameState.lives - 1 },
-                  });
-                  enqueue('notifySkipRound');
-                }),
-              },
-              { target: 'gameOver' },
-            ],
-          },
-          processingGuess: {
-            always: [
-              {
-                guard: 'isCorrectSinglePlayer',
-                target: 'generatingRound',
-                actions: enqueueActions(({ context, enqueue }) => {
-                  enqueue.assign({
-                    gameState: {
-                      ...context.gameState,
-                      score: context.gameState.score + 1,
-                    },
-                  });
-                  enqueue('notifyCorrectGuess');
-                }),
-              },
-              {
-                guard: 'hasLives',
-                target: 'waitingForGuess',
-                actions: enqueueActions(({ context, enqueue }) => {
-                  enqueue.assign({
-                    gameState: { ...context.gameState, lives: context.gameState.lives - 1 },
-                  });
-                  enqueue('notifyIncorrectGuess');
-                }),
-              },
-              { target: 'gameOver' },
-            ],
-          },
-          gameOver: {
-            always: {
-              target: '#single-game-machine.waitingForGameStart',
-              actions: 'notifyGameOver',
-            },
-          },
-        },
-      },
-    },
-  });
-
-  return createActor(gameMachine).start();
-}
 ````
 
 ## File: packages/types/package.json
@@ -6960,6 +6845,92 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 }
 ````
 
+## File: apps/api/src/nba/games/careerpath/room/factory.service.ts
+````typescript
+import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
+import { GameService } from '@/nba/games/careerpath/game.service';
+import { users } from '@dribblio/database';
+import {
+  createMultiplayerMachine,
+  createSinglePlayerMachine,
+  MultiplayerConfig,
+  PlayerGuess,
+  Room,
+  SinglePlayerConfig,
+} from '@dribblio/types';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Socket } from 'socket.io';
+
+@Injectable()
+export class RoomFactory {
+  constructor(
+    @Inject(forwardRef(() => CareerPathGateway))
+    private gateway: CareerPathGateway,
+    private gameService: GameService,
+  ) {}
+
+  createSinglePlayerRoom(socket: Socket, config: SinglePlayerConfig): Room {
+    const room: Room = {
+      id: '',
+      statemachine: undefined,
+      users: [],
+      config,
+      isMulti: false,
+    };
+
+    room.statemachine = createSinglePlayerMachine(socket, config, this.gameService);
+
+    socket.on('start_game', () => {
+      room.statemachine?.subscribe((s) => {
+        socket.emit('state_change', s.value);
+      });
+
+      socket.on('skip_round', () => room.statemachine?.send({ type: 'SKIP' }));
+
+      socket.on('disconnect', () => {
+        room.statemachine?.stop();
+      });
+
+      room.statemachine?.send({ type: 'START_GAME', socket });
+    });
+
+    return room;
+  }
+
+  createMultiplayerRoom(socket: Socket, roomId: string, config: MultiplayerConfig): Room {
+    const room: Room = {
+      id: roomId,
+      statemachine: undefined,
+      users: [],
+      config: config,
+      isMulti: true,
+    };
+
+    room.statemachine = createMultiplayerMachine(this.gateway.server, room, this.gameService);
+
+    socket.on('start_game', (users: users.User[]) => {
+      room.statemachine?.subscribe((s) => {
+        this.gateway.server.to(room.id).emit('state_change', s.value);
+      });
+
+      room.statemachine?.send({ type: 'START_GAME', users });
+    });
+
+    return room;
+  }
+
+  setUpListenersOnJoin(socket: Socket, room: Room) {
+    socket.on('client_guess', (guess: PlayerGuess) => {
+      room.statemachine?.send({ type: 'CLIENT_GUESS', guess });
+    });
+
+    socket.on('disconnect', () => {
+      room.statemachine?.stop();
+    });
+  }
+}
+````
+
 ## File: apps/api/src/app.module.ts
 ````typescript
 import { AuthModule } from '@/auth/auth.module';
@@ -6997,6 +6968,183 @@ dotenv.config();
 bootstrap();
 ````
 
+## File: packages/types/src/statemachine/singleplayer/gamemachine.ts
+````typescript
+import { nba } from '@dribblio/database';
+import { Socket } from 'socket.io';
+import { Actor, AnyStateMachine, assign, createActor, enqueueActions, setup } from 'xstate';
+import { generateRound } from '../actors.js';
+import { BaseGameService } from '../gameservice.js';
+import {
+  notifyCorrectGuess,
+  notifyGameOver,
+  notifyIncorrectGuess,
+  notifySkipRound,
+  sendPlayerToClient,
+  waitForUser,
+} from './actions.js';
+import { hasLives, isCorrectSinglePlayer } from './guards.js';
+import { GameDifficulty } from '../gamedifficulties.js';
+
+export type SinglePlayerConfig = {
+  lives: number | undefined;
+  gameDifficulty: GameDifficulty;
+};
+
+export type SinglePlayerContext = {
+  socket: Socket;
+  config: SinglePlayerConfig;
+  gameState: {
+    score: number;
+    validAnswers: nba.Player[];
+    lives: number | undefined;
+  };
+};
+
+export function createSinglePlayerMachine(
+  socket: Socket,
+  config: SinglePlayerConfig,
+  gameService: BaseGameService,
+): Actor<AnyStateMachine> {
+  const gameMachine = setup({
+    types: {} as {
+      context: SinglePlayerContext;
+    },
+    actions: {
+      waitForUser,
+      sendPlayerToClient,
+      notifyCorrectGuess,
+      notifyIncorrectGuess,
+      notifySkipRound,
+      notifyGameOver,
+    },
+    actors: {
+      generateRound,
+    },
+    guards: {
+      isCorrectSinglePlayer,
+      hasLives,
+    },
+  }).createMachine({
+    /** @xstate-layout N4IgpgJg5mDOIC5QHECGBbMACAsqgxgBYCWAdmAHQDuqxALmVAGID2ATmpgMp2pt0BiLgBUAggCVhAfWSicAUQDaABgC6iUAAcWsesRakNIAB6IATAFYLFAJyWA7ABZlNgGyvlAZk8BGMwBoQAE9EAA4fTwpHR09Q6LtlZQszMwBfVMDObDwiMkooDDBRfAYAN0pYXn5GLIEVdSQQbV0GAyNTBD9XUIoXT3szV3tk0OGLQJCERx8eqwjhn26zRc90zMLcAhJyCgLMYrL8sHI2VAZSKHEWAFdSCAEIA0oyUpYAa0oszdydvaKS4jlXbHMCnc6XG53BAvFj4M76Uj1epGZp6NqNDpdHp9AZDEZjCaICyxKKhVxmez2FahZRmRxrEBfHLbfKFA6Ayg0PQXVgca5wWACADCABkAJLyABy0mQAFV5FwuMjGqjWoYMYhXFYKOELC4LDZaRFXD5CQhXM5ehbPMoLRFHGYbAymVs8rs2QCgVzwbzkPzYIKuABpMUABWVWh0aPVoExiRsFHsZIdjnCNhtMzNVLMOpNoTpnhsBsWFmdG2Zbr+7KBsDexE0mkYV1u9wjTSjavaiCxvXTuOGZlGVjNrhtiYN9k80WmrhsPh8Zcw3xZ7v2noqdYbTchrZ8DUjLQRXc6g2xfcGA6H42CiAGPgoyXTynCjlnowXGUZ5ddvw9hwomhsLCAo1P6gptqqR4auaDoPhSjrdDSnhDGalg5nOdgmlqoQ4fYWqLtkP6smu-6AcBAagQKdR7iiHZQbGmqwckAxuDhXgoTe5qhAmOE2HhZKTj4yj2E6n4uj8xH-KRQH4CBFx+lRihmPu7aHuiDEwTmzEIWxyH2GaoSFhQ3RFjMU5uD4FiuARy6Vn+HKrmAADy5RsHUai0WpMYmOY2p2BYTguO4Xi+AEnHhBQngpDYqbPsShnpukn6kCwEBwEY4ksp50bHgAtK4Zq5dYNglaVZWlchNkVjs3qML6hQ8HwdDZZ20EOmadjGWS2GGdMd5VURjnVmALX0T5CCFgmMwpK+sQOvOAVmiWD5uFO85CTE0RpGJ34SUN64UJUTU1IUo3qeN84uBQPipv0lLTFF3FmoWkQ0s4qYWAtnhWPSO1LtVknDcCJzwhczZ3Gd3mYo4c6RSFSTpq++aOCOyj3rxgyJFjQmln9hF7VWB21Ty7AKQGkPHvmsxCYWdp4bdWbKI4tipn4aNONEU4DQT9k1pujZgzuFPQZd1h4UWUUuHhThZhEvSOsMpURDMuPrP9g2E9J5G6PJYHCxp0T2Nd+Z0qOcTLJZ+mcfYTNdc+sQI4Ok7cyumsOX8LmgvrF3JOj3FmLEs4WPmw7hWO33BcHuruPYSWpEAA */
+    id: `single-game-machine`,
+    initial: 'waitingForGameStart',
+    context: {
+      socket,
+      config,
+      gameState: {
+        score: 0,
+        validAnswers: [],
+        lives: undefined,
+      },
+    },
+    states: {
+      waitingForGameStart: {
+        entry: assign({
+          gameState: { score: 0, validAnswers: [], lives: config.lives },
+        }),
+        on: {
+          START_GAME: 'gameActive',
+        },
+      },
+
+      gameActive: {
+        initial: 'startingGame',
+        states: {
+          startingGame: {
+            entry: assign(({ context }) => ({
+              gameState: { ...context.gameState, lives: context.config.lives },
+            })),
+            always: { target: 'generatingRound' },
+          },
+          generatingRound: {
+            invoke: {
+              src: 'generateRound',
+              input: { difficulty: config.gameDifficulty, gameService },
+              onDone: {
+                target: 'waitingForGuess',
+                actions: enqueueActions(({ context, event, enqueue }) => {
+                  enqueue.assign({
+                    gameState: {
+                      ...context.gameState,
+                      validAnswers: event.output.validAnswers,
+                    },
+                  });
+                  enqueue('sendPlayerToClient');
+                }),
+              },
+            },
+          },
+          waitingForGuess: {
+            on: {
+              CLIENT_GUESS: 'processingGuess',
+              SKIP: 'skippingRound',
+            },
+          },
+          skippingRound: {
+            always: [
+              {
+                guard: 'hasLives',
+                target: 'generatingRound',
+                actions: enqueueActions(({ context, enqueue }) => {
+                  enqueue.assign({
+                    gameState: {
+                      ...context.gameState,
+                      lives: context.gameState.lives ? context.gameState.lives - 1 : undefined,
+                    },
+                  });
+                  enqueue('notifySkipRound');
+                }),
+              },
+              { target: 'gameOver' },
+            ],
+          },
+          processingGuess: {
+            always: [
+              {
+                guard: 'isCorrectSinglePlayer',
+                target: 'generatingRound',
+                actions: enqueueActions(({ context, enqueue }) => {
+                  enqueue.assign({
+                    gameState: {
+                      ...context.gameState,
+                      score: context.gameState.score + 1,
+                    },
+                  });
+                  enqueue('notifyCorrectGuess');
+                }),
+              },
+              {
+                guard: 'hasLives',
+                target: 'waitingForGuess',
+                actions: enqueueActions(({ context, enqueue }) => {
+                  enqueue.assign({
+                    gameState: {
+                      ...context.gameState,
+                      lives: context.gameState.lives ? context.gameState.lives - 1 : undefined,
+                    },
+                  });
+                  enqueue('notifyIncorrectGuess');
+                }),
+              },
+              { target: 'gameOver' },
+            ],
+          },
+          gameOver: {
+            always: {
+              target: '#single-game-machine.waitingForGameStart',
+              actions: 'notifyGameOver',
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return createActor(gameMachine).start();
+}
+````
+
 ## File: packages/types/src/statemachine/actors.ts
 ````typescript
 import { fromPromise } from 'xstate';
@@ -7030,70 +7178,6 @@ export * from './forms/index.js';
 export * from './responses/index.js';
 export * from './statemachine/index.js';
 export * from './websocket/index.js';
-````
-
-## File: turbo.json
-````json
-{
-  "$schema": "https://turborepo.com/schema.json",
-  "ui": "tui",
-  "tasks": {
-    "start": {
-      "dependsOn": ["^start"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
-      "env": [
-        "DATABASE_URL",
-        "AUTH0_DOMAIN",
-        "AUTH0_AUDIENCE",
-        "AUTH0_CLIENT_ID",
-        "AUTH0_CLIENT_SECRET",
-        "AUTH0_SECRET",
-        "AUTH0_SCOPE",
-        "PORT",
-        "AWS_S3_BUCKET_NAME",
-        "AWS_CLOUDFRONT_CNAME",
-        "AWS_CLOUDFRONT_KEY_PAIR_ID",
-        "AWS_CLOUDFRONT_PRIVATE_KEY_SECRET_NAME"
-      ]
-    },
-    "build": {
-      "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
-      "env": [
-        "DATABASE_URL",
-        "AUTH0_DOMAIN",
-        "AUTH0_AUDIENCE",
-        "AUTH0_CLIENT_ID",
-        "AUTH0_CLIENT_SECRET",
-        "AUTH0_SECRET",
-        "AUTH0_SCOPE",
-        "PORT",
-        "AWS_S3_BUCKET_NAME",
-        "AWS_CLOUDFRONT_CNAME",
-        "AWS_CLOUDFRONT_KEY_PAIR_ID",
-        "AWS_CLOUDFRONT_PRIVATE_KEY_SECRET_NAME"
-      ]
-    },
-    "lint": {
-      "dependsOn": ["^lint"]
-    },
-    "check-types": {
-      "dependsOn": ["^check-types"]
-    },
-    "dev": {
-      "cache": false,
-      "persistent": true
-    },
-    "db:generate": {
-      "cache": false
-    },
-    "db:migrate": {
-      "cache": false
-    }
-  }
-}
 ````
 
 ## File: apps/web/src/app/profile/page.tsx
@@ -7334,6 +7418,77 @@ export function createMultiplayerMachine(
 }
 ````
 
+## File: turbo.json
+````json
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "start": {
+      "dependsOn": ["^start", "build", "lint"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": [
+        "DATABASE_URL",
+        "AUTH0_DOMAIN",
+        "AUTH0_AUDIENCE",
+        "AUTH0_CLIENT_ID",
+        "AUTH0_CLIENT_SECRET",
+        "AUTH0_SECRET",
+        "AUTH0_SCOPE",
+        "API_BASE_URL",
+        "PORT",
+        "AWS_S3_BUCKET_NAME",
+        "AWS_CLOUDFRONT_CNAME",
+        "AWS_CLOUDFRONT_KEY_PAIR_ID",
+        "AWS_CLOUDFRONT_PRIVATE_KEY_SECRET_NAME"
+      ]
+    },
+    "build": {
+      "dependsOn": ["lint", "^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": [
+        "DATABASE_URL",
+        "AUTH0_DOMAIN",
+        "AUTH0_AUDIENCE",
+        "AUTH0_CLIENT_ID",
+        "AUTH0_CLIENT_SECRET",
+        "AUTH0_SECRET",
+        "AUTH0_SCOPE",
+        "API_BASE_URL",
+        "PORT",
+        "AWS_S3_BUCKET_NAME",
+        "AWS_CLOUDFRONT_CNAME",
+        "AWS_CLOUDFRONT_KEY_PAIR_ID",
+        "AWS_CLOUDFRONT_PRIVATE_KEY_SECRET_NAME"
+      ]
+    },
+    "test": {
+      "dependsOn": ["^test"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["coverage/**"]
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "check-types": {
+      "dependsOn": ["^check-types"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "db:generate": {
+      "cache": false
+    },
+    "db:migrate": {
+      "cache": false
+    }
+  }
+}
+````
+
 ## File: apps/api/package.json
 ````json
 {
@@ -7351,7 +7506,7 @@ export function createMultiplayerMachine(
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "jest --config=jest.lint.config.ts",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
@@ -7405,29 +7560,12 @@ export function createMultiplayerMachine(
     "prettier": "^3.4.2",
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
-    "ts-jest": "^29.2.5",
+    "ts-jest": "^29.4.0",
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
   }
 }
 ````
@@ -7750,6 +7888,7 @@ Learn more about the power of Turborepo:
     "start": "turbo run start",
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "test": "turbo run lint test",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",

@@ -36,7 +36,7 @@ const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketP
 
   const [score, setScore] = useState<number>(0);
   const [teams, setTeams] = useState<string[] | null>(null);
-  const [lives, setLives] = useState<number>(0);
+  const [lives, setLives] = useState<number | undefined>(undefined);
 
   // From Server
   function onStateChange({ gameActive }: StateProps) {
