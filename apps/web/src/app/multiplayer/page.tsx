@@ -32,7 +32,7 @@ export default function Game() {
   const { user } = useDBUser();
 
   return (
-    <div className="flex flex-col h-full space-y-8">
+    <div className="flex flex-col h-full space-y-8 pt-12">
       {!user ? (
         <>
           <Dialog open={true}>
@@ -51,7 +51,9 @@ export default function Game() {
         <>
           <JoinHostModal isOpen={!roomId} onJoinRoom={onJoinRoom} onHostRoom={onHostRoom} />
           <div className="justify-start">
-            <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
+            {process.env.NODE_ENV === 'development' && (
+              <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
+            )}
             {roomId && <p>{`Room Code: ${roomId}`}</p>}
             {users.some((user: UserGameInfo) => user) && (
               <div>

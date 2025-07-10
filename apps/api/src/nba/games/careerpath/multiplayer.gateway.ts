@@ -11,8 +11,8 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-@WebSocketGateway({ cors: true })
-export class CareerPathGateway implements OnGatewayDisconnect {
+@WebSocketGateway({ path: '/multiplayer', cors: true })
+export class MultiplayerGateway implements OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
@@ -30,7 +30,7 @@ export class CareerPathGateway implements OnGatewayDisconnect {
     @MessageBody() config: HostRoomMessageBody,
     @ConnectedSocket() client: Socket,
   ) {
-    await this.roomService.createRoom(client, config);
+    await this.roomService.createMultiplayerRoom(client, config);
   }
 
   @SubscribeMessage('join_room')

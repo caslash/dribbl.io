@@ -1,4 +1,4 @@
-import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
+import { MultiplayerGateway } from '@/nba/games/careerpath/multiplayer.gateway';
 import { GameService } from '@/nba/games/careerpath/game.service';
 import { users } from '@dribblio/database';
 import {
@@ -15,8 +15,8 @@ import { Socket } from 'socket.io';
 @Injectable()
 export class RoomFactory {
   constructor(
-    @Inject(forwardRef(() => CareerPathGateway))
-    private gateway: CareerPathGateway,
+    @Inject(forwardRef(() => MultiplayerGateway))
+    private gateway: MultiplayerGateway,
     private gameService: GameService,
   ) {}
 

@@ -10,12 +10,14 @@ export default function GameModeCard({
   description,
   href,
   imageHref,
+  buttonDisabled = false,
 }: Readonly<{
   className?: string;
   title: string;
   description: string;
   href: Url;
   imageHref: string | StaticImport;
+  buttonDisabled?: boolean;
 }>) {
   return (
     <div
@@ -31,7 +33,12 @@ export default function GameModeCard({
           <p className="text-white text-sm">{description}</p>
         </div>
 
-        <Button variant="ghost" className="align-center rounded-full text-white" asChild>
+        <Button
+          variant="ghost"
+          className="align-center rounded-full text-white"
+          disabled={buttonDisabled}
+          asChild
+        >
           <Link href={href}>Play</Link>
         </Button>
       </div>

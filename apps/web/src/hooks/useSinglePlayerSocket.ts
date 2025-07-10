@@ -1,8 +1,8 @@
 'use client';
 
-import { clientSocket } from '@/lib/clientsocket';
+import { singlePlayerSocket as clientSocket } from '@/lib/clientsocket';
 import { nba } from '@dribblio/database';
-import { HostRoomMessageBody, SinglePlayerConfig } from '@dribblio/types';
+import { SinglePlayerConfig } from '@dribblio/types';
 import { useEffect, useState } from 'react';
 
 type ClientSocketProps = {
@@ -68,8 +68,7 @@ const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketP
     setTeams(null);
   }
   function onConfigureRoom(config: SinglePlayerConfig) {
-    const body: HostRoomMessageBody = { isMulti: false, userId: '', config };
-    clientSocket.emit('host_room', body);
+    clientSocket.emit('create_game', config);
     setIsRoomConfigured(true);
   }
   function onStartGame() {

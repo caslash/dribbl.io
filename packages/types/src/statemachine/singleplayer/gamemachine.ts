@@ -119,6 +119,7 @@ export function createSinglePlayerMachine(
                     gameState: {
                       ...context.gameState,
                       lives: context.gameState.lives ? context.gameState.lives - 1 : undefined,
+                      score: !context.config.lives ? 0 : context.gameState.score,
                     },
                   });
                   enqueue('notifySkipRound');

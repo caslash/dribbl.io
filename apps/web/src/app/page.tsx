@@ -8,7 +8,7 @@ export default function Home() {
       <GameModeCard
         className="w-1/2"
         title="Single Player"
-        description="Test your own knowledge, but you only have 5 lives."
+        description="Test your own knowledge: maintain your streak, or risk your five alloted lives."
         href="/singleplayer"
         imageHref="/images/jaylenbrown.jpg"
       />
@@ -18,6 +18,7 @@ export default function Home() {
         description="Compete against friends and come out on top."
         href="/multiplayer"
         imageHref="/images/jaysontatum.webp"
+        buttonDisabled={true}
       />
     </div>
   );

@@ -39,12 +39,14 @@ export default function SinglePlayer() {
   } = useSinglePlayerSocket({ correctAction, incorrectAction });
 
   return (
-    <div className="flex flex-col h-full space-y-8">
+    <div className="flex flex-col h-full space-y-8 pt-12">
       <SinglePlayerConfigModal isOpen={!isRoomConfigured} onConfigureRoom={onConfigureRoom} />
-      <div className="justify-start">
-        <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
-        <p>State: {machineState}</p>
-      </div>
+      {process.env.NODE_ENV === 'development' && (
+        <div className="justify-start">
+          <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
+          <p>State: {machineState}</p>
+        </div>
+      )}
 
       {isConnected && (
         <div className="w-full flex flex-col items-center space-y-8">

@@ -1,6 +1,6 @@
 'use client';
 
-import { clientSocket } from '@/lib/clientsocket';
+import { multiplayerSocket as clientSocket } from '@/lib/clientsocket';
 import { useUser } from '@auth0/nextjs-auth0';
 import { nba, users } from '@dribblio/database';
 import {
@@ -73,7 +73,7 @@ const useMultiplayerSocket = () => {
   function onHostRoom(config: MultiplayerConfig) {
     if (!user) return;
 
-    const body: HostRoomMessageBody = { isMulti: true, userId: user.sub, config };
+    const body: HostRoomMessageBody = { userId: user.sub, config };
     clientSocket.emit('host_room', body);
     setCanStartGame(true);
   }

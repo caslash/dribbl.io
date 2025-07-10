@@ -1,4 +1,4 @@
-import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
+import { MultiplayerGateway } from '@/nba/games/careerpath/multiplayer.gateway';
 import { RoomFactory } from '@/nba/games/careerpath/room/factory.service';
 import { RoomService } from '@/nba/games/careerpath/room/room.service';
 import { UsersService } from '@/users/users.service';
@@ -29,7 +29,7 @@ describe('RoomService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RoomService,
-        { provide: CareerPathGateway, useValue: mockCareerPathGateway },
+        { provide: MultiplayerGateway, useValue: mockCareerPathGateway },
         { provide: RoomFactory, useValue: mockRoomFactory },
         { provide: UsersService, useValue: mockUsersService },
       ],

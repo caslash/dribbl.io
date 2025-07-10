@@ -7,6 +7,7 @@
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"],
       "env": [
+        "NODE_ENV",
         "DATABASE_URL",
         "AUTH0_DOMAIN",
         "AUTH0_AUDIENCE",
@@ -27,6 +28,7 @@
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"],
       "env": [
+        "NODE_ENV",
         "DATABASE_URL",
         "AUTH0_DOMAIN",
         "AUTH0_AUDIENCE",
