@@ -116,6 +116,7 @@ const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketP
 
       clientSocket.disconnect();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {
