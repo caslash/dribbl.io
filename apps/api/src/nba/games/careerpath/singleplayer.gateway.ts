@@ -1,3 +1,6 @@
+import { RoomService } from '@/nba/games/careerpath/room/room.service';
+import { SinglePlayerConfig } from '@dribblio/types';
+import { forwardRef, Inject } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -7,11 +10,8 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { RoomService } from '@/nba/games/careerpath/room/room.service';
-import { forwardRef, Inject } from '@nestjs/common';
-import { SinglePlayerConfig } from '@dribblio/types';
 
-@WebSocketGateway({ path: '/singleplayer', cors: true })
+@WebSocketGateway({ namespace: '/singleplayer', cors: true })
 export class SinglePlayerGateway implements OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;

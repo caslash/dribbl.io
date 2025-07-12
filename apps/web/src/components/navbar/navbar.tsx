@@ -13,7 +13,7 @@ import { LogIn, User as UserIcon } from 'lucide-react';
 import NextLink from 'next/link';
 
 export default function NBANavbar({ className }: Readonly<{ className?: string }>) {
-  const { user } = useDBUser();
+  const { user, hasPermission } = useDBUser();
 
   return (
     <div className={`${className}`}>
@@ -54,25 +54,31 @@ export default function NBANavbar({ className }: Readonly<{ className?: string }
             </Tooltip>
           </DockIcon>
           <Separator orientation="vertical" className="h-full py-2" />
-          {siteConfig.navItems.map((item) => (
-            <DockIcon key={item.label}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <NextLink
-                    href={item.href}
-                    className={cn(
-                      buttonVariants({ variant: 'ghost', size: 'icon', className: 'rounded-full' }),
-                    )}
-                  >
-                    <item.icon />
-                  </NextLink>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{item.label}</p>
-                </TooltipContent>
-              </Tooltip>
-            </DockIcon>
-          ))}
+          {siteConfig.navItems
+            .filter((item) => !item.permission || hasPermission(item.permission))
+            .map((item) => (
+              <DockIcon key={item.label}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <NextLink
+                      href={item.href}
+                      className={cn(
+                        buttonVariants({
+                          variant: 'ghost',
+                          size: 'icon',
+                          className: 'rounded-full',
+                        }),
+                      )}
+                    >
+                      <item.icon />
+                    </NextLink>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{item.label}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </DockIcon>
+            ))}
           <Separator orientation="vertical" className="h-full py-2" />
           <ThemeSwitcher />
         </Dock>

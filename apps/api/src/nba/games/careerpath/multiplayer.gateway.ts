@@ -1,6 +1,8 @@
+import { HasPermission } from '@/auth/permissions.decorator';
+import { PermissionsGuard } from '@/auth/permissions.guard';
 import { RoomService } from '@/nba/games/careerpath/room/room.service';
 import { HostRoomMessageBody, JoinRoomMessageBody } from '@dribblio/types';
-import { forwardRef, Inject } from '@nestjs/common';
+import { forwardRef, Inject, UseGuards } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -11,7 +13,12 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-@WebSocketGateway({ path: '/multiplayer', cors: true })
+@WebSocketGateway({
+  namespace: '/multiplayer',
+  cors: true,
+})
+@UseGuards(PermissionsGuard)
+@HasPermission('play:multiplayer')
 export class MultiplayerGateway implements OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;

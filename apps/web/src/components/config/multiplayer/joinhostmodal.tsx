@@ -129,14 +129,20 @@ function HostForm({
   });
 
   function onSubmit(values: HostFormValues) {
-    const config = {
-      ...values.config,
-      scoreLimit: values.isRoundLimit ? values.config.scoreLimit : undefined,
-      roundLimit: values.isRoundLimit ? values.config.roundLimit : undefined,
-      gameDifficulty: GameDifficultySchema.parse(values.config.gameDifficulty),
-    };
+    const config: MultiplayerConfig = values.isRoundLimit
+      ? {
+          roundLimit: values.config.roundLimit!,
+          roundTimeLimit: values.config.roundTimeLimit,
+          gameDifficulty: GameDifficultySchema.parse(values.config.gameDifficulty),
+        }
+      : {
+          scoreLimit: values.config.scoreLimit!,
+          roundTimeLimit: values.config.roundTimeLimit,
+          gameDifficulty: GameDifficultySchema.parse(values.config.gameDifficulty),
+        };
     onHostRoom(config);
   }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>

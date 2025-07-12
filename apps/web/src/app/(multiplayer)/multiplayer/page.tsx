@@ -5,12 +5,14 @@ import JoinHostModal from '@/components/config/multiplayer/joinhostmodal';
 import PlayerSearchBar from '@/components/search/playersearchbar';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogTitle, DialogContent, DialogHeader } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useDBUser } from '@/context/dbusercontext';
 import useMultiplayerSocket from '@/hooks/useMultiplayerSocket';
 import { UserGameInfo } from '@dribblio/types';
 import { User } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function Game() {
   const {
@@ -29,7 +31,18 @@ export default function Game() {
     validAnswers,
   } = useMultiplayerSocket();
 
-  const { user } = useDBUser();
+  const { user, hasPermission } = useDBUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user && !hasPermission('play:multiplayer')) {
+      router.push('/not-found');
+    }
+  }, [hasPermission, router, user]);
+
+  if (user && !hasPermission('play:multiplayer')) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col h-full space-y-8 pt-12">

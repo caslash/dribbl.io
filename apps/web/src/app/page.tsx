@@ -1,8 +1,11 @@
 'use client';
 
 import GameModeCard from '@/components/gamemodecard';
+import { useDBUser } from '@/context/dbusercontext';
 
 export default function Home() {
+  const { hasPermission } = useDBUser();
+
   return (
     <div className="h-full flex flex-row justify-center space-x-8">
       <GameModeCard
@@ -18,7 +21,7 @@ export default function Home() {
         description="Compete against friends and come out on top."
         href="/multiplayer"
         imageHref="/images/jaysontatum.webp"
-        buttonDisabled={true}
+        disabled={!hasPermission('play:multiplayer')}
       />
     </div>
   );
