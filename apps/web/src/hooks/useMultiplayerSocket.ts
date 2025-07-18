@@ -1,7 +1,7 @@
 'use client';
 
-import { clientSocket } from '@/lib/clientsocket';
-import { useUser } from '@auth0/nextjs-auth0';
+import { useDBUser } from '@/context/dbusercontext';
+import { useMultiplayer } from '@/context/multiplayercontext';
 import { nba, users } from '@dribblio/database';
 import {
   GameState,
@@ -26,6 +26,9 @@ type RoundProps = {
 };
 
 const useMultiplayerSocket = () => {
+  const { user } = useDBUser();
+  const { socket: clientSocket } = useMultiplayer();
+
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [canStartGame, setCanStartGame] = useState<boolean>(false);
 
@@ -39,8 +42,6 @@ const useMultiplayerSocket = () => {
   const [players, setPlayers] = useState<nba.Player[]>([]);
 
   const [timeLeft, setTimeLeft] = useState<number>(0);
-
-  const { user } = useUser();
 
   // From Server
   function onRoomUpdated({ id, users }: RoomProps) {
@@ -73,51 +74,54 @@ const useMultiplayerSocket = () => {
   function onHostRoom(config: MultiplayerConfig) {
     if (!user) return;
 
-    const body: HostRoomMessageBody = { isMulti: true, userId: user.sub, config };
-    clientSocket.emit('host_room', body);
+    console.log('config', config);
+
+    const body: HostRoomMessageBody = { userId: user.id, config };
+    console.log('body', body);
+    clientSocket?.emit('host_room', body);
     setCanStartGame(true);
   }
   function onJoinRoom(roomId: string) {
     if (!user) return;
 
-    const body: JoinRoomMessageBody = { roomId, userId: user.sub };
-    clientSocket.emit('join_room', body);
+    const body: JoinRoomMessageBody = { roomId, userId: user.id };
+    clientSocket?.emit('join_room', body);
   }
   function onStartGame() {
     setCanStartGame(false);
-    clientSocket.emit('start_game', users);
+    clientSocket?.emit('start_game', users);
   }
   function onGuess(guessId: number) {
     if (!user) return;
 
-    clientSocket.emit('client_guess', { userId: user.sub, guessId });
+    clientSocket?.emit('client_guess', { userId: user.id, guessId });
   }
 
   useEffect(() => {
     setCanStartGame(false);
 
-    clientSocket.on('connect', onConnect);
-    clientSocket.on('disconnect', onDisconnect);
-    clientSocket.on('room_updated', onRoomUpdated);
-    clientSocket.on('next_round', onNextRound);
-    clientSocket.on('timer_updated', onTimerUpdated);
-    clientSocket.on('end_round', onEndRound);
+    clientSocket?.on('connect', onConnect);
+    clientSocket?.on('disconnect', onDisconnect);
+    clientSocket?.on('room_updated', onRoomUpdated);
+    clientSocket?.on('next_round', onNextRound);
+    clientSocket?.on('timer_updated', onTimerUpdated);
+    clientSocket?.on('end_round', onEndRound);
 
-    clientSocket.connect();
+    clientSocket?.connect();
 
     return () => {
-      clientSocket.off('connect', onConnect);
-      clientSocket.off('disconnect', onDisconnect);
-      clientSocket.off('room_updated', onRoomUpdated);
-      clientSocket.off('next_round', onNextRound);
-      clientSocket.off('timer_updated', onTimerUpdated);
-      clientSocket.off('end_round', onEndRound);
-      clientSocket.disconnect();
+      clientSocket?.off('connect', onConnect);
+      clientSocket?.off('disconnect', onDisconnect);
+      clientSocket?.off('room_updated', onRoomUpdated);
+      clientSocket?.off('next_round', onNextRound);
+      clientSocket?.off('timer_updated', onTimerUpdated);
+      clientSocket?.off('end_round', onEndRound);
+      clientSocket?.disconnect();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {
-    socketId: clientSocket.id,
     isConnected,
     roundActive,
     roomId,

@@ -1,8 +1,8 @@
 'use client';
 
-import { clientSocket } from '@/lib/clientsocket';
+import { useSinglePlayer } from '@/context/singleplayercontext';
 import { nba } from '@dribblio/database';
-import { HostRoomMessageBody, SinglePlayerConfig } from '@dribblio/types';
+import { SinglePlayerConfig } from '@dribblio/types';
 import { useEffect, useState } from 'react';
 
 type ClientSocketProps = {
@@ -29,14 +29,16 @@ type IncorrectGuessProps = {
 };
 
 const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketProps) => {
+  const { socket: clientSocket } = useSinglePlayer();
+
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isRoomConfigured, setIsRoomConfigured] = useState<boolean>(false);
   const [canStartGame, setCanStartGame] = useState<boolean>(true);
   const [machineState, setMachineState] = useState<string>('waitingForGameStart');
 
   const [score, setScore] = useState<number>(0);
-  const [teams, setTeams] = useState<string[] | null>(null);
-  const [lives, setLives] = useState<number>(0);
+  const [teams, setTeams] = useState<string[] | undefined>(undefined);
+  const [lives, setLives] = useState<number | undefined>(undefined);
 
   // From Server
   function onStateChange({ gameActive }: StateProps) {
@@ -53,7 +55,7 @@ const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketP
   function onGameOver() {
     setCanStartGame(true);
     setScore(0);
-    setTeams(null);
+    setTeams(undefined);
   }
 
   // To Server
@@ -65,22 +67,22 @@ const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketP
     setIsConnected(false);
     setMachineState('waitingForGameStart');
     setScore(0);
-    setTeams(null);
+    setTeams(undefined);
   }
   function onConfigureRoom(config: SinglePlayerConfig) {
-    const body: HostRoomMessageBody = { isMulti: false, userId: '', config };
-    clientSocket.emit('host_room', body);
+    console.log('config', config);
+    clientSocket?.emit('create_game', config);
     setIsRoomConfigured(true);
   }
   function onStartGame() {
     setCanStartGame(false);
-    clientSocket.emit('start_game');
+    clientSocket?.emit('start_game');
   }
   function onGuess(guessId: number) {
-    clientSocket.emit('client_guess', { userId: '', guessId });
+    clientSocket?.emit('client_guess', { userId: '', guessId });
   }
   function onSkip() {
-    clientSocket.emit('skip_round');
+    clientSocket?.emit('skip_round');
   }
 
   useEffect(() => {
@@ -94,29 +96,30 @@ const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketP
 
     setCanStartGame(false);
 
-    clientSocket.on('connect', onConnect);
-    clientSocket.on('disconnect', onDisconnect);
-    clientSocket.on('state_change', onStateChange);
-    clientSocket.on('correct_guess', onCorrectGuess);
-    clientSocket.on('incorrect_guess', onIncorrectGuess);
-    clientSocket.on('round_skipped', onSkipped);
-    clientSocket.on('next_round', onNextRound);
-    clientSocket.on('game_over', onGameOver);
+    clientSocket?.on('connect', onConnect);
+    clientSocket?.on('disconnect', onDisconnect);
+    clientSocket?.on('state_change', onStateChange);
+    clientSocket?.on('correct_guess', onCorrectGuess);
+    clientSocket?.on('incorrect_guess', onIncorrectGuess);
+    clientSocket?.on('round_skipped', onSkipped);
+    clientSocket?.on('next_round', onNextRound);
+    clientSocket?.on('game_over', onGameOver);
 
-    clientSocket.connect();
+    clientSocket?.connect();
 
     return () => {
-      clientSocket.off('connect', onConnect);
-      clientSocket.off('disconnect', onDisconnect);
-      clientSocket.off('state_change', onStateChange);
-      clientSocket.off('correct_guess', onCorrectGuess);
-      clientSocket.off('incorrect_guess', onIncorrectGuess);
-      clientSocket.off('round_skipped', onSkipped);
-      clientSocket.off('next_round', onNextRound);
-      clientSocket.off('game_over', onGameOver);
+      clientSocket?.off('connect', onConnect);
+      clientSocket?.off('disconnect', onDisconnect);
+      clientSocket?.off('state_change', onStateChange);
+      clientSocket?.off('correct_guess', onCorrectGuess);
+      clientSocket?.off('incorrect_guess', onIncorrectGuess);
+      clientSocket?.off('round_skipped', onSkipped);
+      clientSocket?.off('next_round', onNextRound);
+      clientSocket?.off('game_over', onGameOver);
 
-      clientSocket.disconnect();
+      clientSocket?.disconnect();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {

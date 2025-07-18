@@ -62,5 +62,5 @@ export default {
     },
   },
   darkMode: ['class'],
-  plugins: [require('tailwindcss-animate')],
+  plugins: [import('tailwindcss-animate')],
 };

@@ -2,7 +2,6 @@ import { nba } from '@dribblio/database';
 import { Socket } from 'socket.io';
 import { Actor, AnyStateMachine, assign, createActor, enqueueActions, setup } from 'xstate';
 import { generateRound } from '../actors.js';
-import { GameDifficulty } from '../gamedifficulties.js';
 import { BaseGameService } from '../gameservice.js';
 import {
   notifyCorrectGuess,
@@ -13,8 +12,10 @@ import {
   waitForUser,
 } from './actions.js';
 import { hasLives, isCorrectSinglePlayer } from './guards.js';
+import { GameDifficulty } from '../gamedifficulties.js';
 
 export type SinglePlayerConfig = {
+  lives: number | undefined;
   gameDifficulty: GameDifficulty;
 };
 
@@ -24,7 +25,7 @@ export type SinglePlayerContext = {
   gameState: {
     score: number;
     validAnswers: nba.Player[];
-    lives: number;
+    lives: number | undefined;
   };
 };
 
@@ -62,13 +63,13 @@ export function createSinglePlayerMachine(
       gameState: {
         score: 0,
         validAnswers: [],
-        lives: 0,
+        lives: undefined,
       },
     },
     states: {
       waitingForGameStart: {
         entry: assign({
-          gameState: { score: 0, validAnswers: [], lives: 0 },
+          gameState: { score: 0, validAnswers: [], lives: config.lives },
         }),
         on: {
           START_GAME: 'gameActive',
@@ -80,7 +81,7 @@ export function createSinglePlayerMachine(
         states: {
           startingGame: {
             entry: assign(({ context }) => ({
-              gameState: { ...context.gameState, lives: 4 },
+              gameState: { ...context.gameState, lives: context.config.lives },
             })),
             always: { target: 'generatingRound' },
           },
@@ -115,7 +116,11 @@ export function createSinglePlayerMachine(
                 target: 'generatingRound',
                 actions: enqueueActions(({ context, enqueue }) => {
                   enqueue.assign({
-                    gameState: { ...context.gameState, lives: context.gameState.lives - 1 },
+                    gameState: {
+                      ...context.gameState,
+                      lives: context.gameState.lives ? context.gameState.lives - 1 : undefined,
+                      score: !context.config.lives ? 0 : context.gameState.score,
+                    },
                   });
                   enqueue('notifySkipRound');
                 }),
@@ -143,7 +148,10 @@ export function createSinglePlayerMachine(
                 target: 'waitingForGuess',
                 actions: enqueueActions(({ context, enqueue }) => {
                   enqueue.assign({
-                    gameState: { ...context.gameState, lives: context.gameState.lives - 1 },
+                    gameState: {
+                      ...context.gameState,
+                      lives: context.gameState.lives ? context.gameState.lives - 1 : undefined,
+                    },
                   });
                   enqueue('notifyIncorrectGuess');
                 }),

@@ -1,6 +1,7 @@
 import { nba, users } from '@dribblio/database';
 import { Server } from 'socket.io';
 import { Actor, AnyStateMachine, assign, createActor, enqueueActions, setup } from 'xstate';
+import { XOR } from '../../utils/xor.js';
 import { PlayerGuess } from '../../websocket/playerguess.js';
 import { Room } from '../../websocket/room.js';
 import { generateRound } from '../actors.js';
@@ -22,12 +23,19 @@ export type GameState = {
   validAnswers: nba.Player[];
 };
 
-export type MultiplayerConfig = {
-  scoreLimit?: number | undefined;
-  roundLimit?: number | undefined;
+type ScoreLimitConfig = {
+  scoreLimit: number;
   roundTimeLimit: number;
   gameDifficulty: GameDifficulty;
 };
+
+type RoundLimitConfig = {
+  roundLimit: number;
+  roundTimeLimit: number;
+  gameDifficulty: GameDifficulty;
+};
+
+export type MultiplayerConfig = XOR<ScoreLimitConfig, RoundLimitConfig>;
 
 export type MultiplayerContext = {
   io: Server;

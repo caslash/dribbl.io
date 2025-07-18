@@ -1,5 +1,5 @@
 import { RoomService } from '@/nba/games/careerpath/room/room.service';
-import { HostRoomMessageBody, JoinRoomMessageBody } from '@dribblio/types';
+import { SinglePlayerConfig } from '@dribblio/types';
 import { forwardRef, Inject } from '@nestjs/common';
 import {
   ConnectedSocket,
@@ -11,8 +11,8 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-@WebSocketGateway({ cors: true })
-export class CareerPathGateway implements OnGatewayDisconnect {
+@WebSocketGateway({ namespace: '/singleplayer', cors: true })
+export class SinglePlayerGateway implements OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
@@ -25,19 +25,11 @@ export class CareerPathGateway implements OnGatewayDisconnect {
     this.roomService.leaveRoom(Array.from(client.rooms)[1], client.id);
   }
 
-  @SubscribeMessage('host_room')
+  @SubscribeMessage('create_game')
   async handleHostRoom(
-    @MessageBody() config: HostRoomMessageBody,
+    @MessageBody() config: SinglePlayerConfig,
     @ConnectedSocket() client: Socket,
   ) {
-    await this.roomService.createRoom(client, config);
-  }
-
-  @SubscribeMessage('join_room')
-  async handleJoinRoom(
-    @MessageBody() config: JoinRoomMessageBody,
-    @ConnectedSocket() client: Socket,
-  ) {
-    await this.roomService.joinRoom(client, config);
+    await this.roomService.createSinglePlayerRoom(client, config);
   }
 }

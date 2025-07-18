@@ -1,11 +1,10 @@
-import { CareerPathGateway } from '@/nba/games/careerpath/careerpath.gateway';
+import { MultiplayerGateway } from '@/nba/games/careerpath/multiplayer.gateway';
 import { RoomFactory } from '@/nba/games/careerpath/room/factory.service';
 import { UsersService } from '@/users/users.service';
 import { users } from '@dribblio/database';
 import {
   HostRoomMessageBody,
   JoinRoomMessageBody,
-  MultiplayerConfig,
   Room,
   SinglePlayerConfig,
 } from '@dribblio/types';
@@ -20,22 +19,34 @@ export class RoomService {
   private rooms: Record<string, Room> = {};
 
   constructor(
-    @Inject(forwardRef(() => CareerPathGateway))
-    private gateway: CareerPathGateway,
+    @Inject(forwardRef(() => MultiplayerGateway))
+    private gateway: MultiplayerGateway,
     private roomFactory: RoomFactory,
     private usersService: UsersService,
   ) {}
 
-  async createRoom(
+  async createSinglePlayerRoom(socket: Socket, config: SinglePlayerConfig): Promise<Room> {
+    const roomId: string = this.generateUniqueCode();
+
+    if (!this.rooms[roomId]) {
+      this.rooms[roomId] = this.roomFactory.createSinglePlayerRoom(socket, config);
+    }
+
+    console.log(`Single player room created for room ${roomId}`);
+
+    await this.joinRoom(socket, { roomId, userId: socket.id });
+
+    return this.rooms[roomId];
+  }
+
+  async createMultiplayerRoom(
     socket: Socket,
-    { isMulti, userId, config }: HostRoomMessageBody,
+    { userId, config }: HostRoomMessageBody,
   ): Promise<Room> {
     const roomId: string = this.generateUniqueCode();
 
     if (!this.rooms[roomId]) {
-      this.rooms[roomId] = isMulti
-        ? this.roomFactory.createMultiplayerRoom(socket, roomId, config as MultiplayerConfig)
-        : this.roomFactory.createSinglePlayerRoom(socket, config as SinglePlayerConfig);
+      this.rooms[roomId] = this.roomFactory.createMultiplayerRoom(socket, roomId, config);
     }
 
     console.log(`Game machine created for room ${roomId}`);

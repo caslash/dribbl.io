@@ -3,10 +3,11 @@
   "ui": "tui",
   "tasks": {
     "start": {
-      "dependsOn": ["^start"],
+      "dependsOn": ["^start", "build", "lint"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"],
       "env": [
+        "NODE_ENV",
         "DATABASE_URL",
         "AUTH0_DOMAIN",
         "AUTH0_AUDIENCE",
@@ -14,6 +15,7 @@
         "AUTH0_CLIENT_SECRET",
         "AUTH0_SECRET",
         "AUTH0_SCOPE",
+        "API_BASE_URL",
         "PORT",
         "AWS_S3_BUCKET_NAME",
         "AWS_CLOUDFRONT_CNAME",
@@ -22,10 +24,11 @@
       ]
     },
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["lint", "^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"],
       "env": [
+        "NODE_ENV",
         "DATABASE_URL",
         "AUTH0_DOMAIN",
         "AUTH0_AUDIENCE",
@@ -33,12 +36,18 @@
         "AUTH0_CLIENT_SECRET",
         "AUTH0_SECRET",
         "AUTH0_SCOPE",
+        "API_BASE_URL",
         "PORT",
         "AWS_S3_BUCKET_NAME",
         "AWS_CLOUDFRONT_CNAME",
         "AWS_CLOUDFRONT_KEY_PAIR_ID",
         "AWS_CLOUDFRONT_PRIVATE_KEY_SECRET_NAME"
       ]
+    },
+    "test": {
+      "dependsOn": ["^test"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["coverage/**"]
     },
     "lint": {
       "dependsOn": ["^lint"]

@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { StaticImport } from 'next/dist/shared/lib/get-img-props';
 import { Url } from 'next/dist/shared/lib/router/router';
 import Image from 'next/image';
@@ -10,16 +11,21 @@ export default function GameModeCard({
   description,
   href,
   imageHref,
+  disabled = false,
 }: Readonly<{
   className?: string;
   title: string;
   description: string;
   href: Url;
   imageHref: string | StaticImport;
+  disabled?: boolean;
 }>) {
   return (
     <div
-      className={`${className} flex rounded-lg border filter grayscale hover:grayscale-0 transition-all duration-300 relative`}
+      className={cn(className, {
+        'flex rounded-lg border filter grayscale relative': true,
+        'hover:grayscale-0 transition-all duration-300': !disabled,
+      })}
     >
       <div className="-z-100 h-full w-full">
         <Image src={imageHref} alt={`${title}-image`} fill className="object-cover rounded-lg" />
@@ -31,8 +37,13 @@ export default function GameModeCard({
           <p className="text-white text-sm">{description}</p>
         </div>
 
-        <Button variant="ghost" className="align-center rounded-full text-white" asChild>
-          <Link href={href}>Play</Link>
+        <Button
+          variant="ghost"
+          className="align-center rounded-full text-white"
+          disabled={disabled}
+          asChild
+        >
+          <Link href={disabled ? '#' : href}>{disabled ? 'Coming Soon' : 'Play'}</Link>
         </Button>
       </div>
     </div>
