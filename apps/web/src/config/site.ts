@@ -7,6 +7,7 @@ type NavItem = {
   label: string;
   icon: ForwardRefExoticComponent<Omit<LucideProps, 'ref'> & RefAttributes<SVGSVGElement>>;
   href: string;
+  permission?: string;
 };
 
 export const siteConfig: { name: string; navItems: NavItem[] } = {
@@ -26,6 +27,7 @@ export const siteConfig: { name: string; navItems: NavItem[] } = {
       label: 'Multiplayer',
       icon: Swords,
       href: '/multiplayer',
+      permission: 'play:multiplayer',
     },
   ],
 };

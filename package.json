@@ -5,6 +5,7 @@
     "start": "turbo run start",
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "test": "turbo run lint test",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",

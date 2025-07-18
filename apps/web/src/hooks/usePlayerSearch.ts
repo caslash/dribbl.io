@@ -12,7 +12,7 @@ const usePlayerSearch = () => {
     fetch('/api/players/count')
       .then((res) => res.json())
       .then(setPlayerCount);
-  }, [setPlayerCount]);
+  }, []);
 
   const list = useAsyncList<nba.Player>({
     async load({ signal, filterText }: AsyncListLoadOptions<nba.Player, string>) {

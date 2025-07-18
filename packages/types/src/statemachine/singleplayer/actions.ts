@@ -23,7 +23,7 @@ export const sendPlayerToClient = ({ context }: ActionProps) => {
 
     const team_history = validAnswers[0]?.team_history?.split(',');
 
-    socket?.emit('next_round', { score, team_history, lives: lives + 1 });
+    socket?.emit('next_round', { score, team_history, lives: lives ? lives + 1 : undefined });
   } catch (err) {
     throw Error(`Socket could not be found: ${err}`);
   }
@@ -45,7 +45,7 @@ export const notifyIncorrectGuess = ({ context }: ActionProps) => {
     const { socket, gameState } = context;
     const { lives } = gameState;
 
-    socket?.emit('incorrect_guess', { lives: lives + 1 });
+    socket?.emit('incorrect_guess', { lives: lives ? lives + 1 : undefined });
   } catch (err) {
     throw Error(`Socket could not be found: ${err}`);
   }
@@ -56,7 +56,7 @@ export const notifySkipRound = ({ context }: ActionProps) => {
     const { socket, gameState } = context;
     const { lives } = gameState;
 
-    socket?.emit('round_skipped', { lives: lives + 1 });
+    socket?.emit('round_skipped', { lives: lives ? lives + 1 : undefined });
   } catch (err) {
     throw Error(`Socket could not be found: ${err}`);
   }

@@ -39,12 +39,14 @@ export default function SinglePlayer() {
   } = useSinglePlayerSocket({ correctAction, incorrectAction });
 
   return (
-    <div className="flex flex-col h-full space-y-8">
+    <div className="flex flex-col h-full space-y-8 pt-12">
       <SinglePlayerConfigModal isOpen={!isRoomConfigured} onConfigureRoom={onConfigureRoom} />
-      <div className="justify-start">
-        <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
-        <p>State: {machineState}</p>
-      </div>
+      {process.env.NODE_ENV === 'development' && (
+        <div className="justify-start">
+          <p>Status: {isConnected ? 'connected' : 'disconnected'}</p>
+          <p>State: {machineState}</p>
+        </div>
+      )}
 
       {isConnected && (
         <div className="w-full flex flex-col items-center space-y-8">
@@ -52,7 +54,7 @@ export default function SinglePlayer() {
           {teams && (
             <div className="w-full flex flex-col items-center space-y-8">
               <div className="flex flex-col items-center">
-                <p className="font-black text-2xl">Lives: {lives}</p>
+                <p className="font-black text-2xl">Lives: {lives ?? 'Unlimited'}</p>
                 <p className="font-black text-2xl">Score: {score}</p>
               </div>
               <CareerPath teams={teams} />

@@ -1,7 +1,12 @@
 'use client';
 
 import { nba } from '@dribblio/database';
+import { Player } from '@dribblio/database/generated/prisma-nba/client';
 import NextImage from 'next/image';
+
+function sortByGamesPlayed(a: Player, b: Player): number {
+  return (b.total_games_played ?? 0) - (a.total_games_played ?? 0);
+}
 
 const CorrectAnswer = ({
   correctPlayer,
@@ -28,17 +33,21 @@ const CorrectAnswer = ({
           <p className="text-center">Correct! Possible answers include:</p>
 
           <div className="flex flex-col items-center">
-            {validAnswers.map((player) => (
-              <div className="flex flex-row items-center" key={player.id}>
-                <NextImage
-                  alt={`player-image-${player.id}`}
-                  src={`https://cdn.nba.com/headshots/nba/latest/260x190/${player.id}.png`}
-                  width={65}
-                  height={47.5}
-                />
-                <p>{player.display_first_last}</p>
-              </div>
-            ))}
+            {validAnswers
+              .sort(sortByGamesPlayed)
+              .slice(0, 3)
+              .map((player) => (
+                <div className="flex flex-row items-center" key={player.id}>
+                  <NextImage
+                    alt={`player-image-${player.id}`}
+                    src={`https://cdn.nba.com/headshots/nba/latest/260x190/${player.id}.png`}
+                    width={65}
+                    height={47.5}
+                  />
+                  <p>{player.display_first_last}</p>
+                </div>
+              ))}
+            {validAnswers.length > 3 && <p>and {validAnswers.length - 3} more!</p>}
           </div>
         </div>
       )}

@@ -40,7 +40,6 @@ export default function EditProfileModal() {
           </DialogHeader>
           <form
             onSubmit={form.handleSubmit((values: UpdateUserDto) => {
-              console.log('values', values);
               updateUser(values);
             })}
           >
