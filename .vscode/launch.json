@@ -1,0 +1,76 @@
+{
+  "configurations": [
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:dribbl.io}/apps/db",
+      "name": "Debug nba-db-cli (apps/db)",
+      "program": "${workspaceFolder:dribbl.io}/apps/db/.build/debug/nba-db-cli",
+      "preLaunchTask": "swift: Build Debug nba-db-cli (apps/db)"
+    },
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:dribbl.io}/apps/db",
+      "name": "Release nba-db-cli (apps/db)",
+      "program": "${workspaceFolder:dribbl.io}/apps/db/.build/release/nba-db-cli",
+      "preLaunchTask": "swift: Build Release nba-db-cli (apps/db)"
+    },
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:dribbl.io}/apps/db",
+      "name": "Debug NBADBTests (apps/db)",
+      "program": "${workspaceFolder:dribbl.io}/apps/db/.build/debug/NBADBTests",
+      "preLaunchTask": "swift: Build Debug NBADBTests (apps/db)"
+    },
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:dribbl.io}/apps/db",
+      "name": "Release NBADBTests (apps/db)",
+      "program": "${workspaceFolder:dribbl.io}/apps/db/.build/release/NBADBTests",
+      "preLaunchTask": "swift: Build Release NBADBTests (apps/db)"
+    },
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:dribbl.io}/apps/db",
+      "name": "Debug nba-db (apps/db)",
+      "program": "${workspaceFolder:dribbl.io}/apps/db/.build/debug/nba-db",
+      "preLaunchTask": "swift: Build Debug nba-db (apps/db)"
+    },
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:dribbl.io}/apps/db",
+      "name": "Release nba-db (apps/db)",
+      "program": "${workspaceFolder:dribbl.io}/apps/db/.build/release/nba-db",
+      "preLaunchTask": "swift: Build Release nba-db (apps/db)"
+    },
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:dribbl.io}/apps/db",
+      "name": "Debug nba_db (apps/db)",
+      "program": "${workspaceFolder:dribbl.io}/apps/db/.build/debug/nba_db",
+      "preLaunchTask": "swift: Build Debug nba_db (apps/db)"
+    },
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:dribbl.io}/apps/db",
+      "name": "Release nba_db (apps/db)",
+      "program": "${workspaceFolder:dribbl.io}/apps/db/.build/release/nba_db",
+      "preLaunchTask": "swift: Build Release nba_db (apps/db)"
+    }
+  ]
+}
