@@ -1,6 +1,0 @@
----
-description: 
-globs: 
-alwaysApply: true
----
-Reference the summary of the repo in the `docs/repo.md` file before responding to every prompt. This file will provide all context of the current state of the project. Read and analyze the file before responding, then respond using the knowledge and context acquired from the markdown file.
