@@ -178,3 +178,5 @@ yarn-error.log*
 !*.template
 !*example*
 !*sample*
+
+TestConfig.plist
