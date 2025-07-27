@@ -1,6 +1,6 @@
 import Foundation
 
 public struct PlayerInfo {
-    let id: Int
-    let display_name: String
+    public let id: Int
+    public let display_name: String
 }

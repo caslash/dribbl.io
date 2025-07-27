@@ -1,30 +1,33 @@
 import Foundation
 
-struct CommonPlayerInfo: Codable {
-    let personId: Int
-    let firstName: String
-    let lastName: String
-    let displayName: String
-    let birthdate: Date
-    let school: String
-    let country: String
-    let height: String
-    let weight: Int
-    let seasonExp: Int
-    let jersey: String?
-    let position: String
-    let rosterStatus: String
-    let teamId: Int
-    let teamName: String
-    let teamAbbreviation: String
-    let teamCity: String
-    let fromYear: Int
-    let toYear: Int
-
-    init(from row: [JSONValue], headers: [String]) throws {
+struct CommonPlayerInfo: ResponseInitializable {
+    var personId: Int
+    var firstName: String
+    var lastName: String
+    var displayName: String
+    var birthdate: Date
+    var school: String
+    var country: String
+    var height: String
+    var weight: Int
+    var seasonExp: Int
+    var jersey: String?
+    var position: String
+    var rosterStatus: String
+    var teamId: Int
+    var teamName: String
+    var teamAbbreviation: String
+    var teamCity: String
+    var fromYear: Int
+    var toYear: Int
+    
+    init(from data: Data) throws {
+        let decoder = JSONDecoder()
+        let resp = try decoder.decode(APIResponse.self, from: data)
+        
         func v(_ key: String) -> JSONValue? {
-            guard let i = headers.firstIndex(of: key) else { return nil }
-            return row[i]
+            guard let i = resp.resultSets[0].headers.firstIndex(of: key) else { return nil }
+            return resp.resultSets[0].rowSet[0][i]
         }
         
         self.personId = v("PERSON_ID")?.intValue ?? 0
@@ -45,6 +48,6 @@ struct CommonPlayerInfo: Codable {
         self.teamAbbreviation  = v("TEAM_ABBREVIATION")?.stringValue ?? ""
         self.teamCity          = v("TEAM_CITY")?.stringValue ?? ""
         self.fromYear          = v("FROM_YEAR")?.intValue    ?? 0
-        self.toYear            = v("TO_YEAR")?.intValue      ?? 0
+        self.toYear            = v("TO_YEAR")?.intValue ?? 0
     }
 }

@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		2E70D0FB2E3323D90069CB00 /* NBAKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2E70D0F22E3323D90069CB00 /* NBAKit.framework */; };
 		2E70D1212E3324500069CB00 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 2E70D1202E3324500069CB00 /* ArgumentParser */; };
-		2EECCC402E33E87F00435B43 /* GenericJSON in Frameworks */ = {isa = PBXBuildFile; productRef = 2EECCC3F2E33E87F00435B43 /* GenericJSON */; };
+		2EA6B08A2E36921B0078F398 /* PostgresKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2EA6B0892E36921B0078F398 /* PostgresKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -71,6 +71,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2EA6B08A2E36921B0078F398 /* PostgresKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,7 +79,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2EECCC402E33E87F00435B43 /* GenericJSON in Frameworks */,
 				2E70D0FB2E3323D90069CB00 /* NBAKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -160,6 +160,7 @@
 			);
 			name = NBAKit;
 			packageProductDependencies = (
+				2EA6B0892E36921B0078F398 /* PostgresKit */,
 			);
 			productName = NBAKit;
 			productReference = 2E70D0F22E3323D90069CB00 /* NBAKit.framework */;
@@ -183,7 +184,6 @@
 			);
 			name = NBAKitTests;
 			packageProductDependencies = (
-				2EECCC3F2E33E87F00435B43 /* GenericJSON */,
 			);
 			productName = NBAKitTests;
 			productReference = 2E70D0FA2E3323D90069CB00 /* NBAKitTests.xctest */;
@@ -221,7 +221,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				2E70D11F2E3324500069CB00 /* XCRemoteSwiftPackageReference "swift-argument-parser" */,
-				2EECCC3E2E33E87F00435B43 /* XCRemoteSwiftPackageReference "generic-json-swift" */,
+				2EA6B0882E36921B0078F398 /* XCRemoteSwiftPackageReference "postgres-kit" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 2E70D0E42E3323920069CB00 /* Products */;
@@ -593,12 +593,12 @@
 				minimumVersion = 1.6.1;
 			};
 		};
-		2EECCC3E2E33E87F00435B43 /* XCRemoteSwiftPackageReference "generic-json-swift" */ = {
+		2EA6B0882E36921B0078F398 /* XCRemoteSwiftPackageReference "postgres-kit" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/iwill/generic-json-swift";
+			repositoryURL = "https://github.com/vapor/postgres-kit.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 2.0.2;
+				minimumVersion = 2.14.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -609,10 +609,10 @@
 			package = 2E70D11F2E3324500069CB00 /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
 			productName = ArgumentParser;
 		};
-		2EECCC3F2E33E87F00435B43 /* GenericJSON */ = {
+		2EA6B0892E36921B0078F398 /* PostgresKit */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 2EECCC3E2E33E87F00435B43 /* XCRemoteSwiftPackageReference "generic-json-swift" */;
-			productName = GenericJSON;
+			package = 2EA6B0882E36921B0078F398 /* XCRemoteSwiftPackageReference "postgres-kit" */;
+			productName = PostgresKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
