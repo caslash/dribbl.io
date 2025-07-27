@@ -1,9 +1,9 @@
 import Foundation
 
-struct PlayerAwardsList: Codable {
+public struct PlayerAwardsList: ResponseInitializable {
   let PlayerAwards: [PlayerAward]
 
-  init(from data: Data) throws {
+  public init(from data: Data) throws {
     let decoder = JSONDecoder()
     let resp = try decoder.decode(APIResponse.self, from: data)
 
@@ -11,21 +11,21 @@ struct PlayerAwardsList: Codable {
   }
 }
 
-struct PlayerAward: RowInitializable {
-  let PERSON_ID: Int
-  let FIRST_NAME: String
-  let LAST_NAME: String
-  let TEAM: String?
-  let DESCRIPTION: String
-  let ALL_NBA_TEAM_NUMBER: Int?
-  let SEASON: String
-  let MONTH: String?
-  let WEEK: String?
-  let CONFERENCE: String?
-  let TYPE: String
-  let SUBTYPE1: String?
-  let SUBTYPE2: String?
-  let SUBTYPE3: String?
+public struct PlayerAward: RowInitializable {
+  public let PERSON_ID: Int
+  public let FIRST_NAME: String
+  public let LAST_NAME: String
+  public let TEAM: String?
+  public let DESCRIPTION: String
+  public let ALL_NBA_TEAM_NUMBER: Int?
+  public let SEASON: String
+  public let MONTH: String?
+  public let WEEK: String?
+  public let CONFERENCE: String?
+  public let TYPE: String
+  public let SUBTYPE1: String?
+  public let SUBTYPE2: String?
+  public let SUBTYPE3: String?
     
     enum CodingKeys: CodingKey {
         case PERSON_ID
@@ -66,7 +66,7 @@ struct PlayerAward: RowInitializable {
     self.SUBTYPE3 = v("SUBTYPE3")?.stringValue
   }
     
-    func encode(to encoder: any Encoder) throws {
+    public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         
         try container.encode(self.PERSON_ID, forKey: .PERSON_ID)

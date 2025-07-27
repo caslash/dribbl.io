@@ -4,7 +4,7 @@ import Testing
 
 struct CommonPlayerInfoTests {
     let jsonDecoder: JSONDecoder
-    let response: APIResponse
+    let responseData: Data
     
     init() throws {
         self.jsonDecoder = JSONDecoder()
@@ -23,13 +23,11 @@ struct CommonPlayerInfoTests {
             fatalError("commonplayerinfo.json not found in test bundle.")
         }
         
-        let responseExample = try Data(contentsOf: url)
-        
-        self.response = try self.jsonDecoder.decode(APIResponse.self, from: responseExample)
+        self.responseData = try Data(contentsOf: url)
     }
     
     @Test func canDecodeCommonPlayerInfo() throws {
-        let commonplayerinfo: CommonPlayerInfo = try CommonPlayerInfo(from: response.resultSets[0].rowSet[0], headers: response.resultSets[0].headers)
+        let commonplayerinfo: CommonPlayerInfo = try CommonPlayerInfo(from: self.responseData)
         
         let birthdate = try Date.init("1998-03-03T00:00:00Z", strategy: .iso8601)
         

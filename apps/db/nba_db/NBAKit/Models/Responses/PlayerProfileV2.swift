@@ -1,6 +1,6 @@
 import Foundation
 
-struct PlayerProfileV2: Codable {
+struct PlayerProfileV2: ResponseInitializable {
     let regularSeasonTotals: [SeasonTotalsRegularSeason]
     let careerRegularSeasonTotals: CareerTotalsRegularSeason
     let postSeasonTotals: [SeasonTotalsPostSeason]

@@ -1,13 +1,17 @@
 import Foundation
 
-struct APIResponse: Decodable {
+public struct APIResponse: Decodable {
     let resultSets: [ResultSet]
     
-    struct ResultSet: Decodable {
+    public struct ResultSet: Decodable {
         let name: String
         let headers: [String]
         let rowSet: [[JSONValue]]
     }
+}
+
+public protocol ResponseInitializable: Codable {
+    init(from data: Data) throws
 }
 
 protocol RowInitializable: Codable {

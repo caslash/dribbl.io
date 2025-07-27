@@ -1,5 +1,4 @@
 import Foundation
-import GenericJSON
 import Testing
 @testable import NBAKit
 
