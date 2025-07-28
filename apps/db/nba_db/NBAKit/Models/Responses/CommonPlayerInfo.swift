@@ -23,7 +23,7 @@ struct CommonPlayerInfo: ResponseInitializable {
     
     init(from data: Data) throws {
         let decoder = JSONDecoder()
-        let resp = try decoder.decode(APIResponse.self, from: data)
+        let resp = try decoder.decode(NBAAPIResponse.self, from: data)
         
         func v(_ key: String) -> JSONValue? {
             guard let i = resp.resultSets[0].headers.firstIndex(of: key) else { return nil }

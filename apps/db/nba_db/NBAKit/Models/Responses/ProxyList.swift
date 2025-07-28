@@ -11,7 +11,7 @@ public struct ProxyList: ResponseInitializable {
     }
 }
 
-public struct Proxy: Codable {
+public struct Proxy: Codable, Hashable, Equatable {
     let id: Int
     let status: String
     let networkType: String
@@ -19,6 +19,14 @@ public struct Proxy: Codable {
     let connection: Connection
     let proxyType, createdAt, expiresAt: String
     let metadata: Metadata
+    
+    public static func == (lhs: Proxy, rhs: Proxy) -> Bool {
+        return lhs.id == rhs.id
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(self.id)
+    }
 }
 
 struct Authentication: Codable {

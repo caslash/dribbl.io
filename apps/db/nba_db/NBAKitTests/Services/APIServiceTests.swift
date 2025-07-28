@@ -33,8 +33,8 @@ struct APIServiceTests {
         let apiService = APIService.nbaApiService
         
         let commonplayerinfo: CommonPlayerInfo = try await apiService.get(
-            path: "commonplayerinfo",
             timeoutInterval: 5,
+            path: "commonplayerinfo",
             params: [
                 URLQueryItem(name: "LeagueID", value: "00"),
                 URLQueryItem(name: "PlayerID", value: "1628369")
@@ -68,11 +68,38 @@ struct APIServiceTests {
         let apiService = APIService.nbaApiService
         
         let playerawardslist: PlayerAwardsList = try await apiService.get(
-            path: "playerawards",
             timeoutInterval: 5,
+            path: "playerawards",
             params: [
                 URLQueryItem(name: "PlayerID", value: "1628369")
             ]
+        )
+        
+        #expect(playerawardslist.PlayerAwards.count == 34)
+        #expect(playerawardslist.PlayerAwards.allSatisfy { $0.PERSON_ID == 1628369 })
+        #expect(playerawardslist.PlayerAwards.allSatisfy { $0.FIRST_NAME == "Jayson" })
+        #expect(playerawardslist.PlayerAwards.allSatisfy { $0.LAST_NAME == "Tatum" })
+        
+        let descriptions = Set(playerawardslist.PlayerAwards.map { $0.DESCRIPTION })
+        #expect(descriptions.contains("All-NBA"))
+        #expect(descriptions.contains("All-Rookie Team"))
+        #expect(descriptions.contains("NBA All-Star"))
+        #expect(descriptions.contains("NBA Champion"))
+        #expect(descriptions.contains("Olympic Gold Medal"))
+    }
+    
+    @Test func canFetchPlayerAwardsWithProxy() async throws {
+        let apiService = APIService.nbaApiService
+        
+        let proxyList = try getTestProxies()
+
+        let playerawardslist: PlayerAwardsList = try await apiService.get(
+            timeoutInterval: 30,
+            path: "playerawards",
+            params: [
+                URLQueryItem(name: "PlayerID", value: "1628369")
+            ],
+            proxy: proxyList.proxies.randomElement()
         )
         
         #expect(playerawardslist.PlayerAwards.count == 34)
@@ -92,8 +119,8 @@ struct APIServiceTests {
         let apiService = APIService.nbaApiService
         
         let playerprofilev2: PlayerProfileV2 = try await apiService.get(
-            path: "playerprofilev2",
             timeoutInterval: 5,
+            path: "playerprofilev2",
             params: [
                 URLQueryItem(name: "PerMode", value: "PerGame"),
                 URLQueryItem(name: "PlayerID", value: "1628369"),
@@ -124,5 +151,31 @@ struct APIServiceTests {
         let proxylist: ProxyList = try await apiService.get()
         
         #expect(proxylist.proxies.count == 10)
+    }
+    
+    private func getTestProxies() throws -> ProxyList {
+        let bundles = Bundle.allBundles
+        
+        var url: URL?
+        for bundle in bundles {
+            if let foundURL = bundle.url(forResource: "proxylist", withExtension: "json") {
+                url = foundURL
+                break
+            }
+        }
+        
+        guard let url else {
+            fatalError("proxylist.json not found in test bundle.")
+        }
+        
+        guard let proxyData = try? Data(contentsOf: url) else {
+            fatalError("Error decoding proxylist.json")
+        }
+        
+        guard let proxyList = try? ProxyList(from: proxyData) else {
+            fatalError("Error initiating ProxyList")
+        }
+        
+        return proxyList
     }
 }

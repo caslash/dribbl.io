@@ -1,0 +1,345 @@
+{
+    "proxies": [
+        {
+            "id": 1424278,
+            "status": "ACTIVE",
+            "networkType": "RESIDENTIAL_STATIC",
+            "authentication": {
+                "whitelistedIps": [
+
+                ],
+                "username": "xrwuas9cU4dZvzf",
+                "password": "64besdC6aGtCvGX"
+            },
+            "connection": {
+                "publicIp": "166.88.179.123",
+                "connectIp": "166.88.179.123",
+                "ipVersion": "IPv4",
+                "httpPort": 46125,
+                "httpsPort": null,
+                "socks5Port": null
+            },
+            "proxyType": "HTTP",
+            "createdAt": "2025-07-14T03:06:18+00:00",
+            "expiresAt": "2025-08-14T03:06:18+00:00",
+            "metadata": {
+                "ispName": "Comcast",
+                "orderId": "019806e5-61fe-7f22-854b-0717e673f6a4"
+            },
+            "bandwidth": {
+                "total": null,
+                "used": 0
+            },
+            "routes": [
+
+            ]
+        },
+        {
+            "id": 1424279,
+            "status": "ACTIVE",
+            "networkType": "RESIDENTIAL_STATIC",
+            "authentication": {
+                "whitelistedIps": [
+
+                ],
+                "username": "MPrv90YvkKeX16T",
+                "password": "RTUhjE8chXxRQC0"
+            },
+            "connection": {
+                "publicIp": "46.202.218.154",
+                "connectIp": "46.202.218.154",
+                "ipVersion": "IPv4",
+                "httpPort": 49850,
+                "httpsPort": null,
+                "socks5Port": null
+            },
+            "proxyType": "HTTP",
+            "createdAt": "2025-07-14T03:06:18+00:00",
+            "expiresAt": "2025-08-14T03:06:18+00:00",
+            "metadata": {
+                "ispName": "Comcast",
+                "orderId": "019806e5-61fe-7f22-854b-0717e673f6a4"
+            },
+            "bandwidth": {
+                "total": null,
+                "used": 0
+            },
+            "routes": [
+
+            ]
+        },
+        {
+            "id": 1424280,
+            "status": "ACTIVE",
+            "networkType": "RESIDENTIAL_STATIC",
+            "authentication": {
+                "whitelistedIps": [
+
+                ],
+                "username": "qUJxf4ARJAltI3v",
+                "password": "iGtrh1WX6xSL6Q6"
+            },
+            "connection": {
+                "publicIp": "46.202.218.173",
+                "connectIp": "46.202.218.173",
+                "ipVersion": "IPv4",
+                "httpPort": 43087,
+                "httpsPort": null,
+                "socks5Port": null
+            },
+            "proxyType": "HTTP",
+            "createdAt": "2025-07-14T03:06:18+00:00",
+            "expiresAt": "2025-08-14T03:06:18+00:00",
+            "metadata": {
+                "ispName": "Comcast",
+                "orderId": "019806e5-61fe-7f22-854b-0717e673f6a4"
+            },
+            "bandwidth": {
+                "total": null,
+                "used": 0
+            },
+            "routes": [
+
+            ]
+        },
+        {
+            "id": 1424281,
+            "status": "ACTIVE",
+            "networkType": "RESIDENTIAL_STATIC",
+            "authentication": {
+                "whitelistedIps": [
+
+                ],
+                "username": "7sGypGQNdRb38bC",
+                "password": "IOKlEZRATtDihxg"
+            },
+            "connection": {
+                "publicIp": "46.202.218.198",
+                "connectIp": "46.202.218.198",
+                "ipVersion": "IPv4",
+                "httpPort": 48289,
+                "httpsPort": null,
+                "socks5Port": null
+            },
+            "proxyType": "HTTP",
+            "createdAt": "2025-07-14T03:06:18+00:00",
+            "expiresAt": "2025-08-14T03:06:18+00:00",
+            "metadata": {
+                "ispName": "Comcast",
+                "orderId": "019806e5-61fe-7f22-854b-0717e673f6a4"
+            },
+            "bandwidth": {
+                "total": null,
+                "used": 0
+            },
+            "routes": [
+
+            ]
+        },
+        {
+            "id": 1424282,
+            "status": "ACTIVE",
+            "networkType": "RESIDENTIAL_STATIC",
+            "authentication": {
+                "whitelistedIps": [
+
+                ],
+                "username": "H3p4zksVIe3GPsf",
+                "password": "uZQhGSF0RonuwoX"
+            },
+            "connection": {
+                "publicIp": "46.202.218.233",
+                "connectIp": "46.202.218.233",
+                "ipVersion": "IPv4",
+                "httpPort": 47320,
+                "httpsPort": null,
+                "socks5Port": null
+            },
+            "proxyType": "HTTP",
+            "createdAt": "2025-07-14T03:06:18+00:00",
+            "expiresAt": "2025-08-14T03:06:18+00:00",
+            "metadata": {
+                "ispName": "Comcast",
+                "orderId": "019806e5-61fe-7f22-854b-0717e673f6a4"
+            },
+            "bandwidth": {
+                "total": null,
+                "used": 0
+            },
+            "routes": [
+
+            ]
+        },
+        {
+            "id": 1424283,
+            "status": "ACTIVE",
+            "networkType": "RESIDENTIAL_STATIC",
+            "authentication": {
+                "whitelistedIps": [
+
+                ],
+                "username": "IdOzYR69iR9VbyG",
+                "password": "nxC6mnnt7Qs7hbf"
+            },
+            "connection": {
+                "publicIp": "46.202.218.246",
+                "connectIp": "46.202.218.246",
+                "ipVersion": "IPv4",
+                "httpPort": 45782,
+                "httpsPort": null,
+                "socks5Port": null
+            },
+            "proxyType": "HTTP",
+            "createdAt": "2025-07-14T03:06:18+00:00",
+            "expiresAt": "2025-08-14T03:06:18+00:00",
+            "metadata": {
+                "ispName": "Comcast",
+                "orderId": "019806e5-61fe-7f22-854b-0717e673f6a4"
+            },
+            "bandwidth": {
+                "total": null,
+                "used": 0
+            },
+            "routes": [
+
+            ]
+        },
+        {
+            "id": 1424284,
+            "status": "ACTIVE",
+            "networkType": "RESIDENTIAL_STATIC",
+            "authentication": {
+                "whitelistedIps": [
+
+                ],
+                "username": "amuxinTLN2NTfNh",
+                "password": "mJwW6zoIU1ZVp0d"
+            },
+            "connection": {
+                "publicIp": "77.111.118.156",
+                "connectIp": "77.111.118.156",
+                "ipVersion": "IPv4",
+                "httpPort": 43915,
+                "httpsPort": null,
+                "socks5Port": null
+            },
+            "proxyType": "HTTP",
+            "createdAt": "2025-07-14T03:06:18+00:00",
+            "expiresAt": "2025-08-14T03:06:18+00:00",
+            "metadata": {
+                "ispName": "Comcast",
+                "orderId": "019806e5-61fe-7f22-854b-0717e673f6a4"
+            },
+            "bandwidth": {
+                "total": null,
+                "used": 0
+            },
+            "routes": [
+
+            ]
+        },
+        {
+            "id": 1424285,
+            "status": "ACTIVE",
+            "networkType": "RESIDENTIAL_STATIC",
+            "authentication": {
+                "whitelistedIps": [
+
+                ],
+                "username": "LuRkk3Tu21MHGGH",
+                "password": "UdPlNtb3OboJfJx"
+            },
+            "connection": {
+                "publicIp": "77.111.118.51",
+                "connectIp": "77.111.118.51",
+                "ipVersion": "IPv4",
+                "httpPort": 41186,
+                "httpsPort": null,
+                "socks5Port": null
+            },
+            "proxyType": "HTTP",
+            "createdAt": "2025-07-14T03:06:18+00:00",
+            "expiresAt": "2025-08-14T03:06:18+00:00",
+            "metadata": {
+                "ispName": "Comcast",
+                "orderId": "019806e5-61fe-7f22-854b-0717e673f6a4"
+            },
+            "bandwidth": {
+                "total": null,
+                "used": 0
+            },
+            "routes": [
+
+            ]
+        },
+        {
+            "id": 1424286,
+            "status": "ACTIVE",
+            "networkType": "RESIDENTIAL_STATIC",
+            "authentication": {
+                "whitelistedIps": [
+
+                ],
+                "username": "DicFbzSVljeuXX9",
+                "password": "ZIEQyVNCGlwnPes"
+            },
+            "connection": {
+                "publicIp": "92.113.114.214",
+                "connectIp": "92.113.114.214",
+                "ipVersion": "IPv4",
+                "httpPort": 45281,
+                "httpsPort": null,
+                "socks5Port": null
+            },
+            "proxyType": "HTTP",
+            "createdAt": "2025-07-14T03:06:18+00:00",
+            "expiresAt": "2025-08-14T03:06:18+00:00",
+            "metadata": {
+                "ispName": "Comcast",
+                "orderId": "019806e5-61fe-7f22-854b-0717e673f6a4"
+            },
+            "bandwidth": {
+                "total": null,
+                "used": 0
+            },
+            "routes": [
+
+            ]
+        },
+        {
+            "id": 1424287,
+            "status": "ACTIVE",
+            "networkType": "RESIDENTIAL_STATIC",
+            "authentication": {
+                "whitelistedIps": [
+
+                ],
+                "username": "JQp7eCZEG4AJMIy",
+                "password": "kQR4Cnd57JaEbUQ"
+            },
+            "connection": {
+                "publicIp": "92.113.114.37",
+                "connectIp": "92.113.114.37",
+                "ipVersion": "IPv4",
+                "httpPort": 44779,
+                "httpsPort": null,
+                "socks5Port": null
+            },
+            "proxyType": "HTTP",
+            "createdAt": "2025-07-14T03:06:18+00:00",
+            "expiresAt": "2025-08-14T03:06:18+00:00",
+            "metadata": {
+                "ispName": "Comcast",
+                "orderId": "019806e5-61fe-7f22-854b-0717e673f6a4"
+            },
+            "bandwidth": {
+                "total": null,
+                "used": 0
+            },
+            "routes": [
+
+            ]
+        }
+    ]
+}
+

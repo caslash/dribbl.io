@@ -5,7 +5,7 @@ import Testing
 struct PlayerAwardTests {
     let jsonDecoder: JSONDecoder
     let jsonEncoder: JSONEncoder
-    let response: APIResponse
+    let response: NBAAPIResponse
     let playerAwardsUrl: URL?
     let playerAwardsListUrl: URL?
     
@@ -43,7 +43,7 @@ struct PlayerAwardTests {
         
         let responseExample = try Data(contentsOf: awardsUrl!)
         
-        self.response = try self.jsonDecoder.decode(APIResponse.self, from: responseExample)
+        self.response = try self.jsonDecoder.decode(NBAAPIResponse.self, from: responseExample)
     }
     
     @Test func canDecodePlayerAwardArray() throws {

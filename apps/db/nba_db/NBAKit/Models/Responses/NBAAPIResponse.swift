@@ -1,6 +1,6 @@
 import Foundation
 
-public struct APIResponse: Decodable {
+public struct NBAAPIResponse: Decodable {
     let resultSets: [ResultSet]
     
     public struct ResultSet: Decodable {
@@ -25,14 +25,14 @@ extension RowInitializable {
     }
 }
 
-extension APIResponse.ResultSet {
+extension NBAAPIResponse.ResultSet {
     func rows<T: RowInitializable>(of type: T.Type) throws -> [T] {
         try rowSet.map { try T(from: $0, headers: headers) }
     }
 }
 
 // Helper on the array of resultSets
-extension Array where Element == APIResponse.ResultSet {
+extension Array where Element == NBAAPIResponse.ResultSet {
     func rows<T: RowInitializable>(
       of type: T.Type,
       named name: String
