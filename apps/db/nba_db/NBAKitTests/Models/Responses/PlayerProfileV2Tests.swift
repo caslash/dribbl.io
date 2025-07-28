@@ -4,7 +4,7 @@ import Testing
 
 struct PlayerProfileV2Tests {
     let jsonDecoder: JSONDecoder
-    let response: APIResponse
+    let response: NBAAPIResponse
     let url: URL
     
     init() throws {
@@ -28,7 +28,7 @@ struct PlayerProfileV2Tests {
         
         let responseExample = try Data(contentsOf: url)
         
-        self.response = try self.jsonDecoder.decode(APIResponse.self, from: responseExample)
+        self.response = try self.jsonDecoder.decode(NBAAPIResponse.self, from: responseExample)
     }
     
     @Test func canDecodePlayerProfileV2() throws {

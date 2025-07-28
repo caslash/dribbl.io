@@ -180,3 +180,4 @@ yarn-error.log*
 !*sample*
 
 TestConfig.plist
+proxylist.json

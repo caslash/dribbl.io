@@ -6,16 +6,17 @@ public protocol IApiService {
     
     init(api: ApiSource)
     
-    func get<T: ResponseInitializable>(path: String?, timeoutInterval: TimeInterval, params: [URLQueryItem]?) async throws -> T
+    func get<T: ResponseInitializable>(timeoutInterval: TimeInterval, path: String?, params: [URLQueryItem]?, proxy: Proxy?) async throws -> T
 }
 
 public enum ApiSource {
-    case nba, proxies
+    case nba, proxies, test
     
     var baseURL: URL {
         switch self {
         case .nba: URL(string: "https://stats.nba.com/stats")!
         case .proxies: URL(string: "https://api.proxy-cheap.com/proxies")!
+        case .test: URL(string: "https://api.myip.com")!
         }
     }
     
@@ -37,6 +38,7 @@ public enum ApiSource {
             "X-Api-Key": ProcessInfo.processInfo.environment["PROXY_CHEAP_API_KEY"] ?? "",
             "X-Api-Secret": ProcessInfo.processInfo.environment["PROXY_CHEAP_API_SECRET"] ?? ""
         ]
+        default: [:]
         }
     }
 }
@@ -44,6 +46,7 @@ public enum ApiSource {
 public class APIService: IApiService {
     public static let nbaApiService: APIService = .init(api: .nba)
     public static let proxyApiService: APIService = .init(api: .proxies)
+    public static let testProxyApiService: APIService = .init(api: .test)
     
     public var baseURL: URL
     public var headers: [String : String]
@@ -53,7 +56,7 @@ public class APIService: IApiService {
         self.headers = api.headers
     }
     
-    public func get<T: ResponseInitializable>(path: String? = nil, timeoutInterval: TimeInterval = 5, params: [URLQueryItem]? = nil) async throws -> T {
+    public func get<T: ResponseInitializable>(timeoutInterval: TimeInterval = 5, path: String? = nil, params: [URLQueryItem]? = nil, proxy: Proxy? = nil) async throws -> T {
         var url: URL = baseURL
         
         if let path {
@@ -71,12 +74,52 @@ public class APIService: IApiService {
             request.addValue(header.value, forHTTPHeaderField: header.key)
         }
         
-        let (data, response) = try await URLSession.shared.data(for: request)
+        var urlSession: URLSession
+        
+        if let proxy {
+            urlSession = createProxySession(proxy: proxy)
+        } else {
+            urlSession = URLSession.shared
+        }
+        
+        let (data, response) = try await urlSession.data(for: request)
         
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
             throw URLError(.badServerResponse)
         }
         
         return try T.init(from: data)
+    }
+    
+    private func createProxySession(proxy: Proxy) -> URLSession {
+        let config = URLSessionConfiguration.default
+        
+        guard let httpPort = proxy.connection.httpPort else {
+            fatalError("Proxy httpPort is required but was nil")
+        }
+        
+        guard let authHeader = createBasicAuthHeader(username: proxy.authentication.username, password: proxy.authentication.password) else {
+            fatalError("Could not create auth header for \(proxy.authentication.username)")
+        }
+        
+        config.connectionProxyDictionary = [
+            kCFNetworkProxiesHTTPEnable: true,
+            kCFNetworkProxiesHTTPProxy: proxy.connection.publicIp,
+            kCFNetworkProxiesHTTPPort: httpPort,
+            kCFNetworkProxiesHTTPSEnable: true,
+            kCFNetworkProxiesHTTPSProxy: proxy.connection.publicIp,
+            kCFNetworkProxiesHTTPSPort: httpPort
+        ]
+        
+        config.httpAdditionalHeaders = ["Proxy-Authorization": authHeader]
+        
+        return URLSession(configuration: config)
+    }
+    
+    private func createBasicAuthHeader(username: String, password: String) -> String? {
+        let loginString = "\(username):\(password)"
+        guard let loginData = loginString.data(using: .utf8) else { return nil }
+        let base64LoginString = loginData.base64EncodedString()
+        return "Basic \(base64LoginString)"
     }
 }

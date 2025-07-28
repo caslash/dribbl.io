@@ -18,7 +18,7 @@ struct PlayerProfileV2: ResponseInitializable {
     
     init(from data: Data) throws {
         let decoder = JSONDecoder()
-        let resp = try decoder.decode(APIResponse.self, from: data)
+        let resp = try decoder.decode(NBAAPIResponse.self, from: data)
         
         self.regularSeasonTotals = try resp.resultSets.rows(of: SeasonTotalsRegularSeason.self, named: "SeasonTotalsRegularSeason")
         self.careerRegularSeasonTotals = try resp.resultSets.rows(of: CareerTotalsRegularSeason.self, named: "CareerTotalsRegularSeason").first!

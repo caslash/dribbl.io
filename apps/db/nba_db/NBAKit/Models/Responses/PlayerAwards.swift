@@ -5,7 +5,7 @@ public struct PlayerAwardsList: ResponseInitializable {
 
   public init(from data: Data) throws {
     let decoder = JSONDecoder()
-    let resp = try decoder.decode(APIResponse.self, from: data)
+    let resp = try decoder.decode(NBAAPIResponse.self, from: data)
 
     self.PlayerAwards = try resp.resultSets.rows(of: PlayerAward.self, named: "PlayerAwards")
   }
