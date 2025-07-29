@@ -33,7 +33,7 @@ struct APIServiceTests {
         let apiService = APIService.nbaApiService
         
         let commonplayerinfo: CommonPlayerInfo = try await apiService.get(
-            timeoutInterval: 5,
+            timeoutInterval: 30,
             path: "commonplayerinfo",
             params: [
                 URLQueryItem(name: "LeagueID", value: "00"),
@@ -68,7 +68,7 @@ struct APIServiceTests {
         let apiService = APIService.nbaApiService
         
         let playerawardslist: PlayerAwardsList = try await apiService.get(
-            timeoutInterval: 5,
+            timeoutInterval: 30,
             path: "playerawards",
             params: [
                 URLQueryItem(name: "PlayerID", value: "1628369")
@@ -119,7 +119,7 @@ struct APIServiceTests {
         let apiService = APIService.nbaApiService
         
         let playerprofilev2: PlayerProfileV2 = try await apiService.get(
-            timeoutInterval: 5,
+            timeoutInterval: 30,
             path: "playerprofilev2",
             params: [
                 URLQueryItem(name: "PerMode", value: "PerGame"),
