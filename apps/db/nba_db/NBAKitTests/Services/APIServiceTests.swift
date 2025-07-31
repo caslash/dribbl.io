@@ -32,14 +32,37 @@ struct APIServiceTests {
     @Test func canFetchCommonPlayerInfo() async throws {
         let apiService = APIService.nbaApiService
         
-        let commonplayerinfo: CommonPlayerInfo = try await apiService.get(
-            timeoutInterval: 30,
-            path: "commonplayerinfo",
-            params: [
-                URLQueryItem(name: "LeagueID", value: "00"),
-                URLQueryItem(name: "PlayerID", value: "1628369")
-            ]
-        )
+        let commonplayerinfo: CommonPlayerInfo = try await apiService.fetchWithRetry(endpoint: .commonPlayerInfo, playerId: 1628369)
+        
+        let birthdate = try Date.init("1998-03-03T00:00:00Z", strategy: .iso8601)
+        
+        #expect(commonplayerinfo.personId == 1628369)
+        #expect(commonplayerinfo.firstName == "Jayson")
+        #expect(commonplayerinfo.lastName == "Tatum")
+        #expect(commonplayerinfo.displayName == "Jayson Tatum")
+        #expect(commonplayerinfo.birthdate == birthdate)
+        #expect(commonplayerinfo.school == "Duke")
+        #expect(commonplayerinfo.country == "USA")
+        #expect(commonplayerinfo.height == "6-8")
+        #expect(commonplayerinfo.weight == 210)
+        #expect(commonplayerinfo.seasonExp == 8)
+        #expect(commonplayerinfo.jersey == "0")
+        #expect(commonplayerinfo.position == "Forward-Guard")
+        #expect(commonplayerinfo.rosterStatus == "Active")
+        #expect(commonplayerinfo.teamId == 1610612738)
+        #expect(commonplayerinfo.teamName == "Celtics")
+        #expect(commonplayerinfo.teamAbbreviation == "BOS")
+        #expect(commonplayerinfo.teamCity == "Boston")
+        #expect(commonplayerinfo.fromYear == 2017)
+        #expect(commonplayerinfo.toYear == 2025)
+    }
+    
+    @Test func canFetchCommonPlayerInfoWithProxy() async throws {
+        let apiService = APIService.nbaApiService
+        
+        let proxyList = try getTestProxies()
+        
+        let commonplayerinfo: CommonPlayerInfo = try await apiService.fetchWithRetry(endpoint: .commonPlayerInfo, playerId: 1628369, proxy: proxyList.proxies.randomElement())
         
         let birthdate = try Date.init("1998-03-03T00:00:00Z", strategy: .iso8601)
         
@@ -67,13 +90,7 @@ struct APIServiceTests {
     @Test func canFetchPlayerAwards() async throws {
         let apiService = APIService.nbaApiService
         
-        let playerawardslist: PlayerAwardsList = try await apiService.get(
-            timeoutInterval: 30,
-            path: "playerawards",
-            params: [
-                URLQueryItem(name: "PlayerID", value: "1628369")
-            ]
-        )
+        let playerawardslist: PlayerAwardsList = try await apiService.fetchWithRetry(endpoint: .playerAwards, playerId: 1628369)
         
         #expect(playerawardslist.PlayerAwards.count == 34)
         #expect(playerawardslist.PlayerAwards.allSatisfy { $0.PERSON_ID == 1628369 })
@@ -93,14 +110,7 @@ struct APIServiceTests {
         
         let proxyList = try getTestProxies()
 
-        let playerawardslist: PlayerAwardsList = try await apiService.get(
-            timeoutInterval: 30,
-            path: "playerawards",
-            params: [
-                URLQueryItem(name: "PlayerID", value: "1628369")
-            ],
-            proxy: proxyList.proxies.randomElement()
-        )
+        let playerawardslist: PlayerAwardsList = try await apiService.fetchWithRetry(endpoint: .playerAwards, playerId: 1628369, proxy: proxyList.proxies.randomElement())
         
         #expect(playerawardslist.PlayerAwards.count == 34)
         #expect(playerawardslist.PlayerAwards.allSatisfy { $0.PERSON_ID == 1628369 })
@@ -118,15 +128,28 @@ struct APIServiceTests {
     @Test func canFetchPlayerProfile() async throws {
         let apiService = APIService.nbaApiService
         
-        let playerprofilev2: PlayerProfileV2 = try await apiService.get(
-            timeoutInterval: 30,
-            path: "playerprofilev2",
-            params: [
-                URLQueryItem(name: "PerMode", value: "PerGame"),
-                URLQueryItem(name: "PlayerID", value: "1628369"),
-                URLQueryItem(name: "LeagueID", value: "00")
-            ]
-        )
+        let playerprofilev2: PlayerProfileV2 = try await apiService.fetchWithRetry(endpoint: .playerProfileV2, playerId: 1628369)
+        
+        #expect(playerprofilev2.regularSeasonTotals.count >= 1)
+        #expect(type(of: playerprofilev2.careerRegularSeasonTotals) == CareerTotalsRegularSeason.self)
+        #expect(playerprofilev2.postSeasonTotals.count >= 1)
+        #expect(type(of: playerprofilev2.careerPostSeasonTotals) == CareerTotalsPostSeason.self)
+        #expect(playerprofilev2.allStarSeasonTotals.count >= 1)
+        #expect(type(of: playerprofilev2.careerAllStarTotals) == CareerTotalsAllStarSeason.self)
+        #expect(playerprofilev2.collegeSeasonTotals.count >= 1)
+        #expect(type(of: playerprofilev2.careerCollegeTotals) == CareerTotalsCollegeSeason.self)
+        #expect(playerprofilev2.preseasonTotals.count >= 1)
+        #expect(type(of: playerprofilev2.careerPreseasonTotals) == CareerTotalsPreseason.self)
+        #expect(playerprofilev2.regularSeasonRankings.count >= 1)
+        #expect(playerprofilev2.postSeasonRankings.count >= 1)
+    }
+    
+    @Test func canFetchPlayerProfileWithProxy() async throws {
+        let apiService = APIService.nbaApiService
+        
+        let proxyList = try getTestProxies()
+        
+        let playerprofilev2: PlayerProfileV2 = try await apiService.fetchWithRetry(endpoint: .playerProfileV2, playerId: 1628369, proxy: proxyList.proxies.randomElement())
         
         #expect(playerprofilev2.regularSeasonTotals.count >= 1)
         #expect(type(of: playerprofilev2.careerRegularSeasonTotals) == CareerTotalsRegularSeason.self)
