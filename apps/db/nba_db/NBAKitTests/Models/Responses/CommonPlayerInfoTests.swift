@@ -50,5 +50,8 @@ struct CommonPlayerInfoTests {
         #expect(commonplayerinfo.teamCity == "Boston")
         #expect(commonplayerinfo.fromYear == 2017)
         #expect(commonplayerinfo.toYear == 2025)
+        #expect(commonplayerinfo.draftYear == "2017")
+        #expect(commonplayerinfo.draftRound == "1")
+        #expect(commonplayerinfo.draftNumber == "3")
     }
 }

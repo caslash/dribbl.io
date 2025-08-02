@@ -4,8 +4,6 @@ public protocol IApiService {
     var baseURL: URL { get }
     var headers: [String: String] { get }
     
-    init(api: ApiSource)
-    
     func get<T: ResponseInitializable>(timeoutInterval: TimeInterval, path: String?, params: [URLQueryItem]?, proxy: Proxy?) async throws -> T
 }
 
@@ -51,7 +49,7 @@ public class APIService: IApiService {
     public var baseURL: URL
     public var headers: [String : String]
     
-    required public init(api: ApiSource) {
+    private init(api: ApiSource) {
         self.baseURL = api.baseURL
         self.headers = api.headers
     }
