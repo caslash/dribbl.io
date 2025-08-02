@@ -20,6 +20,9 @@ struct CommonPlayerInfo: ResponseInitializable {
     var teamCity: String
     var fromYear: Int
     var toYear: Int
+    var draftYear: String?
+    var draftRound: String?
+    var draftNumber: String?
     
     init(from data: Data) throws {
         let decoder = JSONDecoder()
@@ -49,5 +52,8 @@ struct CommonPlayerInfo: ResponseInitializable {
         self.teamCity          = v("TEAM_CITY")?.stringValue ?? ""
         self.fromYear          = v("FROM_YEAR")?.intValue    ?? 0
         self.toYear            = v("TO_YEAR")?.intValue ?? 0
+        self.draftYear = v("DRAFT_YEAR")?.stringValue ?? ""
+        self.draftRound = v("DRAFT_ROUND")?.stringValue ?? ""
+        self.draftNumber = v("DRAFT_NUMBER")?.stringValue ?? ""
     }
 }

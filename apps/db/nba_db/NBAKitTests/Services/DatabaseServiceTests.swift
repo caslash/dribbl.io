@@ -319,39 +319,41 @@ struct DatabaseServiceTests {
     // MARK: - Helper Methods
     
     private func createTestPlayers(count: Int) -> [Player] {
-        let baseDate = Date()
         var playerBatch: [Player] = []
         
         for index in 0..<count {
+            var player = Player(id: 1000 + index, first_name: "Test", last_name: "Player\(index)")
+            self.fillPlayerObject(&player, index: index)
+            
             playerBatch.append(
-                Player(
-                    id: 1000 + index,
-                    first_name: "Test",
-                    last_name: "Player\(index)",
-                    birthdate: baseDate,
-                    school: "Test University",
-                    country: "USA",
-                    height: "6-8",
-                    weight: 200 + index,
-                    season_exp: index,
-                    jersey: index < 100 ? index : nil,
-                    position: "Forward",
-                    team_history: "Test Team",
-                    is_active: true,
-                    from_year: 2020,
-                    to_year: 2025,
-                    total_games_played: 82 * index,
-                    draft_round: "1",
-                    draft_number: "\(index + 1)",
-                    draft_year: "2020",
-                    career_ppg: 20.0 + Double(index),
-                    career_rpg: 8.0 + Double(index),
-                    career_apg: 5.0 + Double(index)
-                )
+                player
             )
         }
         
         return playerBatch
+    }
+    
+    private func fillPlayerObject(_ player: inout Player, index: Int) {
+        let baseDate = Date()
+        player.birthdate = baseDate
+        player.school = "Test University"
+        player.country = "USA"
+        player.height = "6-8"
+        player.weight = 200 + index
+        player.season_exp = index
+        player.jersey = index < 100 ? index : nil
+        player.position = "Forward"
+        player.team_history = "Test Team"
+        player.is_active = true
+        player.from_year = 2020
+        player.to_year = 2025
+        player.total_games_played = 82 * index
+        player.draft_round = "1"
+        player.draft_number = "\(index + 1)"
+        player.draft_year = "2020"
+        player.career_ppg = 20.0 + Double(index)
+        player.career_rpg = 8.0 + Double(index)
+        player.career_apg = 5.0 + Double(index)
     }
     
     private func createTestPlayerAccolades(count: Int) throws -> [PlayerAccolades] {

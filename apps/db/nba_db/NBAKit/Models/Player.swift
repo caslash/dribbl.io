@@ -1,26 +1,32 @@
 import Foundation
 
-public struct Player: Codable {
+public struct Player: Codable, Identifiable {
     public let id: Int
     public let first_name: String
     public let last_name: String
-    public let birthdate: Date
-    public let school: String
-    public let country: String
-    public let height: String
-    public let weight: Int
-    public let season_exp: Int
-    public let jersey: Int?
-    public let position: String
-    public let team_history: String
-    public let is_active: Bool
-    public let from_year: Int
-    public let to_year: Int
-    public let total_games_played: Int
-    public let draft_round: String
-    public let draft_number: String
-    public let draft_year: String
-    public let career_ppg: Double
-    public let career_rpg: Double
-    public let career_apg: Double
+    public var birthdate: Date? = nil
+    public var school: String? = nil
+    public var country: String? = nil
+    public var height: String? = nil
+    public var weight: Int? = nil
+    public var season_exp: Int? = nil
+    public var jersey: Int? = nil
+    public var position: String? = nil
+    public var team_history: String? = nil
+    public var is_active: Bool? = nil
+    public var from_year: Int? = nil
+    public var to_year: Int? = nil
+    public var total_games_played: Int? = nil
+    public var draft_round: String? = nil
+    public var draft_number: String? = nil
+    public var draft_year: String? = nil
+    public var career_ppg: Double? = nil
+    public var career_rpg: Double? = nil
+    public var career_apg: Double? = nil
+    
+    init(id: Int, first_name: String, last_name: String) {
+        self.id = id
+        self.first_name = first_name
+        self.last_name = last_name
+    }
 }
