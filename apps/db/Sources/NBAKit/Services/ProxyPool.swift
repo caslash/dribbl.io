@@ -4,7 +4,6 @@ public actor ProxyPool {
     private var availableProxies: [Proxy] = []
     private var inUseProxies: [String: Proxy] = [:]
     private let maxConcurrentPerProxy: Int
-    private var proxyUsageCount: [String: Int] = [:]
     private var proxyCurrentUsage: [String: Int] = [:]
     
     public init (maxConcurrentPerProxy: Int = 1) {
@@ -33,17 +32,12 @@ public actor ProxyPool {
     }
     
     public func acquireProxy() async -> Proxy? {
-        guard !self.availableProxies.isEmpty else {
-            print("Warning: No available proxies in pool (total available: \(availableProxies.count), in use: \(inUseProxies.count))")
-            return nil
+        while self.availableProxies.isEmpty {
+            await Task.yield()
         }
-        
+
         let proxy = self.availableProxies.removeFirst()
-        let proxyId = proxy.connection.publicIp
-        
-        self.inUseProxies[proxyId] = proxy
-        self.proxyUsageCount[proxyId, default: 0] += 1
-        
+        self.inUseProxies[proxy.connection.publicIp] = proxy
         return proxy
     }
     
