@@ -29,35 +29,39 @@ public final class DataProcessor {
         self.progressTracker = ProgressTracker(total: totalCount)
         
         let batches = players.chunked(into: self.batchSize)
-        
-        var finalSummary: ProcessingSummary!
-        finalSummary = try await withThrowingTaskGroup(
-            of: ProcessingSummary.self,
-            returning: ProcessingSummary.self
-        ) { group in
-            for batch in batches {
-                group.addTask { [self] in
-                    let result = await self.processBatch(batch)
-                    try await self.handleBatchResult(result)
-                    return await self.progressTracker.getFinalSummary()
+
+        do {
+            let finalSummary = try await withThrowingTaskGroup(
+                of: ProcessingSummary.self,
+                returning: ProcessingSummary.self
+            ) { group in
+                for batch in batches {
+                    group.addTask { [self] in
+                        let result = await self.processBatch(batch)
+                        try await self.handleBatchResult(result)
+                        return await self.progressTracker.getFinalSummary()
+                    }
                 }
+
+                var last: ProcessingSummary = ProcessingSummary(
+                    totalPlayers: totalCount,
+                    completed: 0,
+                    failed: 0,
+                    errors: [:],
+                    totalTime: 0,
+                    averageRate: 0
+                )
+                for try await summary in group {
+                    last = summary
+                }
+                return last
             }
-            
-            var last: ProcessingSummary = ProcessingSummary(
-                totalPlayers: totalCount,
-                completed: 0,
-                failed: 0,
-                errors: [:],
-                totalTime: 0,
-                averageRate: 0
-            )
-            for try await summary in group {
-                last = summary
-            }
-            return last
+            try await self.databaseService.close()
+            return finalSummary
+        } catch {
+            try await self.databaseService.close()
+            throw error
         }
-        
-        return finalSummary
     }
     
     private func initializeProxyPool() async throws {

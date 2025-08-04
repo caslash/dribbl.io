@@ -117,7 +117,7 @@ public final class DatabaseService: DatabaseServiceProtocol {
     }
     
     private func insertPlayerBatch(_ players: [Player], batchIndex: Int, totalBatches: Int) async throws {
-        _ = self.connectionPool.withConnection { connection in
+        try await self.connectionPool.withConnection { connection in
             let sql = """
                 INSERT INTO players (
                     id, first_name, last_name, birthdate, school, country, height, weight,
@@ -183,7 +183,7 @@ public final class DatabaseService: DatabaseServiceProtocol {
             }
             
             return connection.query(sql, bindings).map { _ in }
-        }
+        }.get()
     }
     
     // MARK: - Player Accolades Operations
@@ -215,9 +215,9 @@ public final class DatabaseService: DatabaseServiceProtocol {
     }
     
     private func insertPlayerAccoladesBatch(_ accolades: [PlayerAccolades], batchIndex: Int, totalBatches: Int) async throws {
-        _ = self.connectionPool.withConnection { connection in
+        try await self.connectionPool.withConnection { connection in
             let sql = """
-                INSERT INTO player_accolades (player_id, accolades) VALUES 
+                INSERT INTO player_accolades (player_id, accolades) VALUES
                 """ + accolades.enumerated().map { index, _ in
                     let baseParam = index * 2 + 1
                     return "($\(baseParam), $\(baseParam+1))"
@@ -243,7 +243,7 @@ public final class DatabaseService: DatabaseServiceProtocol {
             }
             
             return connection.query(sql, bindings).map { _ in }
-        }
+        }.get()
     }
     
     // MARK: - Lifecycle
