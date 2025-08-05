@@ -9,29 +9,28 @@ struct DataProcessorTests {
     @Test("DataProcessor initializes correctly with valid config")
     func initializesWithValidConfig() async throws {
         let config = DatabaseConfig(
-            database: "test_db",
-            username: "test_user",
-            password: "test_password"
+            database: "test_nba_db",
+            username: "caslash",
+            password: "1212",
         )
-        
-        let _ = try DataProcessor(maxConcurrency: 5, batchSize: 50, databaseConfig: config)
-        
-        // Test passes if no exception is thrown during initialization
-        #expect(true)
+
+        #expect(throws: Never.self) {
+            let _ = try DataProcessor(maxConcurrency: 5, batchSize: 50, databaseConfig: config)
+        }
     }
     
     @Test("DataProcessor initializes with custom parameters")
     func initializesWithCustomParameters() async throws {
         let config = DatabaseConfig(
-            database: "test_db",
-            username: "test_user",
-            password: "test_password"
+            database: "test_nba_db",
+            username: "caslash",
+            password: "1212",
         )
         
-        let _ = try DataProcessor(maxConcurrency: 10, batchSize: 25, databaseConfig: config)
-        
-        // Test passes if no exception is thrown during initialization
-        #expect(true)
+
+        #expect(throws: Never.self) {
+            let _ = try DataProcessor(maxConcurrency: 10, batchSize: 25, databaseConfig: config)
+        }
     }
     
     @Test("DataProcessor throws error with invalid database config")
@@ -44,9 +43,10 @@ struct DataProcessorTests {
             password: "invalid_password"
         )
         
-        // Should be able to initialize even with invalid config (connection fails later)
-        let _ = try DataProcessor(maxConcurrency: 5, batchSize: 50, databaseConfig: config)
-        #expect(true)
+        
+        #expect(throws: Never.self) {
+            let _ = try DataProcessor(maxConcurrency: 5, batchSize: 50, databaseConfig: config)
+        }
     }
     
     // MARK: - Test Player Processing
@@ -54,66 +54,48 @@ struct DataProcessorTests {
     @Test("Process players handles empty array gracefully")
     func processPlayersHandlesEmptyArray() async throws {
         let config = DatabaseConfig(
-            database: "test_db",
-            username: "test_user",
-            password: "test_password"
+            database: "test_nba_db",
+            username: "caslash",
+            password: "1212",
         )
         
         let dataProcessor = try DataProcessor(maxConcurrency: 5, batchSize: 50, databaseConfig: config)
         
-        // Processing empty array should complete without errors
-        do {
-            let summary = try await dataProcessor.processPlayers([])
-            #expect(summary.totalPlayers == 0)
-            #expect(summary.completed == 0)
-            #expect(summary.failed == 0)
-            #expect(summary.errors.isEmpty)
-        } catch {
-            // If it fails due to proxy/API initialization, that's expected in tests
-            #expect(error.localizedDescription != "")
-        }
+        let summary = try await dataProcessor.processPlayers([])
+
+        #expect(summary.totalPlayers == 0)
+        #expect(summary.completed == 0)
+        #expect(summary.failed == 0)
     }
     
     @Test("Process players handles single player")
     func processPlayersHandlesSinglePlayer() async throws {
         let config = DatabaseConfig(
-            database: "test_db",
-            username: "test_user",
-            password: "test_password"
+            database: "test_nba_db",
+            username: "caslash",
+            password: "1212",
         )
         
         let dataProcessor = try DataProcessor(maxConcurrency: 5, batchSize: 50, databaseConfig: config)
         let players = [self.getCelticsChampionStarters().randomElement()!]
         
-        // This will likely fail due to API calls, but we're testing the structure
-        do {
-            let summary = try await dataProcessor.processPlayers(players)
-            #expect(summary.totalPlayers == 1)
-        } catch {
-            // Expected to fail without real API endpoints
-            #expect(error.localizedDescription != "")
-        }
+        let summary = try await dataProcessor.processPlayers(players)
+        #expect(summary.totalPlayers == 1)
     }
     
     @Test("Process players handles multiple players")
     func processPlayersHandlesMultiplePlayers() async throws {
         let config = DatabaseConfig(
-            database: "test_db",
-            username: "test_user",
-            password: "test_password"
+            database: "test_nba_db",
+            username: "caslash",
+            password: "1212",
         )
         
         let dataProcessor = try DataProcessor(maxConcurrency: 5, batchSize: 2, databaseConfig: config)
         let players = self.getCelticsChampionStarters()
         
-        // This will likely fail due to API calls, but we're testing the batching logic
-        do {
-            let summary = try await dataProcessor.processPlayers(players)
-            #expect(summary.totalPlayers == 5)
-        } catch {
-            // Expected to fail without real API endpoints
-            #expect(error.localizedDescription != "")
-        }
+        let summary = try await dataProcessor.processPlayers(players)
+        #expect(summary.totalPlayers == 5)
     }
     
     @Test("Process players respects batch size")
@@ -346,17 +328,16 @@ struct DataProcessorTests {
     @Test("DataProcessor respects max concurrency setting")
     func dataProcessorRespectsMaxConcurrencySetting() async throws {
         let config = DatabaseConfig(
-            database: "test_db",
-            username: "test_user", 
-            password: "test_password"
+            database: "test_nba_db",
+            username: "caslash",
+            password: "1212",
         )
         
-        // Test with different concurrency levels
-        let _ = try DataProcessor(maxConcurrency: 1, batchSize: 50, databaseConfig: config)
-        let _ = try DataProcessor(maxConcurrency: 10, batchSize: 50, databaseConfig: config)
-        
-        // Both should initialize successfully
-        #expect(true)
+
+        #expect(throws: Never.self) {
+            let _ = try DataProcessor(maxConcurrency: 1, batchSize: 50, databaseConfig: config)
+            let _ = try DataProcessor(maxConcurrency: 10, batchSize: 50, databaseConfig: config)
+        }
     }
     
     // MARK: - Helper Methods

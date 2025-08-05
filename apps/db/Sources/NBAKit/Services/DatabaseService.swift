@@ -119,7 +119,7 @@ public final class DatabaseService: DatabaseServiceProtocol {
     private func insertPlayerBatch(_ players: [Player], batchIndex: Int, totalBatches: Int) async throws {
         try await self.connectionPool.withConnection { connection in
             let sql = """
-                INSERT INTO players (
+                INSERT INTO player (
                     id, first_name, last_name, birthdate, school, country, height, weight,
                     season_exp, jersey, position, team_history, is_active, from_year, to_year,
                     total_games_played, draft_round, draft_number, draft_year,
@@ -127,7 +127,7 @@ public final class DatabaseService: DatabaseServiceProtocol {
                 ) VALUES 
                 """ + players.enumerated().map { index, _ in
                     let baseParam = index * 22 + 1
-                    return "($\(baseParam), $\(baseParam+1), $\(baseParam+2), $\(baseParam+3), $\(baseParam+4), $\(baseParam+5), $\(baseParam+6), $\(baseParam+7), $\(baseParam+8), $\(baseParam+9), $\(baseParam+10), $\(baseParam+11), $\(baseParam+12), $\(baseParam+13), $\(baseParam+14), $\(baseParam+15), $\(baseParam+16), $\(baseParam+17), $\(baseParam+18), $\(baseParam+19), $\(baseParam+20), $\(baseParam+21), $\(baseParam+22))"
+                    return "($\(baseParam), $\(baseParam+1), $\(baseParam+2), $\(baseParam+3), $\(baseParam+4), $\(baseParam+5), $\(baseParam+6), $\(baseParam+7), $\(baseParam+8), $\(baseParam+9), $\(baseParam+10), $\(baseParam+11), $\(baseParam+12), $\(baseParam+13), $\(baseParam+14), $\(baseParam+15), $\(baseParam+16), $\(baseParam+17), $\(baseParam+18), $\(baseParam+19), $\(baseParam+20), $\(baseParam+21))"
                 }.joined(separator: ", ") + """
                 ON CONFLICT (id) DO UPDATE SET
                     first_name = EXCLUDED.first_name,
@@ -160,7 +160,7 @@ public final class DatabaseService: DatabaseServiceProtocol {
                     PostgresData(int: player.id),
                     PostgresData(string: player.first_name),
                     PostgresData(string: player.last_name),
-                    player.birthdate.map { PostgresData(string: self.dateFormatter.string(from: $0)) } ?? PostgresData.null,
+                    player.birthdate.map { PostgresData(date: $0) } ?? PostgresData.null,
                     player.school.map { PostgresData(string: $0) } ?? PostgresData.null,
                     player.country.map { PostgresData(string: $0) } ?? PostgresData.null,
                     player.height.map { PostgresData(string: $0) } ?? PostgresData.null,

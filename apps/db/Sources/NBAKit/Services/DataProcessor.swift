@@ -69,36 +69,84 @@ public final class DataProcessor {
         await self.proxyPool.initialize(with: proxiesList.proxies)
     }
     
-    private func processBatch(_ players: [PlayerInfo]) async -> (players: [Player], accolades: [PlayerAccolades]) {
-        // Process players concurrently within the batch, respecting maxConcurrency
-        let results = await withTaskGroup(of: (Player?, PlayerAccolades?).self) { group in
-            var results: [(Player?, PlayerAccolades?)] = []
-            
-            for info in players {
-                group.addTask { [self] in
-                    do {
-                        let (player, accolade) = try await self.processPlayer(info)
-                        await self.progressTracker.updateProgress()
-                        return (player, accolade)
-                    } catch {
-                        await self.progressTracker.recordError(playerId: info.id, error: error)
-                        return (nil, nil)
-                    }
-                }
-            }
-            
-            for await result in group {
-                results.append(result)
-            }
-            
-            return results
+    private func processPlayerWithErrorHandling(_ info: PlayerInfo) async -> (Player?, PlayerAccolades?) {
+        do {
+            let (player, accolade) = try await self.processPlayer(info)
+            await self.progressTracker.updateProgress()
+            return (player, accolade)
+        } catch {
+            await self.progressTracker.recordError(playerId: info.id, error: error)
+            return (nil, nil)
         }
-        
-        let processedPlayers = results.compactMap { $0.0 }
-        let processedAccolades = results.compactMap { $0.1 }
-        
-        return (players: processedPlayers, accolades: processedAccolades)
     }
+    
+     private func processBatch(_ players: [PlayerInfo]) async -> (players: [Player], accolades: [PlayerAccolades]) {
+         var processedPlayers: [Player] = []
+         var processedAccolades: [PlayerAccolades] = []
+
+         await withTaskGroup(of: (Player?, PlayerAccolades?).self) { group in
+             var iterator = players.makeIterator()
+             var activeTasks = 0
+            
+             while activeTasks < self.maxConcurrency, let info = iterator.next() {
+                 group.addTask { [self] in
+                     await self.processPlayerWithErrorHandling(info)
+                 }
+                 activeTasks += 1
+             }
+             
+             while !group.isEmpty {
+                 if let result = await group.next() {
+                     if let player = result.0 {
+                         processedPlayers.append(player)
+                     }
+                     
+                     if let accolade = result.1 {
+                         processedAccolades.append(accolade)
+                     }
+                     
+                     if let info = iterator.next() {
+                         group.addTask { [self] in
+                             await self.processPlayerWithErrorHandling(info)
+                         }
+                     }
+                 }
+             }
+         }
+        
+         return (players: processedPlayers, accolades: processedAccolades)
+     }
+    
+    // private func processBatch(_ players: [PlayerInfo]) async -> (players: [Player], accolades: [PlayerAccolades]) {
+    //     // Process players concurrently within the batch, respecting maxConcurrency
+    //     let results = await withTaskGroup(of: (Player?, PlayerAccolades?).self) { group in
+    //         var results: [(Player?, PlayerAccolades?)] = []
+            
+    //         for info in players {
+    //             group.addTask { [self] in
+    //                 do {
+    //                     let (player, accolade) = try await self.processPlayer(info)
+    //                     await self.progressTracker.updateProgress()
+    //                     return (player, accolade)
+    //                 } catch {
+    //                     await self.progressTracker.recordError(playerId: info.id, error: error)
+    //                     return (nil, nil)
+    //                 }
+    //             }
+    //         }
+            
+    //         for await result in group {
+    //             results.append(result)
+    //         }
+            
+    //         return results
+    //     }
+        
+    //     let processedPlayers = results.compactMap { $0.0 }
+    //     let processedAccolades = results.compactMap { $0.1 }
+        
+    //     return (players: processedPlayers, accolades: processedAccolades)
+    // }
     
     private func processPlayer(_ playerInfo: PlayerInfo) async throws -> (Player, PlayerAccolades) {
         let proxy = await self.proxyPool.acquireProxy()

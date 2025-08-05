@@ -14,9 +14,9 @@ struct DatabaseServiceTests {
         let config = DatabaseConfig(
             host: "localhost",
             port: 5432,
-            database: "test_db",
-            username: "test_user",
-            password: "test_password",
+            database: "test_nba_db",
+            username: "caslash",
+            password: "1212",
             maxConnections: 5,
             batchSize: 100,
             ssl: false
@@ -34,9 +34,9 @@ struct DatabaseServiceTests {
     @Test("DatabaseService initializes with default logger name")
     func initializesWithDefaultLogger() async throws {
         let config = DatabaseConfig(
-            database: "test_db",
-            username: "test_user",
-            password: "test_password"
+            database: "test_nba_db",
+            username: "caslash",
+            password: "1212",
         )
         
         let databaseService = try DatabaseService(config: config)
@@ -53,9 +53,9 @@ struct DatabaseServiceTests {
     @Test("DatabaseConfig initializes with default values")
     func configInitializesWithDefaults() {
         let config = DatabaseConfig(
-            database: "test_db",
-            username: "test_user",
-            password: "test_password"
+            database: "test_nba_db",
+            username: "caslash",
+            password: "1212",
         )
         
         #expect(config.host == "localhost")
@@ -96,9 +96,9 @@ struct DatabaseServiceTests {
     @Test("Batch insert players handles empty array gracefully")
     func batchInsertPlayersHandlesEmptyArray() async throws {
         let config = DatabaseConfig(
-            database: "test_db",
-            username: "test_user",
-            password: "test_password"
+            database: "test_nba_db",
+            username: "caslash",
+            password: "1212",
         )
         
         let databaseService = try DatabaseService(config: config)
@@ -116,9 +116,9 @@ struct DatabaseServiceTests {
     @Test("Batch insert players processes valid player data")
     func batchInsertPlayersProcessesValidData() async throws {
         let config = DatabaseConfig(
-            database: "test_db",
-            username: "test_user",
-            password: "test_password",
+            database: "test_nba_db",
+            username: "caslash",
+            password: "1212",
             batchSize: 2 // Small batch size for testing
         )
         
