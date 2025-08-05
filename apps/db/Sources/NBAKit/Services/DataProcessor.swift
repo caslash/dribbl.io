@@ -117,37 +117,6 @@ public final class DataProcessor {
          return (players: processedPlayers, accolades: processedAccolades)
      }
     
-    // private func processBatch(_ players: [PlayerInfo]) async -> (players: [Player], accolades: [PlayerAccolades]) {
-    //     // Process players concurrently within the batch, respecting maxConcurrency
-    //     let results = await withTaskGroup(of: (Player?, PlayerAccolades?).self) { group in
-    //         var results: [(Player?, PlayerAccolades?)] = []
-            
-    //         for info in players {
-    //             group.addTask { [self] in
-    //                 do {
-    //                     let (player, accolade) = try await self.processPlayer(info)
-    //                     await self.progressTracker.updateProgress()
-    //                     return (player, accolade)
-    //                 } catch {
-    //                     await self.progressTracker.recordError(playerId: info.id, error: error)
-    //                     return (nil, nil)
-    //                 }
-    //             }
-    //         }
-            
-    //         for await result in group {
-    //             results.append(result)
-    //         }
-            
-    //         return results
-    //     }
-        
-    //     let processedPlayers = results.compactMap { $0.0 }
-    //     let processedAccolades = results.compactMap { $0.1 }
-        
-    //     return (players: processedPlayers, accolades: processedAccolades)
-    // }
-    
     private func processPlayer(_ playerInfo: PlayerInfo) async throws -> (Player, PlayerAccolades) {
         let proxy = await self.proxyPool.acquireProxy()
         
