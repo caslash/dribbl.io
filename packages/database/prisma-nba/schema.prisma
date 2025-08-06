@@ -16,6 +16,7 @@ model Player {
   id                 Int               @id(map: "idx_16392_player_pkey")
   first_name         String?           @db.VarChar
   last_name          String?           @db.VarChar
+  display_first_last String?           @db.VarChar
   birthdate          DateTime?         @db.Timestamp(6)
   school             String?           @db.VarChar
   country            String?           @db.VarChar
