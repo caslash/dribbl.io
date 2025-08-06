@@ -22,7 +22,7 @@ struct Populate: AsyncParsableCommand {
             password: self.password
         )
         
-        let dataProcessor = try DataProcessor(databaseConfig: config)
+        let dataProcessor = try DataProcessor(maxConcurrency: 30, batchSize: 100, databaseConfig: config)
         let _ = try await dataProcessor.processPlayers(PlayersList.allPlayers)
     }
 }

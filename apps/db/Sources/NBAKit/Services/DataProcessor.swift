@@ -1,26 +1,41 @@
+import AsyncAlgorithms
 import Foundation
 
 public final class DataProcessor {
     private let nbaApiService: APIService
     private let proxyApiService: APIService
     private let proxyPool: ProxyPool
-    private let databaseService: DatabaseService
     
     private let maxConcurrency: Int
     private let batchSize: Int
 
     private var progressTracker: ProgressTracker
+
+    private let databaseService: DatabaseService
+    private let databaseWriteQueue: AsyncChannel<BatchResult>
+    private var databaseWriteTask: Task<Void, Never>?
+
+    private struct BatchResult {
+        let players: [Player]
+        let accolades: [PlayerAccolades]
+    }
     
-    public init(maxConcurrency: Int = 10, batchSize: Int = 50, databaseConfig: DatabaseConfig) throws {
+    public init(maxConcurrency: Int = 30, batchSize: Int = 100, databaseConfig: DatabaseConfig) throws {
         self.nbaApiService = APIService.nbaApiService
         self.proxyApiService = APIService.proxyApiService
-        self.proxyPool = ProxyPool(maxConcurrentPerProxy: 1)
+        self.proxyPool = ProxyPool(maxConcurrentPerProxy: 3)
         self.databaseService = try DatabaseService(config: databaseConfig)
         
         self.maxConcurrency = maxConcurrency
         self.batchSize = batchSize
         
         self.progressTracker = ProgressTracker(total: 0)
+
+        self.databaseWriteQueue = AsyncChannel<BatchResult>()
+
+        self.databaseWriteTask = Task {
+            await self.processDatabaseWrites()
+        }
     }
     
     public func processPlayers(_ players: [PlayerInfo]) async throws -> ProcessingSummary {
@@ -56,10 +71,17 @@ public final class DataProcessor {
                 }
                 return last
             }
+
+            self.databaseWriteQueue.finish()
+            await self.databaseWriteTask?.value
             try await self.databaseService.close()
+
             return finalSummary
         } catch {
+            self.databaseWriteQueue.finish()
+            await self.databaseWriteTask?.value
             try await self.databaseService.close()
+            
             throw error
         }
     }
@@ -116,32 +138,28 @@ public final class DataProcessor {
         
          return (players: processedPlayers, accolades: processedAccolades)
      }
-    
+
     private func processPlayer(_ playerInfo: PlayerInfo) async throws -> (Player, PlayerAccolades) {
         let proxy = await self.proxyPool.acquireProxy()
-        
+
         do {
-            let cpi: CommonPlayerInfo = try await self.nbaApiService.fetchWithRetry(endpoint: .commonPlayerInfo, playerId: playerInfo.id, proxy: proxy)
-            
-            let profile: PlayerProfileV2 = try await self.nbaApiService.fetchWithRetry(endpoint: .playerProfileV2, playerId: playerInfo.id, proxy: proxy)
-            
-            let awards: PlayerAwardsList = try await self.nbaApiService.fetchWithRetry(endpoint: .playerAwards, playerId: playerInfo.id, proxy: proxy)
-            
-            var player = Player(id: playerInfo.id, first_name: cpi.firstName, last_name: cpi.lastName)
-            
-            self.fillOutPlayer(&player, cpi: cpi, profile: profile)
-            
-            let accolades = PlayerAccolades(player_id: playerInfo.id, accolades: awards)
-            
-            // Release proxy before returning
-            if let proxy = proxy {
+            async let cpi: CommonPlayerInfo = self.nbaApiService.fetchWithRetry(endpoint: .commonPlayerInfo, playerId: playerInfo.id, proxy: proxy)
+            async let profile: PlayerProfileV2 = self.nbaApiService.fetchWithRetry(endpoint: .playerProfileV2, playerId: playerInfo.id, proxy: proxy)
+            async let awards: PlayerAwardsList = self.nbaApiService.fetchWithRetry(endpoint: .playerAwards, playerId: playerInfo.id, proxy: proxy)
+
+            let (cpiResult, profileResult, awardsResult) = try await (cpi, profile, awards)
+
+            var player = Player(id: playerInfo.id, first_name: cpiResult.firstName, last_name: cpiResult.lastName)
+            self.fillOutPlayer(&player, cpi: cpiResult, profile: profileResult)
+            let accolades = PlayerAccolades(player_id: playerInfo.id, accolades: awardsResult)
+
+            if let proxy {
                 await self.proxyPool.releaseProxy(proxy)
             }
             
             return (player, accolades)
         } catch {
-            // Release proxy on error
-            if let proxy = proxy {
+            if let proxy {
                 await self.proxyPool.releaseProxy(proxy)
             }
             throw error
@@ -199,9 +217,26 @@ public final class DataProcessor {
             careerRegularSeasonTotals.assists
         )
     }
+
+    private func processDatabaseWrites() async {
+        do {
+            for try await batch in databaseWriteQueue {
+                try await databaseService.batchInsertPlayers(batch.players)
+                try await databaseService.batchInsertPlayerAccolades(batch.accolades)
+            }
+        } catch {
+            print("Database writer error: \(error)")
+        }
+    }
     
     private func handleBatchResult(_ result: (players: [Player], accolades: [PlayerAccolades])) async throws {
-        try await databaseService.batchInsertPlayers(result.players)
-        try await databaseService.batchInsertPlayerAccolades(result.accolades)
+        await databaseWriteQueue.send(BatchResult(
+            players: result.players, 
+            accolades: result.accolades
+        ))
+    }
+
+    deinit {
+        self.databaseWriteTask?.cancel()
     }
 }
