@@ -1,6 +1,6 @@
 import Foundation
 
-struct PlayerProfileV2: ResponseInitializable {
+public struct PlayerProfileV2: ResponseInitializable {
     let regularSeasonTotals: [SeasonTotalsRegularSeason]
     let careerRegularSeasonTotals: CareerTotalsRegularSeason?
     let postSeasonTotals: [SeasonTotalsPostSeason]
@@ -15,23 +15,40 @@ struct PlayerProfileV2: ResponseInitializable {
     let postSeasonRankings: [SeasonRankingsPostSeason]
     let seasonHighs: [SeasonHigh]
     let careerHighs: [CareerHigh]
-    
-    init(from data: Data) throws {
+
+    public init(from data: Data) throws {
         let decoder = JSONDecoder()
         let resp = try decoder.decode(NBAAPIResponse.self, from: data)
-        
-        self.regularSeasonTotals = try resp.resultSets.rows(of: SeasonTotalsRegularSeason.self, named: "SeasonTotalsRegularSeason")
-        self.careerRegularSeasonTotals = try resp.resultSets.rows(of: CareerTotalsRegularSeason.self, named: "CareerTotalsRegularSeason").first
-        self.postSeasonTotals = try resp.resultSets.rows(of: SeasonTotalsPostSeason.self, named: "SeasonTotalsPostSeason")
-        self.careerPostSeasonTotals = try resp.resultSets.rows(of: CareerTotalsPostSeason.self, named: "CareerTotalsPostSeason").first
-        self.allStarSeasonTotals = try resp.resultSets.rows(of: SeasonTotalsAllStarSeason.self, named: "SeasonTotalsAllStarSeason")
-        self.careerAllStarTotals = try resp.resultSets.rows(of: CareerTotalsAllStarSeason.self, named: "CareerTotalsAllStarSeason").first
-        self.collegeSeasonTotals = try resp.resultSets.rows(of: SeasonTotalsCollegeSeason.self, named: "SeasonTotalsCollegeSeason")
-        self.careerCollegeTotals = try resp.resultSets.rows(of: CareerTotalsCollegeSeason.self, named: "CareerTotalsCollegeSeason").first
-        self.preseasonTotals = try resp.resultSets.rows(of: SeasonTotalsPreseason.self, named: "SeasonTotalsPreseason")
-        self.careerPreseasonTotals = try resp.resultSets.rows(of: CareerTotalsPreseason.self, named: "CareerTotalsPreseason").first
-        self.regularSeasonRankings = try resp.resultSets.rows(of: SeasonRankingsRegularSeason.self, named: "SeasonRankingsRegularSeason")
-        self.postSeasonRankings = try resp.resultSets.rows(of: SeasonRankingsPostSeason.self, named: "SeasonRankingsPostSeason")
+
+        self.regularSeasonTotals = try resp.resultSets.rows(
+            of: SeasonTotalsRegularSeason.self, named: "SeasonTotalsRegularSeason")
+        self.careerRegularSeasonTotals = try resp.resultSets.rows(
+            of: CareerTotalsRegularSeason.self, named: "CareerTotalsRegularSeason"
+        ).first
+        self.postSeasonTotals = try resp.resultSets.rows(
+            of: SeasonTotalsPostSeason.self, named: "SeasonTotalsPostSeason")
+        self.careerPostSeasonTotals = try resp.resultSets.rows(
+            of: CareerTotalsPostSeason.self, named: "CareerTotalsPostSeason"
+        ).first
+        self.allStarSeasonTotals = try resp.resultSets.rows(
+            of: SeasonTotalsAllStarSeason.self, named: "SeasonTotalsAllStarSeason")
+        self.careerAllStarTotals = try resp.resultSets.rows(
+            of: CareerTotalsAllStarSeason.self, named: "CareerTotalsAllStarSeason"
+        ).first
+        self.collegeSeasonTotals = try resp.resultSets.rows(
+            of: SeasonTotalsCollegeSeason.self, named: "SeasonTotalsCollegeSeason")
+        self.careerCollegeTotals = try resp.resultSets.rows(
+            of: CareerTotalsCollegeSeason.self, named: "CareerTotalsCollegeSeason"
+        ).first
+        self.preseasonTotals = try resp.resultSets.rows(
+            of: SeasonTotalsPreseason.self, named: "SeasonTotalsPreseason")
+        self.careerPreseasonTotals = try resp.resultSets.rows(
+            of: CareerTotalsPreseason.self, named: "CareerTotalsPreseason"
+        ).first
+        self.regularSeasonRankings = try resp.resultSets.rows(
+            of: SeasonRankingsRegularSeason.self, named: "SeasonRankingsRegularSeason")
+        self.postSeasonRankings = try resp.resultSets.rows(
+            of: SeasonRankingsPostSeason.self, named: "SeasonRankingsPostSeason")
         self.seasonHighs = try resp.resultSets.rows(of: SeasonHigh.self, named: "SeasonHigh")
         self.careerHighs = try resp.resultSets.rows(of: CareerHigh.self, named: "CareerHigh")
     }
@@ -71,34 +88,34 @@ struct SeasonTotalsRegularSeason: RowInitializable {
             guard let i = headers.firstIndexCaseInsensitive(of: key) else { return nil }
             return row[i]
         }
-        
-        self.playerId         = v("PLAYER_ID")?.intValue            ?? 0
-        self.seasonId         = v("SEASON_ID")?.stringValue         ?? ""
-        self.leagueId         = v("LEAGUE_ID")?.stringValue         ?? ""
-        self.teamId           = v("TEAM_ID")?.intValue              ?? 0
+
+        self.playerId = v("PLAYER_ID")?.intValue ?? 0
+        self.seasonId = v("SEASON_ID")?.stringValue ?? ""
+        self.leagueId = v("LEAGUE_ID")?.stringValue ?? ""
+        self.teamId = v("TEAM_ID")?.intValue ?? 0
         self.teamAbbreviation = v("TEAM_ABBREVIATION")?.stringValue ?? ""
-        self.playerAge        = v("PLAYER_AGE")?.doubleValue        ?? 0
-        self.gamesPlayed      = v("GP")?.intValue                   ?? 0
-        self.gamesStarted     = v("GS")?.intValue                   ?? 0
-        self.minutes          = v("MIN")?.doubleValue               ?? 0
-        self.fgm              = v("FGM")?.doubleValue               ?? 0
-        self.fga              = v("FGA")?.doubleValue               ?? 0
-        self.fgPct            = v("FG_PCT")?.doubleValue            ?? 0
-        self.fg3m             = v("FG3M")?.doubleValue              ?? 0
-        self.fg3a             = v("FG3A")?.doubleValue              ?? 0
-        self.fg3Pct           = v("FG3_PCT")?.doubleValue           ?? 0
-        self.ftm              = v("FTM")?.doubleValue               ?? 0
-        self.fta              = v("FTA")?.doubleValue               ?? 0
-        self.ftPct            = v("FT_PCT")?.doubleValue            ?? 0
-        self.oreb             = v("OREB")?.doubleValue              ?? 0
-        self.dreb             = v("DREB")?.doubleValue              ?? 0
-        self.rebounds         = v("REB")?.doubleValue               ?? 0
-        self.assists          = v("AST")?.doubleValue               ?? 0
-        self.steals           = v("STL")?.doubleValue               ?? 0
-        self.blocks           = v("BLK")?.doubleValue               ?? 0
-        self.turnovers        = v("TOV")?.doubleValue               ?? 0
-        self.personalFouls    = v("PF")?.doubleValue                ?? 0
-        self.points           = v("PTS")?.doubleValue               ?? 0
+        self.playerAge = v("PLAYER_AGE")?.doubleValue ?? 0
+        self.gamesPlayed = v("GP")?.intValue ?? 0
+        self.gamesStarted = v("GS")?.intValue ?? 0
+        self.minutes = v("MIN")?.doubleValue ?? 0
+        self.fgm = v("FGM")?.doubleValue ?? 0
+        self.fga = v("FGA")?.doubleValue ?? 0
+        self.fgPct = v("FG_PCT")?.doubleValue ?? 0
+        self.fg3m = v("FG3M")?.doubleValue ?? 0
+        self.fg3a = v("FG3A")?.doubleValue ?? 0
+        self.fg3Pct = v("FG3_PCT")?.doubleValue ?? 0
+        self.ftm = v("FTM")?.doubleValue ?? 0
+        self.fta = v("FTA")?.doubleValue ?? 0
+        self.ftPct = v("FT_PCT")?.doubleValue ?? 0
+        self.oreb = v("OREB")?.doubleValue ?? 0
+        self.dreb = v("DREB")?.doubleValue ?? 0
+        self.rebounds = v("REB")?.doubleValue ?? 0
+        self.assists = v("AST")?.doubleValue ?? 0
+        self.steals = v("STL")?.doubleValue ?? 0
+        self.blocks = v("BLK")?.doubleValue ?? 0
+        self.turnovers = v("TOV")?.doubleValue ?? 0
+        self.personalFouls = v("PF")?.doubleValue ?? 0
+        self.points = v("PTS")?.doubleValue ?? 0
     }
 }
 
@@ -134,30 +151,30 @@ struct CareerTotalsRegularSeason: RowInitializable {
             return row[i]
         }
 
-        self.playerId      = v("PLAYER_ID")?.intValue     ?? 0
-        self.leagueId      = v("LEAGUE_ID")?.stringValue  ?? ""
-        self.teamId        = v("TEAM_ID")?.intValue       ?? 0
-        self.gamesPlayed   = v("GP")?.intValue            ?? 0
-        self.gamesStarted  = v("GS")?.intValue            ?? 0
-        self.minutes       = v("MIN")?.doubleValue        ?? 0
-        self.fgm           = v("FGM")?.doubleValue        ?? 0
-        self.fga           = v("FGA")?.doubleValue        ?? 0
-        self.fgPct         = v("FG_PCT")?.doubleValue     ?? 0
-        self.fg3m          = v("FG3M")?.doubleValue       ?? 0
-        self.fg3a          = v("FG3A")?.doubleValue       ?? 0
-        self.fg3Pct        = v("FG3_PCT")?.doubleValue    ?? 0
-        self.ftm           = v("FTM")?.doubleValue        ?? 0
-        self.fta           = v("FTA")?.doubleValue        ?? 0
-        self.ftPct         = v("FT_PCT")?.doubleValue     ?? 0
-        self.oreb          = v("OREB")?.doubleValue       ?? 0
-        self.dreb          = v("DREB")?.doubleValue       ?? 0
-        self.rebounds      = v("REB")?.doubleValue        ?? 0
-        self.assists       = v("AST")?.doubleValue        ?? 0
-        self.steals        = v("STL")?.doubleValue        ?? 0
-        self.blocks        = v("BLK")?.doubleValue        ?? 0
-        self.turnovers     = v("TOV")?.doubleValue        ?? 0
-        self.personalFouls = v("PF")?.doubleValue         ?? 0
-        self.points        = v("PTS")?.doubleValue        ?? 0
+        self.playerId = v("PLAYER_ID")?.intValue ?? 0
+        self.leagueId = v("LEAGUE_ID")?.stringValue ?? ""
+        self.teamId = v("TEAM_ID")?.intValue ?? 0
+        self.gamesPlayed = v("GP")?.intValue ?? 0
+        self.gamesStarted = v("GS")?.intValue ?? 0
+        self.minutes = v("MIN")?.doubleValue ?? 0
+        self.fgm = v("FGM")?.doubleValue ?? 0
+        self.fga = v("FGA")?.doubleValue ?? 0
+        self.fgPct = v("FG_PCT")?.doubleValue ?? 0
+        self.fg3m = v("FG3M")?.doubleValue ?? 0
+        self.fg3a = v("FG3A")?.doubleValue ?? 0
+        self.fg3Pct = v("FG3_PCT")?.doubleValue ?? 0
+        self.ftm = v("FTM")?.doubleValue ?? 0
+        self.fta = v("FTA")?.doubleValue ?? 0
+        self.ftPct = v("FT_PCT")?.doubleValue ?? 0
+        self.oreb = v("OREB")?.doubleValue ?? 0
+        self.dreb = v("DREB")?.doubleValue ?? 0
+        self.rebounds = v("REB")?.doubleValue ?? 0
+        self.assists = v("AST")?.doubleValue ?? 0
+        self.steals = v("STL")?.doubleValue ?? 0
+        self.blocks = v("BLK")?.doubleValue ?? 0
+        self.turnovers = v("TOV")?.doubleValue ?? 0
+        self.personalFouls = v("PF")?.doubleValue ?? 0
+        self.points = v("PTS")?.doubleValue ?? 0
     }
 }
 
@@ -189,7 +206,7 @@ struct SeasonTotalsPostSeason: RowInitializable {
     let turnovers: Double
     let personalFouls: Double
     let points: Double
-    
+
     init(from row: [JSONValue], headers: [String]) throws {
         func v(_ key: String) -> JSONValue? {
             guard let i = headers.firstIndexCaseInsensitive(of: key) else { return nil }
@@ -254,13 +271,13 @@ struct CareerTotalsPostSeason: RowInitializable {
     let turnovers: Double
     let personalFouls: Double
     let points: Double
-    
+
     init(from row: [JSONValue], headers: [String]) throws {
         func v(_ key: String) -> JSONValue? {
             guard let i = headers.firstIndexCaseInsensitive(of: key) else { return nil }
             return row[i]
         }
-        
+
         self.playerId = v("PLAYER_ID")?.intValue ?? 0
         self.seasonId = v("SEASON_ID")?.stringValue ?? ""
         self.leagueId = v("LEAGUE_ID")?.stringValue ?? ""

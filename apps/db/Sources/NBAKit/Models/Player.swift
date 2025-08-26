@@ -4,6 +4,7 @@ public struct Player: Codable, Identifiable {
     public let id: Int
     public let first_name: String
     public let last_name: String
+    public let display_first_last: String
     public var birthdate: Date? = nil
     public var school: String? = nil
     public var country: String? = nil
@@ -23,10 +24,11 @@ public struct Player: Codable, Identifiable {
     public var career_ppg: Double? = nil
     public var career_rpg: Double? = nil
     public var career_apg: Double? = nil
-    
-    init(id: Int, first_name: String, last_name: String) {
+
+    public init(id: Int, first_name: String, last_name: String) {
         self.id = id
         self.first_name = first_name
         self.last_name = last_name
+        self.display_first_last = "\(first_name) \(last_name)"
     }
 }
