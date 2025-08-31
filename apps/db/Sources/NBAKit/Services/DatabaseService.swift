@@ -1,7 +1,7 @@
 internal import AsyncKit
 import Foundation
 internal import Logging
-internal import PostgresKit
+import PostgresKit
 
 // MARK: - Configuration
 public struct DatabaseConfig {
@@ -38,6 +38,7 @@ public struct DatabaseConfig {
 // MARK: - Database Service Protocol
 public protocol DatabaseServiceProtocol {
     func batchInsertPlayers(_ players: [Player]) async throws
+    func getExistingPlayerIds() async throws -> [Int]
     func batchInsertPlayerAccolades(_ accolades: [PlayerAccolades]) async throws
     func close() async throws
 }
@@ -142,7 +143,7 @@ public final class DatabaseService: DatabaseServiceProtocol {
                     ON CONFLICT (id) DO UPDATE SET
                         first_name = EXCLUDED.first_name,
                         last_name = EXCLUDED.last_name,
-                        display_first_last = EXCLUDED.display_first_last
+                        display_first_last = EXCLUDED.display_first_last,
                         birthdate = EXCLUDED.birthdate,
                         school = EXCLUDED.school,
                         country = EXCLUDED.country,
@@ -196,6 +197,14 @@ public final class DatabaseService: DatabaseServiceProtocol {
 
             return connection.query(sql, bindings).map { _ in }
         }.get()
+    }
+
+    public func getExistingPlayerIds() async throws -> [Int] {
+        let postgres = self.connectionPool.database(logger: self.logger)
+        let rows: [PostgresRow] = try await postgres.simpleQuery("SELECT id FROM player;").get()
+        let ids: [Int] = try rows.map { return try $0.decode(Int.self) }
+
+        return ids
     }
 
     // MARK: - Player Accolades Operations

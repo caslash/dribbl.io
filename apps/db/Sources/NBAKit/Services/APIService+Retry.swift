@@ -53,7 +53,7 @@ extension APIService {
     public func fetchWithRetry<T: ResponseInitializable>(
         endpoint: NBAEndpoint,
         playerId: Int,
-        proxy: Proxy? = nil,
+        urlSession: URLSession,
         maxRetries: Int = 3
     ) async throws -> T {
         var lastError: Error?
@@ -64,7 +64,7 @@ extension APIService {
                     timeoutInterval: endpoint.timeout,
                     path: endpoint.path,
                     params: endpoint.params(playerId: playerId),
-                    proxy: proxy
+                    urlSession: urlSession
                 )
                 return result
             } catch {

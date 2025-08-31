@@ -84,7 +84,8 @@ public final class DataProcessor {
     }
 
     private func initializeProxyPool() async throws {
-        let proxiesList: ProxyList = try await self.proxyApiService.get()
+        let urlSession = APIService.session()
+        let proxiesList: ProxyList = try await self.proxyApiService.get(urlSession: urlSession)
         await self.proxyPool.initialize(with: proxiesList.proxies)
     }
 

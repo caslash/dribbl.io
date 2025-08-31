@@ -236,22 +236,23 @@ public final class PlayerDataPipelineProcessor {
 
     private func fetchPlayerData(_ playerInfo: PlayerInfo) async throws -> FetchResult {
         let proxy = await self.proxyPool.acquireProxy()
+        let urlSession = APIService.session(proxy: proxy)
 
         do {
             async let cpi: CommonPlayerInfo = self.nbaApiService.fetchWithRetry(
                 endpoint: .commonPlayerInfo,
                 playerId: playerInfo.id,
-                proxy: proxy
+                urlSession: urlSession
             )
             async let profile: PlayerProfileV2 = self.nbaApiService.fetchWithRetry(
                 endpoint: .playerProfileV2,
                 playerId: playerInfo.id,
-                proxy: proxy
+                urlSession: urlSession
             )
             async let awards: PlayerAwardsList = self.nbaApiService.fetchWithRetry(
                 endpoint: .playerAwards,
                 playerId: playerInfo.id,
-                proxy: proxy
+                urlSession: urlSession
             )
 
             let (cpiResult, profileResult, awardsResult) = try await (cpi, profile, awards)
