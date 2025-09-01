@@ -11,7 +11,7 @@ export class S3Service {
       const parallelUploads3 = new Upload({
         client: this.s3,
         params: {
-          Bucket: process.env.AWS_S3_BUCKET_NAME,
+          Bucket: process.env.AWS_S3_BUCKET_NAME ?? '',
           Key: `avatars/${userId}.jpg`,
           Body: file,
         },

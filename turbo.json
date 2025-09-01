@@ -17,10 +17,13 @@
         "AUTH0_SCOPE",
         "API_BASE_URL",
         "PORT",
-        "AWS_S3_BUCKET_NAME",
         "AWS_CLOUDFRONT_CNAME",
         "AWS_CLOUDFRONT_KEY_PAIR_ID",
-        "AWS_CLOUDFRONT_PRIVATE_KEY_SECRET_NAME"
+        "AWS_CLOUDFRONT_PRIVATE_KEY_SECRET_NAME",
+        "AWS_ACCESS_KEY_ID",
+        "AWS_SECRET_ACCESS_KEY",
+        "AWS_S3_BUCKET_NAME",
+        "AWS_S3_ENDPOINT"
       ]
     },
     "build": {
@@ -38,10 +41,13 @@
         "AUTH0_SCOPE",
         "API_BASE_URL",
         "PORT",
-        "AWS_S3_BUCKET_NAME",
         "AWS_CLOUDFRONT_CNAME",
         "AWS_CLOUDFRONT_KEY_PAIR_ID",
-        "AWS_CLOUDFRONT_PRIVATE_KEY_SECRET_NAME"
+        "AWS_CLOUDFRONT_PRIVATE_KEY_SECRET_NAME",
+        "AWS_ACCESS_KEY_ID",
+        "AWS_SECRET_ACCESS_KEY",
+        "AWS_S3_BUCKET_NAME",
+        "AWS_S3_ENDPOINT"
       ]
     },
     "test": {
