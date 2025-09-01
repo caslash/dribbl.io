@@ -40,11 +40,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(req: Request, payload: Auth0JwtPayload, done: VerifiedCallback): Promise<unknown> {
-    let user = await this.usersPrismaService.user.findUnique({ where: { id: payload.sub } });
+    let user = await this.usersPrismaService.users.findUnique({ where: { id: payload.sub } });
     if (!user) {
       const token = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
       const userInfo = await this.getUserProfileInfo(payload.iss, token);
-      user = await this.usersPrismaService.user.create({
+      user = await this.usersPrismaService.users.create({
         data: {
           id: payload.sub,
           name: userInfo.name || '',

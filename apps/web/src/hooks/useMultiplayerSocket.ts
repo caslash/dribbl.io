@@ -14,7 +14,7 @@ import { useEffect, useState } from 'react';
 
 type RoomProps = {
   id: string;
-  users: users.User[];
+  users: users.users[];
 };
 
 type RoundProps = {
@@ -46,7 +46,7 @@ const useMultiplayerSocket = () => {
   // From Server
   function onRoomUpdated({ id, users }: RoomProps) {
     setRoomId(id);
-    setUsers(users.map((user: users.User) => ({ info: user, score: 0 })));
+    setUsers(users.map((user: users.users) => ({ info: user, score: 0 })));
   }
   function onNextRound({ roundActive, timeLeft, team_history, users, players }: RoundProps) {
     setRoundActive(roundActive);

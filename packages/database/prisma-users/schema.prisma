@@ -14,7 +14,7 @@ datasource db {
   url      = env("USERS_DATABASE_URL")
 }
 
-model User {
+model users {
   id String @id
   display_name String?
   name String?

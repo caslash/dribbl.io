@@ -13,7 +13,7 @@ export class UsersService {
   ) {}
 
   async get(id: string) {
-    const user = await this.userPrisma.user.findUnique({
+    const user = await this.userPrisma.users.findUnique({
       where: { id },
     });
 
@@ -21,7 +21,7 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-    return await this.userPrisma.user.update({
+    return await this.userPrisma.users.update({
       where: { id: id },
       data: {
         display_name: updateUserDto.display_name ?? '',
@@ -33,7 +33,7 @@ export class UsersService {
   async uploadProfileImage(userId: string, file: Express.Multer.File) {
     const profile_url = await this.avatarService.uploadAvatar(userId, file);
 
-    return await this.userPrisma.user.update({
+    return await this.userPrisma.users.update({
       where: { id: userId },
       data: { profile_url },
     });

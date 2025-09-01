@@ -1,5 +1,5 @@
-import { MultiplayerGateway } from '@/nba/games/careerpath/multiplayer.gateway';
 import { GameService } from '@/nba/games/careerpath/game.service';
+import { MultiplayerGateway } from '@/nba/games/careerpath/multiplayer.gateway';
 import { users } from '@dribblio/database';
 import {
   createMultiplayerMachine,
@@ -59,7 +59,7 @@ export class RoomFactory {
 
     room.statemachine = createMultiplayerMachine(this.gateway.server, room, this.gameService);
 
-    socket.on('start_game', (users: users.User[]) => {
+    socket.on('start_game', (users: users.users[]) => {
       room.statemachine?.subscribe((s) => {
         this.gateway.server.to(room.id).emit('state_change', s.value);
       });

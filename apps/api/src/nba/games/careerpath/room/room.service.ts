@@ -98,10 +98,10 @@ export class RoomService {
     if (room) {
       room = {
         ...room,
-        users: [...room.users.filter((user: users.User) => user.id !== userId)],
+        users: [...room.users.filter((user: users.users) => user.id !== userId)],
       };
 
-      if (!room.users.some((user: users.User) => user)) {
+      if (!room.users.some((user: users.users) => user)) {
         this.destroyRoom(roomId);
       } else {
         this.gateway.server.to(roomId).emit('room_updated', room);
