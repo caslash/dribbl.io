@@ -1,0 +1,22 @@
+{
+  "configurations": [
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:dribbl.io}/apps/db",
+      "name": "Debug nba-cli (apps/db)",
+      "program": "${workspaceFolder:dribbl.io}/apps/db/.build/debug/nba-cli",
+      "preLaunchTask": "swift: Build Debug nba-cli (apps/db)"
+    },
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:dribbl.io}/apps/db",
+      "name": "Release nba-cli (apps/db)",
+      "program": "${workspaceFolder:dribbl.io}/apps/db/.build/release/nba-cli",
+      "preLaunchTask": "swift: Build Release nba-cli (apps/db)"
+    }
+  ]
+}
