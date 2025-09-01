@@ -1,12 +1,12 @@
 'use client';
 
 import { getAccessToken } from '@auth0/nextjs-auth0';
-import { User } from '@dribblio/database/generated/prisma-users/client';
+import { users } from '@dribblio/database/generated/prisma-users/client';
 import { isEmpty } from 'lodash';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 interface DBUserContextType {
-  user: User | undefined;
+  user: users | undefined;
   permissions: string[];
 
   /**
@@ -20,7 +20,7 @@ interface DBUserContextType {
    * Update user fields in the database and sync local state.
    * @param user - Partial user object with fields to update.
    */
-  updateUser: (user: Partial<User>) => void;
+  updateUser: (user: Partial<users>) => void;
 
   /**
    * Upload a new avatar image to the database and sync local state.
@@ -61,7 +61,7 @@ const DBUserContext = createContext<DBUserContextType | undefined>(undefined);
 export const useDBUser = () => useContext(DBUserContext) ?? defaultUserContext;
 
 export function DBUserProvider({ children }: { children: React.ReactNode | React.ReactNode[] }) {
-  const [user, setUser] = useState<User | undefined>(undefined);
+  const [user, setUser] = useState<users | undefined>(undefined);
   const [permissions, setPermissions] = useState<string[]>([]);
 
   useEffect(() => {
@@ -98,7 +98,7 @@ export function DBUserProvider({ children }: { children: React.ReactNode | React
     [permissions],
   );
 
-  const updateUser = useCallback((user: Partial<User>) => {
+  const updateUser = useCallback((user: Partial<users>) => {
     getAccessToken().then((accessToken) => {
       if (!accessToken) return;
 
