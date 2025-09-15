@@ -9,6 +9,7 @@
     "data-migration:add-display-name-and-profile-url": "tsx ./prisma-users/migrations/20250616000523_add_display_name_and_profile_url/data-migration.ts"
   },
   "devDependencies": {
+    "@prisma/extension-accelerate": "^2.0.2",
     "@types/node": "^24.0.1",
     "prisma": "^6.7.0",
     "ts-node": "^10.9.2",
