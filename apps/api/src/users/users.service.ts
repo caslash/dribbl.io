@@ -1,6 +1,6 @@
+import { S3Service } from '@/aws/s3.service';
 import { UsersPrismaService } from '@/database/users.prisma.service';
 import { AvatarService } from '@/users/avatar.service';
-import { S3Service } from '@/users/s3.service';
 import { UpdateUserDto } from '@dribblio/types';
 import { Injectable } from '@nestjs/common';
 
