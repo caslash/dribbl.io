@@ -6,7 +6,7 @@ import { SinglePlayerConfig } from '../statemachine/singleplayer/gamemachine.js'
 export type Room = {
   id: string;
   statemachine: Actor<AnyStateMachine> | undefined;
-  users: users.User[];
+  users: users.users[];
   config: SinglePlayerConfig | MultiplayerConfig;
   isMulti: boolean;
 };

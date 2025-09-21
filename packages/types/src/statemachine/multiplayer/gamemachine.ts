@@ -11,7 +11,7 @@ import { sendPlayerToRoom, sendRoundInfoToRoom, sendTimerToRoom } from './action
 import { isCorrectMultiplayer, timeExpired } from './guards.js';
 
 export type UserGameInfo = {
-  info: users.User;
+  info: users.users;
   score: number;
 };
 
