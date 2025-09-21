@@ -56,7 +56,7 @@ export class RoomService {
     return this.rooms[roomId];
   }
 
-  destroyRoom(id: string) {
+  private destroyRoom(id: string) {
     delete this.rooms[id];
     console.log(`Room destroyed for room ${id}`);
   }
@@ -101,7 +101,7 @@ export class RoomService {
         users: [...room.users.filter((user: users.users) => user.id !== userId)],
       };
 
-      if (!room.users.some((user: users.users) => user)) {
+      if (!room.users.length) {
         this.destroyRoom(roomId);
       } else {
         this.gateway.server.to(roomId).emit('room_updated', room);
