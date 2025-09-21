@@ -1,4 +1,4 @@
-import { MultiplayerConfig } from '../statemachine/multiplayer/gamemachine.js';
+import { MultiplayerConfig } from '../dtos/gameconfigs.js';
 
 export type HostRoomMessageBody = {
   userId: string;

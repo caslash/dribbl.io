@@ -1,14 +1,9 @@
 import { GameService } from '@/nba/games/careerpath/game.service';
+import { createMultiplayerMachine } from '@/nba/games/careerpath/machines/multiplayer/gamemachine';
+import { createSinglePlayerMachine } from '@/nba/games/careerpath/machines/singleplayer/gamemachine';
 import { MultiplayerGateway } from '@/nba/games/careerpath/multiplayer.gateway';
 import { users } from '@dribblio/database';
-import {
-  createMultiplayerMachine,
-  createSinglePlayerMachine,
-  MultiplayerConfig,
-  PlayerGuess,
-  Room,
-  SinglePlayerConfig,
-} from '@dribblio/types';
+import { MultiplayerConfig, PlayerGuess, Room, SinglePlayerConfig } from '@dribblio/types';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io';
 

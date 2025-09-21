@@ -1,5 +1,7 @@
+import { RoundProps } from '@/nba/games/careerpath/machines/actors';
+import { BaseGameService } from '@/nba/games/careerpath/machines/gameservice';
 import { PlayersService } from '@/nba/player/player.service';
-import { BaseGameService, GameDifficulty, RoundProps } from '@dribblio/types';
+import { GameDifficulty } from '@dribblio/types';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
