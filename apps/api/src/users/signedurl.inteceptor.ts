@@ -6,7 +6,7 @@ import { from, map, mergeMap, Observable, of } from 'rxjs';
 export class SignedUrlInterceptor implements NestInterceptor {
   constructor(private readonly cloudFrontService: CloudFrontService) {}
 
-  intercept(_context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(_context: ExecutionContext, next: CallHandler): Observable<string> {
     return next.handle().pipe(
       mergeMap((user) => {
         if (!user || !user.profile_url) {

@@ -7,19 +7,15 @@ export class S3Service {
   constructor(private readonly s3: S3Client) {}
 
   async uploadFile(userId: string, file: Buffer) {
-    try {
-      const parallelUploads3 = new Upload({
-        client: this.s3,
-        params: {
-          Bucket: process.env.AWS_S3_BUCKET_NAME ?? '',
-          Key: `avatars/${userId}.jpg`,
-          Body: file,
-        },
-      });
+    const parallelUploads3 = new Upload({
+      client: this.s3,
+      params: {
+        Bucket: process.env.AWS_S3_BUCKET_NAME ?? '',
+        Key: `avatars/${userId}.jpg`,
+        Body: file,
+      },
+    });
 
-      await parallelUploads3.done();
-    } catch (error) {
-      throw error;
-    }
+    await parallelUploads3.done();
   }
 }
