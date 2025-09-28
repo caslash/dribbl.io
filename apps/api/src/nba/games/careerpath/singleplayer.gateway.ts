@@ -1,12 +1,6 @@
 import { RoomService } from '@/nba/games/careerpath/room/room.service';
 import { SinglePlayerConfig } from '@dribblio/types';
-import {
-  ArgumentMetadata,
-  BadRequestException,
-  forwardRef,
-  Inject,
-  PipeTransform,
-} from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, PipeTransform } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -18,7 +12,7 @@ import {
 import { Server, Socket } from 'socket.io';
 
 export class ParseJSONPipe implements PipeTransform {
-  transform(value: any, _metadata: ArgumentMetadata) {
+  transform(value: any) {
     if (typeof value !== 'string') return value;
     try {
       return JSON.parse(value);
