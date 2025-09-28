@@ -10,7 +10,7 @@ import {
 import {
   ConnectedSocket,
   MessageBody,
-  OnGatewayDisconnect,
+  OnGatewayConnection,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -29,7 +29,7 @@ export class ParseJSONPipe implements PipeTransform {
 }
 
 @WebSocketGateway({ namespace: '/singleplayer', cors: true })
-export class SinglePlayerGateway implements OnGatewayDisconnect {
+export class SinglePlayerGateway implements OnGatewayConnection {
   @WebSocketServer()
   server: Server;
 
@@ -38,8 +38,11 @@ export class SinglePlayerGateway implements OnGatewayDisconnect {
     private roomService: RoomService,
   ) {}
 
-  handleDisconnect(client: Socket) {
-    this.roomService.leaveRoom(Array.from(client.rooms)[1], client.id);
+  handleConnection(client: any) {
+    client.on('disconnecting', () => {
+      const rooms = [...client.rooms].filter((room) => room !== client.id);
+      rooms.forEach((roomId) => this.roomService.leaveRoom(roomId, client.id));
+    });
   }
 
   @SubscribeMessage('create_game')
