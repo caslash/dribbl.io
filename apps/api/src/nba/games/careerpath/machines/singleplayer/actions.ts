@@ -1,5 +1,5 @@
+import { SinglePlayerContext } from '@dribblio/types';
 import { AnyEventObject } from 'xstate';
-import { SinglePlayerContext } from './gamemachine.js';
 
 type ActionProps = {
   context: SinglePlayerContext;

@@ -74,10 +74,7 @@ const useMultiplayerSocket = () => {
   function onHostRoom(config: MultiplayerConfig) {
     if (!user) return;
 
-    console.log('config', config);
-
     const body: HostRoomMessageBody = { userId: user.id, config };
-    console.log('body', body);
     clientSocket?.emit('host_room', body);
     setCanStartGame(true);
   }
