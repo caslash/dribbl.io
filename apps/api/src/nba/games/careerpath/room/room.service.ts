@@ -9,6 +9,7 @@ import {
   SinglePlayerConfig,
 } from '@dribblio/types';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import ShortUniqueId from 'short-unique-id';
 import { Socket } from 'socket.io';
 
@@ -32,8 +33,6 @@ export class RoomService {
       this.rooms[roomId] = this.roomFactory.createSinglePlayerRoom(socket, config);
     }
 
-    console.log(`Single player room created for room ${roomId}`);
-
     await this.joinRoom(socket, { roomId, userId: socket.id });
 
     return this.rooms[roomId];
@@ -49,8 +48,6 @@ export class RoomService {
       this.rooms[roomId] = this.roomFactory.createMultiplayerRoom(socket, roomId, config);
     }
 
-    console.log(`Game machine created for room ${roomId}`);
-
     await this.joinRoom(socket, { roomId, userId });
 
     return this.rooms[roomId];
@@ -58,7 +55,6 @@ export class RoomService {
 
   private destroyRoom(id: string) {
     delete this.rooms[id];
-    console.log(`Room destroyed for room ${id}`);
   }
 
   async joinRoom(socket: Socket, { roomId, userId }: JoinRoomMessageBody): Promise<void> {
@@ -116,5 +112,14 @@ export class RoomService {
     }
 
     return roomId;
+  }
+
+  @Cron('0 * * * *')
+  cleanupRooms() {
+    Object.keys(this.rooms).forEach((roomId) => {
+      if (!this.rooms[roomId].users) {
+        this.destroyRoom(roomId);
+      }
+    });
   }
 }
