@@ -1,9 +1,8 @@
-import { nba } from '@dribblio/database';
+import { SinglePlayerConfig, SinglePlayerContext } from '@dribblio/types';
 import { Socket } from 'socket.io';
 import { Actor, AnyStateMachine, assign, createActor, enqueueActions, setup } from 'xstate';
-import { generateRound } from '../actors.js';
-import { GameDifficulty } from '../gamedifficulties.js';
-import { BaseGameService } from '../gameservice.js';
+import { generateRound } from '../actors';
+import { BaseGameService } from '../gameservice';
 import {
   notifyCorrectGuess,
   notifyGameOver,
@@ -11,23 +10,8 @@ import {
   notifySkipRound,
   sendPlayerToClient,
   waitForUser,
-} from './actions.js';
-import { hasLives, isCorrectSinglePlayer } from './guards.js';
-
-export type SinglePlayerConfig = {
-  lives: number | undefined;
-  gameDifficulty: GameDifficulty;
-};
-
-export type SinglePlayerContext = {
-  socket: Socket;
-  config: SinglePlayerConfig;
-  gameState: {
-    score: number;
-    validAnswers: nba.Player[];
-    lives: number | undefined;
-  };
-};
+} from './actions';
+import { hasLives, isCorrectSinglePlayer } from './guards';
 
 export function createSinglePlayerMachine(
   socket: Socket,
@@ -35,8 +19,8 @@ export function createSinglePlayerMachine(
   gameService: BaseGameService,
 ): Actor<AnyStateMachine> {
   const gameMachine = setup({
-    types: {} as {
-      context: SinglePlayerContext;
+    types: {
+      context: {} as SinglePlayerContext,
     },
     actions: {
       waitForUser,
@@ -68,9 +52,9 @@ export function createSinglePlayerMachine(
     },
     states: {
       waitingForGameStart: {
-        entry: assign({
-          gameState: { score: 0, validAnswers: [], lives: config.lives },
-        }),
+        entry: assign(({ context }) => ({
+          gameState: { score: 0, validAnswers: [], lives: context.config.lives },
+        })),
         on: {
           START_GAME: 'gameActive',
         },
@@ -88,7 +72,7 @@ export function createSinglePlayerMachine(
           generatingRound: {
             invoke: {
               src: 'generateRound',
-              input: { difficulty: config.gameDifficulty, gameService },
+              input: ({ context }) => ({ difficulty: context.config.gameDifficulty, gameService }),
               onDone: {
                 target: 'waitingForGuess',
                 actions: enqueueActions(({ context, event, enqueue }) => {

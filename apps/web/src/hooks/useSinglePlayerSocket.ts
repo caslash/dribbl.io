@@ -70,7 +70,6 @@ const useSinglePlayerSocket = ({ correctAction, incorrectAction }: ClientSocketP
     setTeams(undefined);
   }
   function onConfigureRoom(config: SinglePlayerConfig) {
-    console.log('config', config);
     clientSocket?.emit('create_game', config);
     setIsRoomConfigured(true);
   }

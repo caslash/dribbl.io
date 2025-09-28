@@ -19,7 +19,6 @@ export class S3Service {
 
       await parallelUploads3.done();
     } catch (error) {
-      console.log(error);
       throw error;
     }
   }

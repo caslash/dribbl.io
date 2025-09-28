@@ -1,48 +1,16 @@
-import { nba, users } from '@dribblio/database';
+import {
+  MultiplayerConfig,
+  MultiplayerContext,
+  PlayerGuess,
+  Room,
+  UserGameInfo,
+} from '@dribblio/types';
 import { Server } from 'socket.io';
 import { Actor, AnyStateMachine, assign, createActor, enqueueActions, setup } from 'xstate';
-import { XOR } from '../../utils/xor.js';
-import { PlayerGuess } from '../../websocket/playerguess.js';
-import { Room } from '../../websocket/room.js';
-import { generateRound } from '../actors.js';
-import { GameDifficulty } from '../gamedifficulties.js';
-import { BaseGameService } from '../gameservice.js';
-import { sendPlayerToRoom, sendRoundInfoToRoom, sendTimerToRoom } from './actions.js';
-import { isCorrectMultiplayer, timeExpired } from './guards.js';
-
-export type UserGameInfo = {
-  info: users.users;
-  score: number;
-};
-
-export type GameState = {
-  roundActive: boolean;
-  timeLeft: number;
-  currentRound: number;
-  users: UserGameInfo[];
-  validAnswers: nba.Player[];
-};
-
-type ScoreLimitConfig = {
-  scoreLimit: number;
-  roundTimeLimit: number;
-  gameDifficulty: GameDifficulty;
-};
-
-type RoundLimitConfig = {
-  roundLimit: number;
-  roundTimeLimit: number;
-  gameDifficulty: GameDifficulty;
-};
-
-export type MultiplayerConfig = XOR<ScoreLimitConfig, RoundLimitConfig>;
-
-export type MultiplayerContext = {
-  io: Server;
-  room: Room;
-  config: MultiplayerConfig;
-  gameState: GameState;
-};
+import { generateRound } from '../actors';
+import { BaseGameService } from '../gameservice';
+import { sendPlayerToRoom, sendRoundInfoToRoom, sendTimerToRoom } from './actions';
+import { isCorrectMultiplayer, timeExpired } from './guards';
 
 const updateUserScore = (users: UserGameInfo[], currentGuess: PlayerGuess): UserGameInfo[] => {
   const otherUsers = users.filter((user) => user.info.id !== currentGuess.userId);
@@ -109,7 +77,7 @@ export function createMultiplayerMachine(
           generatingRound: {
             invoke: {
               src: 'generateRound',
-              input: { difficulty: room.config!.gameDifficulty, gameService },
+              input: ({ context }) => ({ difficulty: context.config.gameDifficulty, gameService }),
               onDone: {
                 target: 'waitingForGuess',
                 actions: enqueueActions(({ context, event, enqueue }) => {

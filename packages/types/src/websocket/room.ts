@@ -1,7 +1,6 @@
 import { users } from '@dribblio/database';
 import { Actor, AnyStateMachine } from 'xstate';
-import { MultiplayerConfig } from '../statemachine/multiplayer/gamemachine.js';
-import { SinglePlayerConfig } from '../statemachine/singleplayer/gamemachine.js';
+import { MultiplayerConfig, SinglePlayerConfig } from '../dtos/gameconfigs.js';
 
 export type Room = {
   id: string;

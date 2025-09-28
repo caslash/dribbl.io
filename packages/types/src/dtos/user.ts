@@ -1,3 +1,4 @@
+import { users } from '@dribblio/database';
 import { IsOptional, IsString } from 'class-validator';
 
 export class UpdateUserDto {
@@ -9,3 +10,8 @@ export class UpdateUserDto {
   @IsString()
   name?: string;
 }
+
+export type UserGameInfo = {
+  info: users.users;
+  score: number;
+};

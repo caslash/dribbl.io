@@ -1,18 +1,35 @@
 import { RoomService } from '@/nba/games/careerpath/room/room.service';
 import { SinglePlayerConfig } from '@dribblio/types';
-import { forwardRef, Inject } from '@nestjs/common';
+import {
+  ArgumentMetadata,
+  BadRequestException,
+  forwardRef,
+  Inject,
+  PipeTransform,
+} from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
-  OnGatewayDisconnect,
+  OnGatewayConnection,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
+export class ParseJSONPipe implements PipeTransform {
+  transform(value: any, _metadata: ArgumentMetadata) {
+    if (typeof value !== 'string') return value;
+    try {
+      return JSON.parse(value);
+    } catch {
+      throw new BadRequestException('Invalid JSON payload');
+    }
+  }
+}
+
 @WebSocketGateway({ namespace: '/singleplayer', cors: true })
-export class SinglePlayerGateway implements OnGatewayDisconnect {
+export class SinglePlayerGateway implements OnGatewayConnection {
   @WebSocketServer()
   server: Server;
 
@@ -21,13 +38,16 @@ export class SinglePlayerGateway implements OnGatewayDisconnect {
     private roomService: RoomService,
   ) {}
 
-  handleDisconnect(client: Socket) {
-    this.roomService.leaveRoom(Array.from(client.rooms)[1], client.id);
+  handleConnection(client: any) {
+    client.on('disconnecting', () => {
+      const rooms = [...client.rooms].filter((room) => room !== client.id);
+      rooms.forEach((roomId) => this.roomService.leaveRoom(roomId, client.id));
+    });
   }
 
   @SubscribeMessage('create_game')
   async handleHostRoom(
-    @MessageBody() config: SinglePlayerConfig,
+    @MessageBody(new ParseJSONPipe()) config: SinglePlayerConfig,
     @ConnectedSocket() client: Socket,
   ) {
     await this.roomService.createSinglePlayerRoom(client, config);
