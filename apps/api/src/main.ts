@@ -1,8 +1,10 @@
-import { AppModule } from '@/app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import * as dotenv from 'dotenv';
 import * as express from 'express';
+import { AppModule } from './app.module';
+
+dotenv.config();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,5 +16,6 @@ async function bootstrap() {
   app.setGlobalPrefix('/api');
   await app.listen(process.env.PORT ?? 3002);
 }
-dotenv.config();
+
 bootstrap();
+

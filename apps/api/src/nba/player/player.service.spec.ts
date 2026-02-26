@@ -1,24 +1,15 @@
-import { NBAPrismaService } from '@/database/nba.prisma.service';
-import { PlayersService } from '@/nba/player/player.service';
 import { Test, TestingModule } from '@nestjs/testing';
+import { PlayerService } from './player.service';
 
-const mockPrisma = {
-  player: {
-    findMany: jest.fn(),
-    count: jest.fn(),
-    findFirst: jest.fn(),
-  },
-};
-
-describe('PlayersService', () => {
-  let service: PlayersService;
+describe('PlayerService', () => {
+  let service: PlayerService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [PlayersService, { provide: NBAPrismaService, useValue: mockPrisma }],
+      providers: [PlayerService],
     }).compile();
 
-    service = module.get<PlayersService>(PlayersService);
+    service = module.get<PlayerService>(PlayerService);
   });
 
   it('should be defined', () => {

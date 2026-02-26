@@ -1,15 +1,7 @@
 {
-  "extends": "@dribblio/typescript-config/nextjs.json",
-  "compilerOptions": {
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  },
-  "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", "next.config.mjs", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "public"]
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
 }

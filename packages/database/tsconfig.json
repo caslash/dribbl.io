@@ -2,8 +2,10 @@
   "extends": "@dribblio/typescript-config/base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": "src",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strictPropertyInitialization": false
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src"]
 }

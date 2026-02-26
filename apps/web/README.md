@@ -1,284 +1,73 @@
-# Dribbl.io Web Application
+# React + TypeScript + Vite
 
-A Next.js-based web application for Dribbl.io, providing an interactive interface for the CareerPath NBA player guessing game with secure user authentication.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Architecture
+Currently, two official plugins are available:
 
-The web application is built using Next.js 15 and follows a modern React architecture:
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-- **App Router**: Next.js App Router for routing and page organization
-  - `/singleplayer`: Single player game mode
-  - `/multiplayer`: Multiplayer game mode
-  - `/profile`: User profile management (protected route)
-  - `/auth/login`: Authentication login page
-  - `/auth/logout`: Authentication logout page
-- **Component Structure**:
-  - `components/`: Reusable UI components
-  - `hooks/`: Custom React hooks
-  - `lib/`: Utility functions and shared logic
-  - `styles/`: Global styles and Tailwind configuration
-  - `config/`: Application configuration
-  - `icons/`: SVG icons and assets
-- **Authentication Integration**:
-  - Auth0 Next.js SDK for authentication
-  - Protected routes with middleware
-  - User profile management
-  - JWT token handling
-- **Avatar Management**:
-  - Drag-and-drop file uploads
-  - Image cropping and editing
-  - Real-time preview
-  - Secure upload to S3
+## React Compiler
 
-## Tech Stack
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-- Next.js 15.x with App Router
-- React 19.x
-- TypeScript
-- Tailwind CSS for styling
-- Radix UI for accessible components
-- Socket.IO Client for real-time communication
-- Zod for schema validation
-- React Hook Form for form handling
-- **Auth0 Next.js SDK for authentication**
-- **Next.js Middleware for route protection**
-- **React Image Crop for avatar editing**
-- **React Dropzone for file uploads**
+## Expanding the ESLint configuration
 
-## Features
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-### Game Modes
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
 
-1. **Single Player**
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
 
-   - Progressive difficulty levels
-   - Score tracking (+1 point per correct answer)
-   - Lives system (-1 life per incorrect answer)
-   - Game ends when all lives are lost
-   - Option to restart with a new game
-   - Player statistics
-
-2. **Multiplayer**
-   - Room-based gameplay
-     - Host creates a room and receives a room code
-     - Players join using the room code
-     - Players can leave by navigating away
-   - Real-time gameplay
-     - All players see the same team history
-     - Round ends when:
-       - A player correctly guesses the player
-       - Round time limit is reached
-     - After each round:
-       - All acceptable answers are shown
-       - New round automatically starts
-   - Live score updates
-   - Competitive gameplay
-
-### Authentication & User Management
-
-- **Auth0 Integration**: Secure authentication with social login support
-- **User Profiles**: Personalized user experience with profile management
-- **Protected Routes**: Secure access to user-specific features
-- **Profile Management**: View and update user profile information
-- **Session Management**: Automatic session handling and token refresh
-- **Social Login**: Support for Google and other social providers
-
-### Avatar Management
-
-- **Drag-and-Drop Upload**: Intuitive file upload interface
-- **Image Cropping**: Interactive crop tool with aspect ratio lock
-- **Real-time Preview**: Live preview of cropped image
-- **File Validation**: Support for JPG, PNG, GIF, WebP (max 5MB)
-- **Secure Upload**: Direct upload to S3 with signed URLs
-- **Profile Integration**: Seamless integration with user profiles
-
-### UI Components
-
-The application uses a combination of:
-
-- Radix UI primitives for accessibility
-- Tailwind CSS for styling
-- Responsive design for all screen sizes
-- **Auth0 components for authentication flows**
-- **Custom avatar editor with image cropping**
-
-## Development Setup
-
-1. Install dependencies:
-
-   ```bash
-   npm install
-   ```
-
-2. Set up environment variables (create `.env.local` file):
-
-   ```bash
-   # Auth0 Configuration
-   AUTH0_SECRET="your-secret"
-   AUTH0_BASE_URL="http://localhost:3000"
-   AUTH0_ISSUER_BASE_URL="https://your-domain.auth0.com"
-   AUTH0_CLIENT_ID="your-client-id"
-   AUTH0_CLIENT_SECRET="your-client-secret"
-   AUTH0_AUDIENCE="your-api-identifier"
-   AUTH0_SCOPE="openid profile email"
-   ```
-
-3. Configure Auth0 Application:
-
-   - Create an Auth0 account at [auth0.com](https://auth0.com)
-   - Create a new application (Regular Web Application)
-   - Configure callback URLs: `http://localhost:3000/api/auth/callback`
-   - Configure logout URLs: `http://localhost:3000`
-   - Create an API with appropriate scopes
-   - Update the environment variables with your Auth0 configuration
-
-4. Start the development server:
-
-   ```bash
-   npm run dev
-   ```
-
-5. Build for production:
-
-   ```bash
-   npm run build
-   ```
-
-6. Start production server:
-   ```bash
-   npm run start
-   ```
-
-## Available Scripts
-
-- `npm run dev`: Start development server with Turbopack
-- `npm run build`: Build the application
-- `npm run start`: Start production server
-- `npm run lint`: Run ESLint
-- `npm run check-types`: Run TypeScript type checking
-
-## Project Structure
-
-```
-src/
-├── app/                 # Next.js App Router pages
-│   ├── singleplayer/    # Single player game mode
-│   ├── multiplayer/     # Multiplayer game mode
-│   ├── profile/         # User profile management (protected)
-│   ├── auth/            # Authentication routes
-│   │   ├── login/       # Login page
-│   │   └── logout/      # Logout page
-│   ├── api/             # API routes
-│   │   └── auth/        # Auth0 API routes
-│   ├── layout.tsx       # Root layout
-│   └── providers.tsx    # Global providers
-├── components/          # Reusable UI components
-│   ├── navbar/          # Navigation components
-│   ├── ui/              # Base UI components
-│   ├── avatar-editor.tsx # Avatar editing component
-│   ├── editprofilemodal.tsx # Profile editing modal
-│   └── login-form.tsx   # Authentication form
-├── hooks/              # Custom React hooks
-├── lib/                # Utility functions
-│   └── auth0.ts        # Auth0 configuration
-├── icons/              # SVG icons
-├── config/             # App configuration
-├── styles/             # Global styles
-└── middleware.ts       # Next.js middleware for route protection
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 ```
 
-## Dependencies
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-### Core
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
 
-- Next.js 15.x
-- React 19.x
-- TypeScript
-- Tailwind CSS
-
-### Authentication
-
-- **@auth0/nextjs-auth0**: Auth0 Next.js SDK
-- **Next.js Middleware**: Route protection
-
-### UI Components
-
-- Radix UI primitives
-- Lucide React icons
-- Tailwind Variants
-
-### Avatar Management
-
-- **react-image-crop**: Image cropping functionality
-- **react-dropzone**: Drag-and-drop file uploads
-- **@radix-ui/react-avatar**: Avatar display components
-
-### State Management & Data
-
-- React Hook Form
-- Zod for validation
-- Socket.IO Client
-- Canvas Confetti for effects
-
-### Development
-
-- ESLint
-- TypeScript
-- PostCSS
-- Tailwind CSS
-
-## Authentication Flow
-
-1. **Login**: Users can log in via Auth0's universal login or social providers
-2. **Session Management**: Automatic session handling with token refresh
-3. **Protected Routes**: Middleware protects routes requiring authentication
-4. **Profile Access**: Authenticated users can access their profile page
-5. **API Integration**: JWT tokens are used for secure API communication
-6. **Logout**: Secure logout with session cleanup
-
-## Avatar Upload Flow
-
-1. **File Selection**: Users can drag and drop or click to select an image
-2. **File Validation**: System validates file type and size (max 5MB)
-3. **Image Cropping**: Interactive crop tool with 1:1 aspect ratio
-4. **Preview**: Real-time preview of the cropped image
-5. **Upload**: Secure upload to S3 via API
-6. **Profile Update**: Avatar URL is automatically updated in user profile
-
-## Security Features
-
-- **JWT Token Validation**: Secure token-based authentication
-- **Route Protection**: Middleware-based route protection
-- **Session Management**: Secure session handling
-- **CORS Protection**: Configured for secure cross-origin requests
-- **Input Validation**: Comprehensive form validation
-- **Error Handling**: Secure error responses
-- **File Upload Security**: Secure file upload with validation
-
-## Future Enhancements
-
-- **Enhanced User Profiles**: Additional user statistics and preferences
-- **Leaderboards**: Global and friend-based leaderboards
-- **Achievement System**: Gamification with achievements and badges
-- **Social Features**: Friend system and social interactions
-- **Advanced Analytics**: Detailed game statistics and insights
-- **Progressive Web App**: Offline support and app-like experience
-- **Theme Customization**: User-selectable themes and customization
-- **Image Optimization**: Client-side image compression and optimization
-- **Avatar Templates**: Pre-designed avatar templates and customization options
-
-## License
-
-Copyright (c) 2025 Cameron Slash. All Rights Reserved.
-
-This software and associated documentation files (the "Software") are the proprietary property of Cameron Slash and are protected by copyright law. The Software is licensed, not sold.
-
-You are not permitted to:
-
-- Copy, modify, or create derivative works of the Software
-- Reverse engineer, decompile, or disassemble the Software
-- Remove or alter any proprietary notices or labels on the Software
-- Use the Software for any commercial purpose
-- Distribute, sublicense, or transfer the Software to any third party
-
-Any unauthorized use, reproduction, or distribution of the Software is strictly prohibited and may result in severe legal consequences.
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```

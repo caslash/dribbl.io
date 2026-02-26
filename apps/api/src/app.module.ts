@@ -1,12 +1,24 @@
-import { AuthModule } from '@/auth/auth.module';
-import { AWSModule } from '@/aws/aws.module';
-import { NBAModule } from '@/nba/nba.module';
+import { Accolade, Player, Season, Team } from '@dribblio/database';
 import { Module } from '@nestjs/common';
-import { UsersModule } from './users/users.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { NbaModule } from './nba/nba.module';
 
 @Module({
-  imports: [NBAModule, AuthModule, UsersModule, AWSModule],
-  controllers: [],
-  providers: [],
+  imports: [
+    TypeOrmModule.forRootAsync({
+      useFactory: () => ({
+        type: 'postgres',
+        host: process.env.PG_HOST,
+        port: Number(process.env.PG_PORT),
+        username: process.env.PG_NBA_USERNAME,
+        password: process.env.PG_NBA_PASSWORD,
+        database: process.env.PG_NBA_DATABASE,
+        entities: [Player, Season, Accolade, Team],
+        synchronize: false,
+        migrationsRun: false,
+      }),
+    }),
+    NbaModule,
+  ],
 })
 export class AppModule {}
