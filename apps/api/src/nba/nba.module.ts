@@ -1,13 +1,12 @@
-import { DatabaseModule } from '@/database/database.module';
-import { PlayersModule } from '@/nba/player/player.module';
-import { UsersModule } from '@/users/users.module';
+import { Accolade, Player, Season, Team } from '@dribblio/database';
 import { Module } from '@nestjs/common';
-import { CareerPathModule } from './games/careerpath/careerpath.module';
-import { DifficultiesModule } from './difficulties/difficulties.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { PlayerController } from './player/player.controller';
+import { PlayerService } from './player/player.service';
 
 @Module({
-  imports: [PlayersModule, DatabaseModule, UsersModule, CareerPathModule, DifficultiesModule],
-  controllers: [],
-  providers: [],
+  imports: [TypeOrmModule.forFeature([Player, Season, Accolade, Team])],
+  controllers: [PlayerController],
+  providers: [PlayerService],
 })
-export class NBAModule {}
+export class NbaModule {}

@@ -1,34 +1,30 @@
-import { NBAPrismaService } from '@/database/nba.prisma.service';
-import { runtime } from '@dribblio/database';
-import { Prisma as NBAPrisma, Player } from '@dribblio/database/generated/prisma-nba';
+import { Player } from '@dribblio/database';
 import { Injectable } from '@nestjs/common';
-
-import $Extensions = runtime.Types.Extensions;
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
-export class PlayersService {
-  constructor(private nba: NBAPrismaService) {}
+export class PlayerService {
+  constructor(
+    @InjectRepository(Player)
+    private readonly playerRepository: Repository<Player>,
+  ) {}
 
-  async findAll<
-    T extends NBAPrisma.PlayerFindManyArgs,
-    ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  >(args?: NBAPrisma.SelectSubset<T, NBAPrisma.PlayerFindManyArgs<ExtArgs>>) {
-    return await this.nba.player.findMany(args);
+  findAll(): Promise<Player[]> {
+    return this.playerRepository.find();
   }
 
-  async findOne(id: number): Promise<Player | null> {
-    return await this.nba.player.findFirst({ where: { id: { equals: id } } });
+  findOne(playerId: number): Promise<Player | null> {
+    return this.playerRepository.findOne({
+      where: { playerId },
+      relations: {
+        accolades: true,
+        seasons: true,
+      },
+    });
   }
 
-  async findRandom(where?: NBAPrisma.PlayerWhereInput): Promise<Player | null> {
-    const playerIds = (await this.findAll({ where: where, select: { id: true } })).map(
-      (player) => player.id,
-    );
-    const randomId = playerIds[Math.floor(Math.random() * playerIds.length)];
-    return await this.findOne(randomId);
-  }
-
-  async findCount(): Promise<number> {
-    return await this.nba.player.count();
+  findActive(): Promise<Player[]> {
+    return this.playerRepository.find({ where: { isActive: true } });
   }
 }
