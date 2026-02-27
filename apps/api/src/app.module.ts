@@ -1,4 +1,4 @@
-import { Accolade, Player, Season, Team } from '@dribblio/database';
+import { Accolade, Player, Season, Team } from '@dribblio/types';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { NbaModule } from './nba/nba.module';
