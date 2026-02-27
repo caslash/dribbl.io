@@ -1,5 +1,5 @@
 import { TeamService } from '@/nba/team/team.service';
-import { Team } from '@dribblio/database';
+import { Team } from '@dribblio/types';
 import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 
 @Controller('teams')

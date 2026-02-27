@@ -1,4 +1,4 @@
-import { Player } from '@dribblio/database';
+import { Player } from '@dribblio/types';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
