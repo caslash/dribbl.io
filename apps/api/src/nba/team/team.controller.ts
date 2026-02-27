@@ -1,4 +1,20 @@
-import { Controller } from '@nestjs/common';
+import { TeamService } from '@/nba/team/team.service';
+import { Team } from '@dribblio/database';
+import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 
-@Controller('team')
-export class TeamController {}
+@Controller('teams')
+export class TeamController {
+  constructor(private readonly teamService: TeamService) {}
+
+  @Get()
+  findAll(): Promise<Team[]> {
+    return this.teamService.findAll();
+  }
+
+  @Get(':team_id')
+  findOne(
+    @Param('team_id', ParseIntPipe) teamId: number,
+  ): Promise<Team | null> {
+    return this.teamService.findOne(teamId);
+  }
+}

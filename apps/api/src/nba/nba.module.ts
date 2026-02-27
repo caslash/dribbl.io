@@ -3,10 +3,12 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PlayerController } from './player/player.controller';
 import { PlayerService } from './player/player.service';
+import { TeamController } from './team/team.controller';
+import { TeamService } from './team/team.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Player, Season, Accolade, Team])],
-  controllers: [PlayerController],
-  providers: [PlayerService],
+  controllers: [PlayerController, TeamController],
+  providers: [PlayerService, TeamService],
 })
 export class NbaModule {}
