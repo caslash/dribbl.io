@@ -80,7 +80,7 @@ const assignParticipantReconnected = draftAssign(({ context, event }) => {
   };
 });
 
-export const actions = {
+export const assignActions = {
   assignConfig,
   assignDraftStart,
   assignPick,

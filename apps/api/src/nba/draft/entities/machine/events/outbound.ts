@@ -5,64 +5,68 @@ import {
   RoomConfig,
 } from '@/nba/draft/entities/machine/context';
 
-type NotifyParticipantJoined = {
+export type NotifyParticipantJoined = {
   type: 'NOTIFY_PARTICIPANT_JOINED';
   participant: Participant;
 };
 
-type NotifyParticipantLeft = {
+export type NotifyParticipantLeft = {
   type: 'NOTIFY_PARTICIPANT_LEFT';
   participantId: string;
 };
 
-type NotifyConfigSaved = {
+export type NotifyConfigSaved = {
   type: 'NOTIFY_CONFIG_SAVED';
   config: RoomConfig;
 };
 
-type NotifyDraftStarted = {
+export type NotifyReadyToStart = {
+  type: 'NOTIFY_READY_TO_START';
+};
+
+export type NotifyDraftStarted = {
   type: 'NOTIFY_DRAFT_STARTED';
   pool: PoolEntry[];
   turnOrder: string[];
 };
 
-type NotifyDraftCancelled = {
+export type NotifyDraftCancelled = {
   type: 'NOTIFY_DRAFT_CANCELLED';
 };
 
-type NotifyPickConfirmed = {
+export type NotifyPickConfirmed = {
   type: 'NOTIFY_PICK_CONFIRMED';
   pickRecord: PickRecord;
 };
 
-type NotifyPoolUpdated = {
+export type NotifyPoolUpdated = {
   type: 'NOTIFY_POOL_UPDATED';
   invalidatedIds: string[];
 };
 
-type NotifyTurnAdvanced = {
+export type NotifyTurnAdvanced = {
   type: 'NOTIFY_TURN_ADVANCED';
   currentTurnIndex: number;
   currentRound: number;
   participantId: string;
 };
 
-type NotifyAutoPickResolved = {
+export type NotifyAutoPickResolved = {
   type: 'NOTIFY_AUTO_PICK_RESOLVED';
   pickRecord: PickRecord;
 };
 
-type NotifyParticipantDisconnected = {
+export type NotifyParticipantDisconnected = {
   type: 'NOTIFY_PARTICIPANT_DISCONNECTED';
   participantId: string;
 };
 
-type NotifyParticipantReconnected = {
+export type NotifyParticipantReconnected = {
   type: 'NOTIFY_PARTICIPANT_RECONNECTED';
   participantId: string;
 };
 
-type NotifyDraftComplete = {
+export type NotifyDraftComplete = {
   type: 'NOTIFY_DRAFT_COMPLETE';
   pickHistory: PickRecord[];
 };
@@ -71,6 +75,7 @@ export type SocketActorEvent =
   | NotifyParticipantJoined
   | NotifyParticipantLeft
   | NotifyConfigSaved
+  | NotifyReadyToStart
   | NotifyDraftStarted
   | NotifyDraftCancelled
   | NotifyPickConfirmed
