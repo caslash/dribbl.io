@@ -73,6 +73,7 @@ export const createDraftMachine = (socketInfo: SocketActorInput) => {
             },
           },
           readyToStart: {
+            entry: 'notifyReadyToStart',
             on: {
               PARTICIPANT_LEFT: {
                 target: 'waitingForPlayers',
