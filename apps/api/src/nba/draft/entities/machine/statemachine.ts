@@ -22,7 +22,7 @@ export const createDraftMachine = (socketInfo: SocketActorInput) => {
       socketActor,
     },
   }).createMachine({
-    /** @xstate-layout N4IgpgJg5mDOIC5QDsBGBDAIgJ3QMwBcA6AGwHtVUBPIgd3QEsCHkoAxM7ABRPSrGywAxAHkASgHEAggDkAkgC0AomID6AYREy2ciQFUxSgNoAGALqJQABzKwmDMsksgAHogBMATgAcRACzuXiYAjJ4AbADMngDsfhHRADQgVIhxvsFeAKzuJpnefsEhngC+xUloWLiEpBTUdIzMrBzcvPyCQgCycjKqXAAyUgCaKgDKqh1KACqmFkggNnbMjs5uCBF5RNHB3hFh7t6ZfgVhicmIYT5EEe6ZkSHBcSY7peUYOPjE5JQ09PZNnDw+AJhFwpGJJnJ1HJQTJJqoAFIibpKTAzZwLezLOarYLbK7ebb7TKZB7uaIRJIpBDRclEDJhE4REInQ5hF4gCrvapfOq-RrsAGtYFCUHgyHQ2RwvpKNjTczo2yYpzYxAPIiZGJpDXkrzuI6UxAakxEbwmTwFTJbM1HaLszlVT61GgAY0ceAYUAArtgWFAhCMpAA1JQaLQ6CRouYYpbK0CrHa+CLeaLuYLZbz7TwZA1rQ7qy0RQvZFPRTyZO1vB01b5EbBgdAQKiTMgjAjobAEEUDYZqaWyyPWRUxlaGg5EJ7HUuFMnRTI5vbBIhl02z4Klrw0iuVD7Vup1htNlttjuiSSyRQqUPaXQGYzyqNDhyx1znEwROm4t8EvYmFk5w6ZEQOSxJk8SRDEXhblyjo1vujbNq27aduI0jyMoagjJMYJwpgYhSP296DosT4jgga6pv4ZJ+CYfi3ABhw5oUIRLjRNFkmmfhhMSUFVhADpCBAjhgEQsBtgQwn2jufEfAO8yPlicYeF4fgmqaJJcfs8QUmcCDhNEmzRLk4TrAyMTeDxUn8Sh57oRosjqEofSqLh+FyrMRFKqRP7jrOnFhN4PhktkjEhO+v45BcYTWhEuIWdU0mECK2HijCOFyCMmgyDISjqJMKKydGJEqmRhS+LRZqgbkeQ0SFJj6cEMUBdEpoPIWwRxcQCWdqKEJQqlqiGJl2W5flhFycRCkvmRRyeOOATWmaYRHMFOlMYunisQEWystxZQcpWlk7gQ3rIHIyBcNgZBQHWsDCIJyDCaJ6DiUQknxVWx3YKd52XddcCwAV8nPjiGplbipqprsTxLYxRwqfk3jJtEXEo+1e1vZ1H0nWdF1XTdsBEOgfK+lwDDOgA1v6egAEJdHCXCQgA0oDE3A4gLUmn4nheMunFMu4sPEnSgTXNz7EaR1RBdUQn3fbjf23YTxOsKTFNCJMBg9BCExqEoAAaDOGKiY2FZN8bMfk3OeLzdwC6thYqfE7jXPzexc34kvS7LOO-fjhOegQZCq+TvpCFIeiTCIvRMwNSgjCIfTBsb7njZ5xW4hc-ixDFoTGesc727iRBLZa-lMpaprmejB3vTunpWBAz0k2QZAkAJQkiWJEk15jdcN03KstyQLNp4pCCBOaqm5MEGk7OSfiw0cnOIzSKO3GjrzbrX1T143-JcEPRAsAAbugJAMHvvojGAJBgM6MYgiICeqHoXCYFIeXJwqrOkaElrjjsSIpYszJm5rDKIJoUzuBRltUsnsqzOgABZ3xDqwaCShkAQCECPYcxVvBRXHEmJkAQfChUYlmfSlpMgmGhgyGkAR4E7iQSg306DMHYOCCnU2bMEAaSXGSTwhYdg3BOHbKkoQ1zqlnDQ-BdCQKMOqA2U+yBnS+kmCdbBJsgakVASadYhJBEbWoZ4Ri-lAKCJotRX8oEtge2rlvYgN1PQkAIATY+DAwC0DUfWAAtsIMQT8OgaD6CIEYo0uHaOKjcf+fNOJphntsWiOZYj6TfDcXEzt-JlhKHaMgEA4DOAxt-UeU0AC0BJ-AmBEQ8KpJw6phEYtcfMOoYjI3wY1SWPIqQeVwWPUphZKnVOotAwys4Gk6RGeOAsnFqG7ERhEOxm9oK7h+A0X0zRARtHgA+H+6cbjF1XoI8kGY6nBHnFmcchQojxFxLcWInSnREFdMgd0XofSsGKb0qaQClxrgWSQsI8TThUjSMLMs2R-IXFiFXJZVYum1nrPBI8SFPlFTHlxFSNEywCJJLkZ25zFwhDfICqK+DzRsnscsrqqKzaGjNFPQ4NImVRV-IxBqYRi60StCmPIgKYX7QcVLLGX0fZ43+jSnhxJ9KI1yH4Jlq8QiMUCCpB4lpdSpktM1BRxBvY-TFYrImayVZk3JhKryuQGVyvlVFM59t9l7GdtsQRfhTR1W1TLbGeqFYE3QAHIOJrfRmvTlU2aEMjjKr0rcRpCzIHO2drUvU5p3W6vln7KwJqOgNjAEGseNT3BXCWuaOqGqAoL3tgUICiNrbJm2HVJ47rd4DygAfVuOapozzLAA3YXFiRxBmo07IVwUzdtnIcGeDb+770PifM+F8m3X1vvfJ82yelovbdnLtDJiSHH+SY1afNxw+AzMS64cr+UYyFX3S+g9W5SyEm21YkNfDRJJLcmkuJgWqjicvUsZLkYuvPT3S91RmEU1YQ6DBEAH3syaQET8M8nhZmtuQhklyaHOwzJmClsLDqKIgMo1RrB1FfWgwgYRxdzTbDXCGwFBdxHI3fGmWI04jSpmwwKqlvEHTqDID4qwt9xKkauSpK08RyoFB2OQtUdVqGIZ8MSfyksnEuJXanL5j7Aj5vNEyM0QilplqpFxWaoFE19q0rRJTcBnGuKIO4zx3j0B+NI4EQyS5Hi6aTPp5JcrCHpIyHM8IktnTkFgJAZzlpHY0lAltCNYjzgDJngFQsNxEYkltKUYoQA */
+    /** @xstate-layout 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-nkV9bGfKFYEyJg0EmZNyaCrKp+ccoqqXis-IcupIji4i2eIIleG07ScoEljH63t+WK3QP7QOOq-R6vHoULwJo5xfN1IZUZdTPlQKdk7IZwaOXVy5Z7VV8tfZWB1R0BsYAfUbMqQSZa5pAqpjyOaO2BQiDXBaj4RVgVJzKqIP3A+UAh6t0zbiWK45JzrD2o8T5bs7Z8MdpGjMMRpwRBrXWweR9T7n0vvWm+d8H6vngM+X+acs6AI7SSLts14aRAnD4DMOLtS2jBe9blfd97jtblLUSzaPCFyuBuvEaYaR4kSIvAZy8wH4ogivY9O9T3EGYRTVhjpMEQBvQgYRNEfzTknFmTwxiC7hEZdiuctxAgtUJXGx1+5FHoGUao064HIOxQKH+Fl4Q0ysQglFJ9BRylbVTJh8F8bsOEHUGQTxVg75SXA6c9SVp7hgXos8PSZxQiqhGdI+D+xGK-uJfYxxi7OkvOmoEQIq44gbUEbcZaC8zhMTmtsERARjiaenHYuADinFEBcW4jx6BvHgcCNUjThwzRCN0wk20RCUkZHWBhyWLpyCwEgE5y0DsFyfPnNK8Ba1Ig0ZCoWERq9NyZOKEAA */
     id: 'nbaDraft',
     initial: 'lobby',
     invoke: {
@@ -50,28 +50,38 @@ export const createDraftMachine = (socketInfo: SocketActorInput) => {
         initial: 'waitingForPlayers',
         states: {
           waitingForPlayers: {
+            always: {
+              guard: 'minPlayersMet',
+              target: 'readyToStart',
+            },
             on: {
               ORGANIZER_CONFIGURE: 'configuring',
-              MIN_PLAYERS_MET: 'readyToStart',
-              PARTICIPANT_JOINED: { actions: 'assignParticipant' },
-              PARTICIPANT_LEFT: { actions: 'removeParticipant' },
+              PARTICIPANT_JOINED: {
+                actions: ['assignParticipant', 'notifyParticipantJoined'],
+              },
+              PARTICIPANT_LEFT: {
+                actions: ['removeParticipant', 'notifyParticipantLeft'],
+              },
             },
           },
           configuring: {
             on: {
               SAVE_CONFIG: {
                 target: 'waitingForPlayers',
-                actions: 'assignConfig',
+                actions: ['assignConfig', 'notifyConfigSaved'],
               },
             },
           },
           readyToStart: {
             on: {
-              PLAYER_LEFT: 'waitingForPlayers',
+              PARTICIPANT_LEFT: {
+                target: 'waitingForPlayers',
+                actions: ['removeParticipant', 'notifyParticipantLeft'],
+              },
               ORGANIZER_CONFIGURE: 'configuring',
               ORGANIZER_START_DRAFT: {
                 target: '#nbaDraft.draft',
-                actions: 'assignDraftStart',
+                actions: ['assignDraftStart', 'notifyDraftStarted'],
               },
             },
           },
@@ -80,11 +90,22 @@ export const createDraftMachine = (socketInfo: SocketActorInput) => {
       draft: {
         initial: 'turnInProgress',
         on: {
-          ORGANIZER_CANCEL_DRAFT: { target: 'lobby' },
-          PARTICIPANT_DISCONNECTED: {
-            actions: 'assignParticipantDisconnected',
+          ORGANIZER_CANCEL_DRAFT: {
+            target: 'lobby',
+            actions: 'notifyDraftCancelled',
           },
-          PARTICIPANT_RECONNECTED: { actions: 'assignParticipantReconnected' },
+          PARTICIPANT_DISCONNECTED: {
+            actions: [
+              'assignParticipantDisconnected',
+              'notifyParticipantDisconnected',
+            ],
+          },
+          PARTICIPANT_RECONNECTED: {
+            actions: [
+              'assignParticipantReconnected',
+              'notifyParticipantReconnected',
+            ],
+          },
         },
         states: {
           turnInProgress: {
@@ -98,7 +119,10 @@ export const createDraftMachine = (socketInfo: SocketActorInput) => {
                   }),
                 },
                 on: {
-                  SUBMIT_PICK: { target: 'pickMade', actions: 'assignPick' },
+                  SUBMIT_PICK: {
+                    target: 'pickMade',
+                    actions: ['assignPick', 'notifyPickConfirmed'],
+                  },
                   TURN_TIMER_EXPIRED: 'autoPicking',
                 },
               },
@@ -106,7 +130,7 @@ export const createDraftMachine = (socketInfo: SocketActorInput) => {
                 on: {
                   AUTO_PICK_RESOLVED: {
                     target: 'pickMade',
-                    actions: 'assignPick',
+                    actions: ['assignPick', 'notifyPickConfirmed'],
                   },
                 },
               },
@@ -125,7 +149,7 @@ export const createDraftMachine = (socketInfo: SocketActorInput) => {
                 on: {
                   POOL_UPDATED: {
                     target: 'done',
-                    actions: 'assignPool',
+                    actions: ['assignPool', 'notifyPoolUpdated'],
                   },
                 },
               },
@@ -149,13 +173,14 @@ export const createDraftMachine = (socketInfo: SocketActorInput) => {
             ],
           },
           advancingTurn: {
-            entry: 'advanceTurn',
+            entry: ['advanceTurn', 'notifyTurnAdvanced'],
             always: {
               target: 'turnInProgress',
             },
           },
           draftComplete: {
             type: 'final',
+            entry: 'notifyDraftComplete',
           },
         },
         onDone: {

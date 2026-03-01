@@ -24,8 +24,6 @@ export const socketActor = fromCallback<SocketActorEvent, SocketActorInput>(
       socket.on('SAVE_CONFIG', (data) =>
         sendBack({ type: 'SAVE_CONFIG', ...data }),
       );
-      socket.on('MIN_PLAYERS_MET', () => sendBack({ type: 'MIN_PLAYERS_MET' }));
-      socket.on('PLAYER_LEFT', () => sendBack({ type: 'PLAYER_LEFT' }));
       socket.on('ORGANIZER_START_DRAFT', (data) =>
         sendBack({ type: 'ORGANIZER_START_DRAFT', ...data }),
       );
