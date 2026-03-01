@@ -33,12 +33,6 @@ export const socketActor = fromCallback<SocketActorEvent, SocketActorInput>(
       socket.on('SUBMIT_PICK', (data) =>
         sendBack({ type: 'SUBMIT_PICK', ...data }),
       );
-      socket.on('TURN_TIMER_EXPIRED', () =>
-        sendBack({ type: 'TURN_TIMER_EXPIRED' }),
-      );
-      socket.on('PARTICIPANT_DISCONNECTED', (data) =>
-        sendBack({ type: 'PARTICIPANT_DISCONNECTED', ...data }),
-      );
       socket.on('PARTICIPANT_RECONNECTED', (data) =>
         sendBack({ type: 'PARTICIPANT_RECONNECTED', ...data }),
       );
@@ -47,6 +41,13 @@ export const socketActor = fromCallback<SocketActorEvent, SocketActorInput>(
       );
       socket.on('POOL_UPDATED', (data) =>
         sendBack({ type: 'POOL_UPDATED', ...data }),
+      );
+
+      socket.on('disconnect', () =>
+        sendBack({
+          type: 'PARTICIPANT_DISCONNECTED',
+          participantId: socket.id,
+        }),
       );
     });
 

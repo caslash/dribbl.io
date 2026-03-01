@@ -51,11 +51,6 @@ export type NotifyTurnAdvanced = {
   participantId: string;
 };
 
-export type NotifyAutoPickResolved = {
-  type: 'NOTIFY_AUTO_PICK_RESOLVED';
-  pickRecord: PickRecord;
-};
-
 export type NotifyParticipantDisconnected = {
   type: 'NOTIFY_PARTICIPANT_DISCONNECTED';
   participantId: string;
@@ -81,7 +76,6 @@ export type SocketActorEvent =
   | NotifyPickConfirmed
   | NotifyPoolUpdated
   | NotifyTurnAdvanced
-  | NotifyAutoPickResolved
   | NotifyParticipantDisconnected
   | NotifyParticipantReconnected
   | NotifyDraftComplete;

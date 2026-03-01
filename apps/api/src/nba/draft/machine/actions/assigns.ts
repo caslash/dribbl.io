@@ -10,7 +10,7 @@ const draftAssign = assign<
   never
 >;
 
-export const assignConfig = draftAssign(({ event }) => {
+const assignConfig = draftAssign(({ event }) => {
   assertEvent(event, 'SAVE_CONFIG');
   return { config: event.config };
 });
@@ -27,7 +27,7 @@ const assignDraftStart = draftAssign(({ event }) => {
 });
 
 const assignPick = draftAssign(({ context, event }) => {
-  assertEvent(event, 'SUBMIT_PICK');
+  assertEvent(event, ['SUBMIT_PICK', 'AUTO_PICK_RESOLVED']);
   return { pickHistory: [...context.pickHistory, event.pickRecord] };
 });
 
