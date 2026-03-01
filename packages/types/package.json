@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "typeorm": "^0.3.20",
-    "reflect-metadata": "^0.2.0"
+    "reflect-metadata": "^0.2.0",
+    "xstate": "^5.22.0"
   },
   "peerDependencies": {
     "pg": "^8.0.0"
