@@ -1,5 +1,5 @@
-import { assignActions } from '@/nba/draft/entities/machine/actions/assigns';
-import { notifyActions } from '@/nba/draft/entities/machine/actions/notifies';
+import { assignActions } from '@/nba/draft/machine/actions/assigns';
+import { notifyActions } from '@/nba/draft/machine/actions/notifies';
 
 export const actions = {
   ...assignActions,

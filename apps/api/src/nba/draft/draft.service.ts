@@ -1,4 +1,5 @@
 import { createDraftMachine } from '@/nba/draft/machine/statemachine';
+import { DraftOrder, Participant } from '@dribblio/types';
 import { Injectable } from '@nestjs/common';
 import ShortUniqueId from 'short-unique-id';
 import { Server } from 'socket.io';
@@ -30,6 +31,31 @@ export class DraftService {
 
   getRoom(roomId: string): ReturnType<typeof createDraftMachine> | undefined {
     return this.rooms.get(roomId);
+  }
+
+  computeTurnOrder(
+    participants: Participant[],
+    draftOrder: DraftOrder,
+    maxRounds: number,
+  ): string[] {
+    const ids = participants.map((p) => p.id);
+
+    switch (draftOrder) {
+      case 'snake':
+        return this.snake(ids, maxRounds);
+      case 'linear':
+        return this.linear(ids, maxRounds);
+    }
+  }
+
+  private linear(ids: string[], maxRounds: number): string[] {
+    return Array.from({ length: maxRounds }, () => ids).flat();
+  }
+
+  private snake(ids: string[], maxRounds: number): string[] {
+    return Array.from({ length: maxRounds }, (_, round) =>
+      round % 2 === 0 ? ids : [...ids].reverse(),
+    ).flat();
   }
 
   private destroyRoom(roomId: string) {

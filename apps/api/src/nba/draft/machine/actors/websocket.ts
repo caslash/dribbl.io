@@ -1,4 +1,4 @@
-import { SocketActorEvent } from '@/nba/draft/entities/machine/events/outbound';
+import { SocketActorEvent } from '@dribblio/types/src/draft-events/outbound';
 import { Server, Socket } from 'socket.io';
 import { fromCallback } from 'xstate';
 
@@ -23,9 +23,6 @@ export const socketActor = fromCallback<SocketActorEvent, SocketActorInput>(
       );
       socket.on('SAVE_CONFIG', (data) =>
         sendBack({ type: 'SAVE_CONFIG', ...data }),
-      );
-      socket.on('ORGANIZER_START_DRAFT', (data) =>
-        sendBack({ type: 'ORGANIZER_START_DRAFT', ...data }),
       );
       socket.on('ORGANIZER_CANCEL_DRAFT', () =>
         sendBack({ type: 'ORGANIZER_CANCEL_DRAFT' }),

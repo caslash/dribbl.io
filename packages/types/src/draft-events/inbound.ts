@@ -1,9 +1,4 @@
-import {
-  Participant,
-  PickRecord,
-  PoolEntry,
-  RoomConfig,
-} from '@/nba/draft/entities/machine/context';
+import { Participant, PickRecord, PoolEntry, RoomConfig } from '../entities';
 
 export type ParticipantJoinedEvent = {
   type: 'PARTICIPANT_JOINED';
