@@ -1,12 +1,11 @@
-import { actions } from '@/nba/draft/entities/machine/actions';
-import { timerActor } from '@/nba/draft/entities/machine/actors/timer';
+import { actions } from '@/nba/draft/machine/actions';
+import { timerActor } from '@/nba/draft/machine/actors/timer';
 import {
   socketActor,
   SocketActorInput,
-} from '@/nba/draft/entities/machine/actors/websocket';
-import { NbaDraftContext } from '@/nba/draft/entities/machine/context';
-import { NbaDraftEvent } from '@/nba/draft/entities/machine/events/inbound';
-import { guards } from '@/nba/draft/entities/machine/guards';
+} from '@/nba/draft/machine/actors/websocket';
+import { guards } from '@/nba/draft/machine/guards';
+import { NbaDraftContext, NbaDraftEvent } from '@dribblio/types';
 import { createActor, not, or, setup } from 'xstate';
 
 export const createDraftMachine = (socketInfo: SocketActorInput) => {

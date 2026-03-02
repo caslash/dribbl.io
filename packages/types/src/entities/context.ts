@@ -1,7 +1,7 @@
 export type DraftMode = 'mvp' | 'franchise';
 export type DraftOrder = 'snake' | 'linear';
 
-export type Player = {
+export type NbaPlayer = {
   id: string;
   name: string;
 };
@@ -9,7 +9,7 @@ export type Player = {
 export type MvpSeasonEntry = {
   id: string; // e.g. "jordan-1987-88"
   playerId: string; // used for cross-season invalidation
-  player: Player;
+  player: NbaPlayer;
   season: string; // e.g. "1987-88"
   available: boolean;
 };
@@ -18,7 +18,7 @@ export type FranchiseEntry = {
   id: string; // e.g. "lebron-cavaliers"
   playerId: string; // used for cross-franchise invalidation
   franchiseId: string;
-  player: Player;
+  player: NbaPlayer;
   franchise: string;
   available: boolean;
 };

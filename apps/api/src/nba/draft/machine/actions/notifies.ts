@@ -1,7 +1,7 @@
-import { socketActor } from '@/nba/draft/entities/machine/actors/websocket';
-import { NbaDraftContext } from '@/nba/draft/entities/machine/context';
+import { socketActor } from '@/nba/draft/machine/actors/websocket';
 import {
   AutoPickResolvedEvent,
+  NbaDraftContext,
   NbaDraftEvent,
   ParticipantDisconnectedEvent,
   ParticipantJoinedEvent,
@@ -9,7 +9,7 @@ import {
   ParticipantReconnectedEvent,
   PoolUpdatedEvent,
   SubmitPickEvent,
-} from '@/nba/draft/entities/machine/events/inbound';
+} from '@dribblio/types';
 import { ActorRefFrom, sendTo } from 'xstate';
 
 type SocketRef = ActorRefFrom<typeof socketActor>;

@@ -1,5 +1,4 @@
-import { NbaDraftContext } from '@/nba/draft/entities/machine/context';
-import { NbaDraftEvent } from '@/nba/draft/entities/machine/events/inbound';
+import { NbaDraftContext, NbaDraftEvent } from '@dribblio/types';
 import type { GuardArgs } from 'xstate';
 
 type DraftGuardArgs = GuardArgs<NbaDraftContext, NbaDraftEvent>;
