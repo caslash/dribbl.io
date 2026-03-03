@@ -19,6 +19,7 @@
     "strictPropertyInitialization": false,
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "types": ["jest", "node"]
   }
 }
