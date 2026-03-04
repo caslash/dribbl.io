@@ -33,7 +33,9 @@ describe('PoolService', () => {
 
     service = module.get<PoolService>(PoolService);
     generator = module.get(MvpPoolGenerator);
+  });
 
+  beforeEach(() => {
     vi.clearAllMocks();
   });
 

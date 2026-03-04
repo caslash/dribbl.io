@@ -16,14 +16,16 @@ describe('DraftService', () => {
 
   const mockServer = {} as any;
 
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [DraftService],
     }).compile();
 
     service = module.get(DraftService);
-
-    vi.clearAllMocks();
     mockActor.subscribe.mockReturnValue({ unsubscribe: vi.fn() });
     vi.mocked(createDraftMachine).mockReturnValue(mockActor as any);
   });

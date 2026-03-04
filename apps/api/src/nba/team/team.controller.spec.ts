@@ -24,7 +24,9 @@ describe('TeamController', () => {
 
     controller = module.get<TeamController>(TeamController);
     service = module.get(TeamService);
+  });
 
+  beforeEach(() => {
     vi.clearAllMocks();
   });
 

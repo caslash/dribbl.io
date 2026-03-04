@@ -25,7 +25,9 @@ describe('PlayerController', () => {
 
     controller = module.get<PlayerController>(PlayerController);
     service = module.get(PlayerService);
+  });
 
+  beforeEach(() => {
     vi.clearAllMocks();
   });
 

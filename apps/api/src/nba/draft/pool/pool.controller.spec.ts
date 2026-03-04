@@ -42,7 +42,9 @@ describe('PoolController', () => {
     controller = module.get<PoolController>(PoolController);
     service = module.get(PoolService);
     generator = module.get(MvpPoolGenerator);
+  });
 
+  beforeEach(() => {
     vi.clearAllMocks();
   });
 

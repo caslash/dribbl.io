@@ -44,7 +44,9 @@ describe('DraftGateway', () => {
 
     gateway = module.get<DraftGateway>(DraftGateway);
     gateway.io = mockServer;
+  });
 
+  beforeEach(() => {
     vi.clearAllMocks();
   });
 

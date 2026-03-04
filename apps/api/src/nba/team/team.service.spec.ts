@@ -23,7 +23,9 @@ describe('TeamService', () => {
     }).compile();
 
     service = module.get<TeamService>(TeamService);
+  });
 
+  beforeEach(() => {
     vi.clearAllMocks();
   });
 

@@ -23,7 +23,9 @@ describe('PlayerService', () => {
     }).compile();
 
     service = module.get<PlayerService>(PlayerService);
+  });
 
+  beforeEach(() => {
     vi.clearAllMocks();
   });
 
