@@ -4,8 +4,8 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { TeamService } from './team.service';
 
 const mockTeamRepository = {
-  findOne: jest.fn(),
-  find: jest.fn(),
+  findOne: vi.fn(),
+  find: vi.fn(),
 };
 
 describe('TeamService', () => {

@@ -7,14 +7,14 @@ describe('DraftGateway', () => {
   let gateway: DraftGateway;
 
   const mockDraftService = {
-    createRoom: jest.fn(),
-    getRoom: jest.fn(),
-    computeTurnOrder: jest.fn(),
+    createRoom: vi.fn(),
+    getRoom: vi.fn(),
+    computeTurnOrder: vi.fn(),
   };
 
   const mockPoolService = {
-    loadPool: jest.fn(),
-    finalize: jest.fn(),
+    loadPool: vi.fn(),
+    finalize: vi.fn(),
   };
 
   beforeEach(async () => {

@@ -9,18 +9,18 @@ describe('PoolController', () => {
   let generator: MvpPoolGenerator;
 
   const mockPoolService = {
-    generatePreview: jest.fn(),
-    finalize: jest.fn(),
-    createPool: jest.fn(),
-    savePool: jest.fn(),
-    loadPool: jest.fn(),
-    listPublicPools: jest.fn(),
-    updatePool: jest.fn(),
-    deletePool: jest.fn(),
+    generatePreview: vi.fn(),
+    finalize: vi.fn(),
+    createPool: vi.fn(),
+    savePool: vi.fn(),
+    loadPool: vi.fn(),
+    listPublicPools: vi.fn(),
+    updatePool: vi.fn(),
+    deletePool: vi.fn(),
   };
 
   const mockGenerator = {
-    generate: jest.fn(),
+    generate: vi.fn(),
   };
 
   beforeEach(async () => {

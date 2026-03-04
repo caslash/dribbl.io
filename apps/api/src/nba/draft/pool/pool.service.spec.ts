@@ -9,14 +9,14 @@ describe('PoolService', () => {
   let generator: MvpPoolGenerator;
 
   const mockMvpGenerator = {
-    generate: jest.fn(),
+    generate: vi.fn(),
   };
 
   const mockSavedPoolRepository = {
-    save: jest.fn(),
-    findOneBy: jest.fn(),
-    findBy: jest.fn(),
-    delete: jest.fn(),
+    save: vi.fn(),
+    findOneBy: vi.fn(),
+    findBy: vi.fn(),
+    delete: vi.fn(),
   };
 
   beforeEach(async () => {
