@@ -7,8 +7,8 @@ describe('TeamController', () => {
   let service: TeamService;
 
   const mockTeamService = {
-    findAll: jest.fn(),
-    findOne: jest.fn(),
+    findAll: vi.fn(),
+    findOne: vi.fn(),
   };
 
   beforeEach(async () => {

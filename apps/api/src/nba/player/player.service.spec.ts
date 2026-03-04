@@ -4,8 +4,8 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { PlayerService } from './player.service';
 
 const mockPlayerRepository = {
-  find: jest.fn(),
-  findOne: jest.fn(),
+  find: vi.fn(),
+  findOne: vi.fn(),
 };
 
 describe('PlayerService', () => {

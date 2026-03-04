@@ -7,9 +7,9 @@ describe('PlayerController', () => {
   let service: PlayerService;
 
   const mockPlayerService = {
-    findAll: jest.fn(),
-    findOne: jest.fn(),
-    findActive: jest.fn(),
+    findAll: vi.fn(),
+    findOne: vi.fn(),
+    findActive: vi.fn(),
   };
 
   beforeEach(async () => {
