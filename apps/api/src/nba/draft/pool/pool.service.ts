@@ -81,6 +81,8 @@ export class PoolService {
 
   async deletePool(poolId: string): Promise<boolean> {
     const result = await this.savedPoolRepository.delete(poolId);
-    return result.affected ? result.affected > 0 : true;
+    return result.affected === undefined || result.affected === null
+      ? true
+      : result.affected > 0;
   }
 }
