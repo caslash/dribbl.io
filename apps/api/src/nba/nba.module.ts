@@ -6,9 +6,10 @@ import { PlayerController } from './player/player.controller';
 import { PlayerService } from './player/player.service';
 import { TeamController } from './team/team.controller';
 import { TeamService } from './team/team.service';
+import { CareerpathModule } from './careerpath/careerpath.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Player, Team]), DraftModule],
+  imports: [TypeOrmModule.forFeature([Player, Team]), DraftModule, CareerpathModule],
   controllers: [PlayerController, TeamController],
   providers: [PlayerService, TeamService],
 })

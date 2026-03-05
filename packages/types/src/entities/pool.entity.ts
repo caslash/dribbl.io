@@ -1,5 +1,5 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { DraftMode, PoolEntry } from './context';
+import { DraftMode, PoolEntry } from './draft-context';
 
 @Entity()
 export class SavedPool {

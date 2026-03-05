@@ -61,7 +61,7 @@ export type NotifyDraftComplete = {
   pickHistory: PickRecord[];
 };
 
-export type SocketActorEvent =
+export type DraftSocketActorEvent =
   | NotifyParticipantJoined
   | NotifyParticipantLeft
   | NotifyConfigSaved
