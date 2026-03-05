@@ -14,7 +14,7 @@ export type OrganizerConfigureEvent = {
   type: 'ORGANIZER_CONFIGURE';
 };
 
-export type SaveConfigEvent = {
+export type SaveDraftConfigEvent = {
   type: 'SAVE_CONFIG';
   config: RoomConfig;
 };
@@ -66,7 +66,7 @@ export type NbaDraftEvent =
   | ParticipantJoinedEvent
   | ParticipantLeftEvent
   | OrganizerConfigureEvent
-  | SaveConfigEvent
+  | SaveDraftConfigEvent
   | OrganizerStartDraftEvent
   | OrganizerCancelDraftEvent
   | SubmitPickEvent
