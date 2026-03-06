@@ -1,4 +1,4 @@
-import { Player } from '@dribblio/types';
+import { DifficultyFilter, Player } from '@dribblio/types';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -26,5 +26,29 @@ export class PlayerService {
 
   findActive(): Promise<Player[]> {
     return this.playerRepository.find({ where: { isActive: true } });
+  }
+
+  async findRandomPlayer(filter?: DifficultyFilter): Promise<Player | null> {
+    let playerIds: number[];
+
+    if (filter) {
+      playerIds = (
+        await filter(
+          this.playerRepository.createQueryBuilder('player'),
+        ).getMany()
+      ).map((p) => p.playerId);
+    } else {
+      playerIds = (
+        await this.playerRepository.find({
+          select: { playerId: true },
+        })
+      ).map((p) => p.playerId);
+    }
+
+    const randomId = playerIds[Math.floor(Math.random() * playerIds.length)];
+
+    return this.playerRepository.findOne({
+      where: { playerId: randomId },
+    });
   }
 }
