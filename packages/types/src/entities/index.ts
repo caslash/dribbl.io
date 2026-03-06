@@ -1,5 +1,7 @@
 export * from './accolade.entity';
+export * from './career-path-context';
 export * from './draft-context';
+export * from './game-difficulty';
 export * from './player.entity';
 export * from './pool.entity';
 export * from './profile';
