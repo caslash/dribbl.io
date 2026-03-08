@@ -2,8 +2,8 @@ import { PoolGenerator } from '@/nba/draft/pool/generator.interface';
 import { MvpPoolGenerator } from '@/nba/draft/pool/generators/mvp.generator';
 import {
   CreatePoolDto,
+  DraftRoomConfig,
   PoolEntry,
-  RoomConfig,
   SavedPool,
   UpdatePoolDto,
 } from '@dribblio/types';
@@ -23,13 +23,13 @@ export class PoolService {
     private readonly savedPoolRepository: Repository<SavedPool>,
   ) {}
 
-  async generatePreview(config: RoomConfig): Promise<PoolEntry[]> {
+  async generatePreview(config: DraftRoomConfig): Promise<PoolEntry[]> {
     const generator = this.generators[config.draftMode];
     return generator.generate(config);
   }
 
   async finalize(
-    config: RoomConfig,
+    config: DraftRoomConfig,
     overrides?: PoolEntry[],
   ): Promise<PoolEntry[]> {
     if (overrides) return overrides;
@@ -49,7 +49,7 @@ export class PoolService {
   async savePool(
     name: string,
     visibility: 'public' | 'private',
-    config: RoomConfig,
+    config: DraftRoomConfig,
     entries: PoolEntry[],
   ): Promise<SavedPool> {
     return this.savedPoolRepository.save({

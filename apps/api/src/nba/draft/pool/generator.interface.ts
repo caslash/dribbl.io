@@ -1,5 +1,5 @@
-import { PoolEntry, RoomConfig } from '@dribblio/types';
+import { DraftRoomConfig, PoolEntry } from '@dribblio/types';
 
 export interface PoolGenerator {
-  generate(config: RoomConfig): Promise<PoolEntry[]>;
+  generate(config: DraftRoomConfig): Promise<PoolEntry[]>;
 }

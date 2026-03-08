@@ -1,8 +1,11 @@
 import { CareerPathService } from '@/nba/careerpath/careerpath.service';
+import { createCareerPathMachine } from '@/nba/careerpath/machine/statemachine';
 import { PlayerService } from '@/nba/player/player.service';
 import { GameDifficulty, Player, Season } from '@dribblio/types';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+
+vi.mock('@/nba/careerpath/machine/statemachine');
 
 const mockPlayerRepository = {
   find: vi.fn(),
@@ -35,6 +38,15 @@ const makeSeason = (overrides: Partial<Season> = {}): Season =>
     ...overrides,
   }) as Season;
 
+const mockActor = {
+  subscribe: vi.fn(),
+  stop: vi.fn(),
+  send: vi.fn(),
+  getSnapshot: vi.fn(),
+};
+
+const mockServer = {} as any;
+
 describe('CareerPath', () => {
   let service: CareerPathService;
 
@@ -54,6 +66,8 @@ describe('CareerPath', () => {
     }).compile();
 
     service = module.get<CareerPathService>(CareerPathService);
+    mockActor.subscribe.mockReturnValue({ unsubscribe: vi.fn() });
+    vi.mocked(createCareerPathMachine).mockReturnValue(mockActor as any);
   });
 
   beforeEach(() => {
@@ -155,6 +169,51 @@ describe('CareerPath', () => {
         expect.any(String),
         [[LAL, BOS]],
       );
+    });
+  });
+
+  describe('createRoom', () => {
+    it('should call createCareerPathMachine, subscribe to the actor, and return a room id', () => {
+      const roomId = service.createRoom(mockServer);
+
+      expect(typeof roomId).toBe('string');
+      expect(roomId.length).toBe(5);
+      expect(vi.mocked(createCareerPathMachine)).toHaveBeenCalledWith(
+        { io: mockServer, roomId },
+        expect.any(Function),
+      );
+      expect(mockActor.subscribe).toHaveBeenCalledTimes(1);
+    });
+
+    it('should remove the room when the actor reaches a done status', () => {
+      const roomId = service.createRoom(mockServer);
+
+      const [[subscriberFn]] = mockActor.subscribe.mock.calls;
+      subscriberFn({ status: 'done' });
+
+      expect(mockActor.stop).toHaveBeenCalled();
+      expect(service.getRoom(roomId)).toBeUndefined();
+    });
+
+    it('should not remove the room when the actor status is not done', () => {
+      const roomId = service.createRoom(mockServer);
+
+      const [[subscriberFn]] = mockActor.subscribe.mock.calls;
+      subscriberFn({ status: 'active' });
+
+      expect(mockActor.stop).not.toHaveBeenCalled();
+      expect(service.getRoom(roomId)).toBe(mockActor);
+    });
+  });
+
+  describe('getRoom', () => {
+    it('should return undefined for a room that does not exist', () => {
+      expect(service.getRoom('NOPE1')).toBeUndefined();
+    });
+
+    it('should return the actor for a room that was created', () => {
+      const roomId = service.createRoom(mockServer);
+      expect(service.getRoom(roomId)).toBe(mockActor);
     });
   });
 });

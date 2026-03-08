@@ -21,9 +21,8 @@ const notifyNextRound = sendToSocket('socket', ({ context }) => ({
   lives: context.gameState.lives ? context.gameState.lives + 1 : undefined,
 }));
 
-const notifyConfigSaved = sendToSocket('socket', ({ context }) => ({
+const notifyConfigSaved = sendToSocket('socket', () => ({
   type: 'NOTIFY_CONFIG_SAVED',
-  config: context.config,
 }));
 
 const notifyCorrectGuess = sendToSocket('socket', ({ context }) => ({

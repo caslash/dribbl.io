@@ -1,5 +1,5 @@
-import { RoomConfig } from '../entities';
+import { DraftRoomConfig } from '../entities';
 
 export class PreviewPoolDto {
-  config: RoomConfig;
+  config: DraftRoomConfig;
 }

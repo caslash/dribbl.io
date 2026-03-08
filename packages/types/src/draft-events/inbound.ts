@@ -1,4 +1,4 @@
-import { Participant, PickRecord, PoolEntry, RoomConfig } from '../entities';
+import { DraftRoomConfig, Participant, PickRecord, PoolEntry } from '../entities';
 
 export type ParticipantJoinedEvent = {
   type: 'PARTICIPANT_JOINED';
@@ -16,7 +16,7 @@ export type OrganizerConfigureEvent = {
 
 export type SaveDraftConfigEvent = {
   type: 'SAVE_CONFIG';
-  config: RoomConfig;
+  config: DraftRoomConfig;
 };
 
 export type OrganizerStartDraftEvent = {
