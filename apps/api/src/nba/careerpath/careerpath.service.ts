@@ -59,6 +59,12 @@ export class CareerPathService {
     return roomId;
   }
 
+  getRoom(
+    roomId: string,
+  ): ReturnType<typeof createCareerPathMachine> | undefined {
+    return this.rooms.get(roomId);
+  }
+
   private readonly generateRound = async (
     difficulty: GameDifficulty,
   ): Promise<RoundProps> => {

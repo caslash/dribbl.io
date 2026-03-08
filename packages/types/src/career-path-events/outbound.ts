@@ -1,4 +1,4 @@
-import { CareerPathConfig, Player } from '../entities';
+import { Player } from '../entities';
 
 export type NotifyNextRound = {
   type: 'NOTIFY_NEXT_ROUND';
@@ -9,7 +9,6 @@ export type NotifyNextRound = {
 
 export type NotifyCareerPathConfigSaved = {
   type: 'NOTIFY_CONFIG_SAVED';
-  config: CareerPathConfig;
 };
 
 export type NotifyCorrectGuess = {

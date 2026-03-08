@@ -1,4 +1,4 @@
-import { CareerPathConfig, UserGuess } from '../entities/career-path-context';
+import { UserGuess } from '../entities/career-path-context';
 
 export type StartGameEvent = {
   type: 'START_GAME';
@@ -6,7 +6,10 @@ export type StartGameEvent = {
 
 export type SaveCareerPathConfigEvent = {
   type: 'SAVE_CONFIG';
-  config: CareerPathConfig;
+  config: {
+    lives: number | undefined;
+    gameDifficulty: string;
+  };
 };
 
 export type UserGuessEvent = {

@@ -40,7 +40,7 @@ export type PickRecord = {
   wasAutoPicked: boolean;
 };
 
-export type RoomConfig = {
+export type DraftRoomConfig = {
   draftMode: DraftMode;
   draftOrder: DraftOrder;
   maxRounds: number;
@@ -49,7 +49,7 @@ export type RoomConfig = {
 
 export type NbaDraftContext = {
   roomId: string;
-  config: RoomConfig;
+  config: DraftRoomConfig;
 
   participants: Participant[];
 

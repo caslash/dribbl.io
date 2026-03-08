@@ -1,6 +1,6 @@
-import { RoomConfig } from '../entities';
+import { DraftRoomConfig } from '../entities';
 
 export class StartDraftDto {
-  config: RoomConfig;
+  config: DraftRoomConfig;
   savedPoolId?: string;
 }

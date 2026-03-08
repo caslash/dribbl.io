@@ -1,4 +1,4 @@
-import { CareerPathSocketEvent, UserGuess } from '@dribblio/types';
+import { CareerPathSocketEvent } from '@dribblio/types';
 import { Server, Socket } from 'socket.io';
 import { fromCallback } from 'xstate';
 
@@ -15,8 +15,11 @@ export const socketActor = fromCallback<
 
   io.on('connection', (socket: Socket) => {
     socket.on('START_GAME', () => sendBack({ type: 'START_GAME' }));
-    socket.on('USER_GUESS', (guess: UserGuess) =>
-      sendBack({ type: 'USER_GUESS', guess }),
+    socket.on('SAVE_CONFIG', (data) =>
+      sendBack({ type: 'SAVE_CONFIG', ...data }),
+    );
+    socket.on('USER_GUESS', (data) =>
+      sendBack({ type: 'USER_GUESS', ...data }),
     );
     socket.on('SKIP', () => sendBack({ type: 'SKIP' }));
     socket.on('PLAYER_DISCONNECTED', () =>

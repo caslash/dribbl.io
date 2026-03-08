@@ -1,5 +1,10 @@
 import { createDraftMachine } from '@/nba/draft/machine/statemachine';
-import type { Participant, PickRecord, PoolEntry, RoomConfig } from '@dribblio/types';
+import type {
+  DraftRoomConfig,
+  Participant,
+  PickRecord,
+  PoolEntry,
+} from '@dribblio/types';
 
 /**
  * The socketActor stub captures every event the machine sends via sendTo('socket', …).
@@ -38,7 +43,7 @@ const makeParticipant = (id: string, isOrganizer = false): Participant => ({
   isConnected: true,
 });
 
-const makeConfig = (): RoomConfig => ({
+const makeConfig = (): DraftRoomConfig => ({
   draftMode: 'mvp',
   draftOrder: 'snake',
   maxRounds: 2,
@@ -94,7 +99,10 @@ describe('NbaDraftMachine', () => {
   // -------------------------------------------------------------------------
 
   const addParticipant = (id: string, isOrganizer = false) => {
-    actor.send({ type: 'PARTICIPANT_JOINED', participant: makeParticipant(id, isOrganizer) });
+    actor.send({
+      type: 'PARTICIPANT_JOINED',
+      participant: makeParticipant(id, isOrganizer),
+    });
   };
 
   const addTwoParticipants = () => {
@@ -113,7 +121,9 @@ describe('NbaDraftMachine', () => {
 
   describe('initial state', () => {
     it('should start in lobby.waitingForPlayers', () => {
-      expect(actor.getSnapshot().matches({ lobby: 'waitingForPlayers' })).toBe(true);
+      expect(actor.getSnapshot().matches({ lobby: 'waitingForPlayers' })).toBe(
+        true,
+      );
     });
 
     it('should have empty context defaults', () => {
@@ -135,7 +145,9 @@ describe('NbaDraftMachine', () => {
     it('should remain in waitingForPlayers when fewer than 2 participants have joined', () => {
       addParticipant('A', true);
 
-      expect(actor.getSnapshot().matches({ lobby: 'waitingForPlayers' })).toBe(true);
+      expect(actor.getSnapshot().matches({ lobby: 'waitingForPlayers' })).toBe(
+        true,
+      );
       expect(actor.getSnapshot().context.participants).toHaveLength(1);
     });
 
@@ -143,7 +155,10 @@ describe('NbaDraftMachine', () => {
       const p = makeParticipant('A', true);
       actor.send({ type: 'PARTICIPANT_JOINED', participant: p });
 
-      expect(socketState.received).toContainEqual({ type: 'NOTIFY_PARTICIPANT_JOINED', participant: p });
+      expect(socketState.received).toContainEqual({
+        type: 'NOTIFY_PARTICIPANT_JOINED',
+        participant: p,
+      });
     });
 
     it('should auto-transition to readyToStart and send NOTIFY_READY_TO_START when the second participant joins', () => {
@@ -151,7 +166,9 @@ describe('NbaDraftMachine', () => {
       addParticipant('B');
 
       expect(actor.getSnapshot().matches({ lobby: 'readyToStart' })).toBe(true);
-      expect(socketState.received).toContainEqual({ type: 'NOTIFY_READY_TO_START' });
+      expect(socketState.received).toContainEqual({
+        type: 'NOTIFY_READY_TO_START',
+      });
     });
 
     it('should remove the participant and send NOTIFY_PARTICIPANT_LEFT on PARTICIPANT_LEFT', () => {
@@ -186,7 +203,9 @@ describe('NbaDraftMachine', () => {
       const config = makeConfig();
       actor.send({ type: 'SAVE_CONFIG', config });
 
-      expect(actor.getSnapshot().matches({ lobby: 'waitingForPlayers' })).toBe(true);
+      expect(actor.getSnapshot().matches({ lobby: 'waitingForPlayers' })).toBe(
+        true,
+      );
       expect(actor.getSnapshot().context.config).toEqual(config);
     });
 
@@ -194,7 +213,10 @@ describe('NbaDraftMachine', () => {
       const config = makeConfig();
       actor.send({ type: 'SAVE_CONFIG', config });
 
-      expect(socketState.received).toContainEqual({ type: 'NOTIFY_CONFIG_SAVED', config });
+      expect(socketState.received).toContainEqual({
+        type: 'NOTIFY_CONFIG_SAVED',
+        config,
+      });
     });
   });
 
@@ -215,8 +237,12 @@ describe('NbaDraftMachine', () => {
     it('should transition back to waitingForPlayers and remove the participant on PARTICIPANT_LEFT', () => {
       actor.send({ type: 'PARTICIPANT_LEFT', participantId: 'B' });
 
-      expect(actor.getSnapshot().matches({ lobby: 'waitingForPlayers' })).toBe(true);
-      expect(actor.getSnapshot().context.participants.find((p) => p.id === 'B')).toBeUndefined();
+      expect(actor.getSnapshot().matches({ lobby: 'waitingForPlayers' })).toBe(
+        true,
+      );
+      expect(
+        actor.getSnapshot().context.participants.find((p) => p.id === 'B'),
+      ).toBeUndefined();
     });
 
     it('should transition to lobby.configuring on ORGANIZER_CONFIGURE', () => {
@@ -240,7 +266,9 @@ describe('NbaDraftMachine', () => {
 
     it('should enter draft.turnInProgress.awaitingPick', () => {
       expect(
-        actor.getSnapshot().matches({ draft: { turnInProgress: 'awaitingPick' } }),
+        actor
+          .getSnapshot()
+          .matches({ draft: { turnInProgress: 'awaitingPick' } }),
       ).toBe(true);
     });
 
@@ -282,7 +310,9 @@ describe('NbaDraftMachine', () => {
       actor.send({ type: 'SUBMIT_PICK', pickRecord });
 
       expect(
-        actor.getSnapshot().matches({ draft: { updatingPool: 'invalidatingSelections' } }),
+        actor
+          .getSnapshot()
+          .matches({ draft: { updatingPool: 'invalidatingSelections' } }),
       ).toBe(true);
       expect(actor.getSnapshot().context.pickHistory).toHaveLength(1);
       expect(actor.getSnapshot().context.pickHistory[0]).toEqual(pickRecord);
@@ -292,7 +322,10 @@ describe('NbaDraftMachine', () => {
       const pickRecord = makePickRecord('A', e1);
       actor.send({ type: 'SUBMIT_PICK', pickRecord });
 
-      expect(socketState.received).toContainEqual({ type: 'NOTIFY_PICK_CONFIRMED', pickRecord });
+      expect(socketState.received).toContainEqual({
+        type: 'NOTIFY_PICK_CONFIRMED',
+        pickRecord,
+      });
     });
 
     it('should return to awaitingPick after POOL_UPDATED when rounds remain', () => {
@@ -300,7 +333,9 @@ describe('NbaDraftMachine', () => {
       actor.send({ type: 'POOL_UPDATED', invalidatedIds: new Set([e1.id]) });
 
       expect(
-        actor.getSnapshot().matches({ draft: { turnInProgress: 'awaitingPick' } }),
+        actor
+          .getSnapshot()
+          .matches({ draft: { turnInProgress: 'awaitingPick' } }),
       ).toBe(true);
     });
 
@@ -308,10 +343,14 @@ describe('NbaDraftMachine', () => {
       actor.send({ type: 'SUBMIT_PICK', pickRecord: makePickRecord('A', e1) });
       actor.send({ type: 'POOL_UPDATED', invalidatedIds: new Set([e1.id]) });
 
-      const updatedE1 = actor.getSnapshot().context.pool.find((e) => e.id === e1.id);
+      const updatedE1 = actor
+        .getSnapshot()
+        .context.pool.find((e) => e.id === e1.id);
       expect(updatedE1?.available).toBe(false);
 
-      const updatedE2 = actor.getSnapshot().context.pool.find((e) => e.id === e2.id);
+      const updatedE2 = actor
+        .getSnapshot()
+        .context.pool.find((e) => e.id === e2.id);
       expect(updatedE2?.available).toBe(true);
     });
 
@@ -358,7 +397,9 @@ describe('NbaDraftMachine', () => {
       actor.send({ type: 'TURN_TIMER_EXPIRED' });
 
       expect(
-        actor.getSnapshot().matches({ draft: { turnInProgress: 'autoPicking' } }),
+        actor
+          .getSnapshot()
+          .matches({ draft: { turnInProgress: 'autoPicking' } }),
       ).toBe(true);
     });
 
@@ -368,7 +409,9 @@ describe('NbaDraftMachine', () => {
       actor.send({ type: 'AUTO_PICK_RESOLVED', pickRecord });
 
       expect(
-        actor.getSnapshot().matches({ draft: { updatingPool: 'invalidatingSelections' } }),
+        actor
+          .getSnapshot()
+          .matches({ draft: { updatingPool: 'invalidatingSelections' } }),
       ).toBe(true);
       expect(actor.getSnapshot().context.pickHistory[0]).toEqual(pickRecord);
     });
@@ -378,7 +421,10 @@ describe('NbaDraftMachine', () => {
       actor.send({ type: 'TURN_TIMER_EXPIRED' });
       actor.send({ type: 'AUTO_PICK_RESOLVED', pickRecord });
 
-      expect(socketState.received).toContainEqual({ type: 'NOTIFY_PICK_CONFIRMED', pickRecord });
+      expect(socketState.received).toContainEqual({
+        type: 'NOTIFY_PICK_CONFIRMED',
+        pickRecord,
+      });
     });
   });
 
@@ -406,7 +452,9 @@ describe('NbaDraftMachine', () => {
     it('should send NOTIFY_DRAFT_CANCELLED on cancellation', () => {
       actor.send({ type: 'ORGANIZER_CANCEL_DRAFT' });
 
-      expect(socketState.received).toContainEqual({ type: 'NOTIFY_DRAFT_CANCELLED' });
+      expect(socketState.received).toContainEqual({
+        type: 'NOTIFY_DRAFT_CANCELLED',
+      });
     });
   });
 
@@ -426,10 +474,14 @@ describe('NbaDraftMachine', () => {
     it('should set isConnected to false and send NOTIFY_PARTICIPANT_DISCONNECTED', () => {
       actor.send({ type: 'PARTICIPANT_DISCONNECTED', participantId: 'A' });
 
-      const pA = actor.getSnapshot().context.participants.find((p) => p.id === 'A');
+      const pA = actor
+        .getSnapshot()
+        .context.participants.find((p) => p.id === 'A');
       expect(pA?.isConnected).toBe(false);
 
-      const pB = actor.getSnapshot().context.participants.find((p) => p.id === 'B');
+      const pB = actor
+        .getSnapshot()
+        .context.participants.find((p) => p.id === 'B');
       expect(pB?.isConnected).toBe(true);
 
       expect(socketState.received).toContainEqual({
@@ -444,7 +496,9 @@ describe('NbaDraftMachine', () => {
 
       actor.send({ type: 'PARTICIPANT_RECONNECTED', participantId: 'A' });
 
-      const pA = actor.getSnapshot().context.participants.find((p) => p.id === 'A');
+      const pA = actor
+        .getSnapshot()
+        .context.participants.find((p) => p.id === 'A');
       expect(pA?.isConnected).toBe(true);
 
       expect(socketState.received).toContainEqual({
@@ -478,15 +532,23 @@ describe('NbaDraftMachine', () => {
 
     it('should enter results.viewingTeams when all pool entries are invalidated', () => {
       actor.send({ type: 'SUBMIT_PICK', pickRecord: makePickRecord('A', e1) });
-      actor.send({ type: 'POOL_UPDATED', invalidatedIds: new Set([e1.id, e2.id]) });
+      actor.send({
+        type: 'POOL_UPDATED',
+        invalidatedIds: new Set([e1.id, e2.id]),
+      });
 
-      expect(actor.getSnapshot().matches({ results: 'viewingTeams' })).toBe(true);
+      expect(actor.getSnapshot().matches({ results: 'viewingTeams' })).toBe(
+        true,
+      );
     });
 
     it('should send NOTIFY_DRAFT_COMPLETE with the full pick history', () => {
       const pickRecord = makePickRecord('A', e1);
       actor.send({ type: 'SUBMIT_PICK', pickRecord });
-      actor.send({ type: 'POOL_UPDATED', invalidatedIds: new Set([e1.id, e2.id]) });
+      actor.send({
+        type: 'POOL_UPDATED',
+        invalidatedIds: new Set([e1.id, e2.id]),
+      });
 
       expect(socketState.received).toContainEqual({
         type: 'NOTIFY_DRAFT_COMPLETE',
@@ -508,12 +570,17 @@ describe('NbaDraftMachine', () => {
     beforeEach(() => {
       startDraft(pool, turnOrder);
       actor.send({ type: 'SUBMIT_PICK', pickRecord: makePickRecord('A', e1) });
-      actor.send({ type: 'POOL_UPDATED', invalidatedIds: new Set([e1.id, e2.id]) });
+      actor.send({
+        type: 'POOL_UPDATED',
+        invalidatedIds: new Set([e1.id, e2.id]),
+      });
       socketState.received = [];
     });
 
     it('should be in results.viewingTeams before ROOM_CLOSED', () => {
-      expect(actor.getSnapshot().matches({ results: 'viewingTeams' })).toBe(true);
+      expect(actor.getSnapshot().matches({ results: 'viewingTeams' })).toBe(
+        true,
+      );
     });
 
     it('should enter the closed final state on ROOM_CLOSED and mark the snapshot as done', () => {

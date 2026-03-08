@@ -1,5 +1,6 @@
 import { DraftService } from '@/nba/draft/draft.service';
 import { PoolService } from '@/nba/draft/pool/pool.service';
+import { DraftRoomConfig, Participant } from '@dribblio/types';
 import { Test, TestingModule } from '@nestjs/testing';
 import { DraftGateway } from './draft.gateway';
 
@@ -28,7 +29,10 @@ describe('DraftGateway', () => {
     handshake: { query: { roomId } },
   });
 
-  const makeRoom = (participants = [], config = { draftOrder: 'snake', maxRounds: 3 }) => ({
+  const makeRoom = (
+    participants: Participant[] = [],
+    config: DraftRoomConfig,
+  ) => ({
     send: vi.fn(),
     getSnapshot: vi.fn().mockReturnValue({ context: { participants, config } }),
   });
@@ -56,7 +60,12 @@ describe('DraftGateway', () => {
 
   describe('handleConnection', () => {
     it('should join the existing room when roomId is in the query and room exists', () => {
-      const room = makeRoom();
+      const room = makeRoom([], {
+        draftOrder: 'snake',
+        maxRounds: 3,
+        draftMode: 'mvp',
+        turnDuration: 0,
+      });
       mockDraftService.getRoom.mockReturnValue(room);
       const socket = makeSocket('socket-1', 'ROOM1');
 
@@ -89,13 +98,20 @@ describe('DraftGateway', () => {
 
       expect(mockDraftService.createRoom).toHaveBeenCalledWith(mockServer);
       expect(socket.join).toHaveBeenCalledWith('NEW01');
-      expect(socket.emit).toHaveBeenCalledWith('ROOM_CREATED', { roomId: 'NEW01' });
+      expect(socket.emit).toHaveBeenCalledWith('ROOM_CREATED', {
+        roomId: 'NEW01',
+      });
     });
   });
 
   describe('handleMessage', () => {
     it('should send the event to the room when socket is in a room', () => {
-      const room = makeRoom();
+      const room = makeRoom([], {
+        draftOrder: 'snake',
+        maxRounds: 3,
+        draftMode: 'mvp',
+        turnDuration: 0,
+      });
       mockDraftService.getRoom.mockReturnValue(room);
       const socket = makeSocket('socket-1', 'ROOM1');
       const event = { type: 'ORGANIZER_CONFIGURE' } as any;
@@ -126,12 +142,20 @@ describe('DraftGateway', () => {
     });
 
     it('should emit ERROR when savedPoolId is provided but pool is not found', async () => {
-      const room = makeRoom();
+      const room = makeRoom([], {
+        draftOrder: 'snake',
+        maxRounds: 3,
+        draftMode: 'mvp',
+        turnDuration: 0,
+      });
       mockDraftService.getRoom.mockReturnValue(room);
       mockPoolService.loadPool.mockResolvedValue(null);
       const socket = makeSocket('socket-1', 'ROOM1');
 
-      await gateway.handleStartDraft(socket as any, { savedPoolId: 'pool-123' } as any);
+      await gateway.handleStartDraft(
+        socket as any,
+        { savedPoolId: 'pool-123' } as any,
+      );
 
       expect(mockPoolService.loadPool).toHaveBeenCalledWith('pool-123');
       expect(socket.emit).toHaveBeenCalledWith('ERROR', {
@@ -141,8 +165,15 @@ describe('DraftGateway', () => {
     });
 
     it('should load the saved pool and send ORGANIZER_START_DRAFT when savedPoolId resolves', async () => {
-      const participants = [{ id: 'p1', name: 'P1', isOrganizer: true, isConnected: true }];
-      const config = { draftOrder: 'snake', maxRounds: 2, draftMode: 'mvp', turnDuration: 60 };
+      const participants = [
+        { id: 'p1', name: 'P1', isOrganizer: true, isConnected: true },
+      ];
+      const config: DraftRoomConfig = {
+        draftOrder: 'snake',
+        maxRounds: 2,
+        draftMode: 'mvp',
+        turnDuration: 60,
+      };
       const room = makeRoom(participants, config);
       mockDraftService.getRoom.mockReturnValue(room);
 
@@ -158,7 +189,10 @@ describe('DraftGateway', () => {
 
       const socket = makeSocket('socket-1', 'ROOM1');
 
-      await gateway.handleStartDraft(socket as any, { savedPoolId: 'pool-123' } as any);
+      await gateway.handleStartDraft(
+        socket as any,
+        { savedPoolId: 'pool-123' } as any,
+      );
 
       expect(mockPoolService.loadPool).toHaveBeenCalledWith('pool-123');
       expect(mockDraftService.computeTurnOrder).toHaveBeenCalledWith(
@@ -177,8 +211,15 @@ describe('DraftGateway', () => {
     });
 
     it('should call finalize and send ORGANIZER_START_DRAFT when no savedPoolId is given', async () => {
-      const participants = [{ id: 'p1', name: 'P1', isOrganizer: true, isConnected: true }];
-      const config = { draftOrder: 'linear', maxRounds: 1, draftMode: 'mvp', turnDuration: 60 };
+      const participants = [
+        { id: 'p1', name: 'P1', isOrganizer: true, isConnected: true },
+      ];
+      const config: DraftRoomConfig = {
+        draftOrder: 'linear',
+        maxRounds: 1,
+        draftMode: 'mvp',
+        turnDuration: 60,
+      };
       const room = makeRoom(participants, config);
       mockDraftService.getRoom.mockReturnValue(room);
 

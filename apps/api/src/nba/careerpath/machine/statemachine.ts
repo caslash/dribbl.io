@@ -27,7 +27,7 @@ export const createCareerPathMachine = (
     guards,
     actors: { socketActor, generateRoundActor },
   }).createMachine({
-    id: 'careerPathmachine',
+    id: 'careerPathMachine',
     initial: 'waitingForGameStart',
     invoke: {
       id: 'socket',
@@ -108,7 +108,7 @@ export const createCareerPathMachine = (
           },
           gameOver: {
             always: {
-              target: '#single-game-machine.waitingForGameStart',
+              target: '#careerPathMachine.waitingForGameStart',
               actions: 'notifyGameOver',
             },
           },

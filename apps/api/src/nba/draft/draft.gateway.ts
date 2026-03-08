@@ -11,7 +11,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-@WebSocketGateway()
+@WebSocketGateway({ namespace: '/draft' })
 export class DraftGateway implements OnGatewayConnection {
   @WebSocketServer()
   io: Server;

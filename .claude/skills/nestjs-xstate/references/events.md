@@ -137,22 +137,16 @@ export type NotifyParticipantReconnected = {
   participantId: string;
 };
 
-// ── Configuration ─────────────────────────────────────────────────────────
-
 export type NotifyConfigSaved = {
   type: 'NOTIFY_CONFIG_SAVED';
-  config: Config;
 };
 
 export type NotifyReady = {
   type: 'NOTIFY_READY';
 };
 
-// ── Session lifecycle ─────────────────────────────────────────────────────
-
 export type NotifyStarted = {
   type: 'NOTIFY_STARTED';
-  // include any data clients need to initialize their UI
 };
 
 export type NotifyCancelled = {
@@ -161,7 +155,6 @@ export type NotifyCancelled = {
 
 export type NotifyComplete = {
   type: 'NOTIFY_COMPLETE';
-  // include full history so client can render results in one payload
   history: ActionResult[];
 };
 

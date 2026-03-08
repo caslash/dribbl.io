@@ -1,5 +1,10 @@
 import { RoundProps } from '@/nba/careerpath/machine/actors/generate-round';
-import { CareerPathContext, CareerPathEvent, Player } from '@dribblio/types';
+import {
+  CareerPathContext,
+  CareerPathEvent,
+  GameDifficulties,
+  Player,
+} from '@dribblio/types';
 import { assertEvent, assign, DoneActorEvent } from 'xstate';
 
 // Typed assign helper — define once, reuse for all context-mutation actions.
@@ -13,7 +18,10 @@ const careerPathAssign = assign<
 
 const assignConfig = careerPathAssign(({ event }) => {
   assertEvent(event, 'SAVE_CONFIG');
-  return { config: event.config };
+  const difficulty = GameDifficulties.allModes.find(
+    (gd) => gd.name == event.config.gameDifficulty,
+  )!;
+  return { config: { ...event.config, gameDifficulty: difficulty } };
 });
 
 const assignRoundGenerated = careerPathAssign(({ context, event }) => {
