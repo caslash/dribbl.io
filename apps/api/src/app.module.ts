@@ -1,4 +1,4 @@
-import { Accolade, Player, Season, Team } from '@dribblio/types';
+import { Accolade, Player, SavedPool, Season, Team } from '@dribblio/types';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { NbaModule } from './nba/nba.module';
@@ -13,7 +13,7 @@ import { NbaModule } from './nba/nba.module';
         username: process.env.PG_NBA_USERNAME,
         password: process.env.PG_NBA_PASSWORD,
         database: process.env.PG_NBA_DATABASE,
-        entities: [Player, Season, Accolade, Team],
+        entities: [Player, Season, Accolade, Team, SavedPool],
         synchronize: false,
         migrationsRun: false,
       }),

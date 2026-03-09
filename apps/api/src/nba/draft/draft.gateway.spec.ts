@@ -1,5 +1,5 @@
 import { DraftService } from '@/nba/draft/draft.service';
-import { PoolService } from '@/nba/draft/pool/pool.service';
+import { PoolService } from '@/nba/pool/pool.service';
 import { DraftRoomConfig, Participant } from '@dribblio/types';
 import { Test, TestingModule } from '@nestjs/testing';
 import { DraftGateway } from './draft.gateway';

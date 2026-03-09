@@ -55,7 +55,7 @@ def _resolve_season(season: str) -> list[int]:
     resp = commonallplayers.CommonAllPlayers(
         league_id="00",
         season=season,
-        only_current_season=1,
+        is_only_current_season=1,
     )
     result_sets = resp.get_dict()["resultSets"]
     headers = result_sets[0]["headers"]

@@ -1,9 +1,9 @@
-import { MvpPoolGenerator } from '@/nba/draft/pool/generators/mvp.generator';
-import { PoolService } from '@/nba/draft/pool/pool.service';
+import { PoolService } from '@/nba/pool/pool.service';
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PoolController } from './pool.controller';
 
+import { MvpPoolGenerator } from '@/nba/pool/generators/mvp.generator';
 describe('PoolController', () => {
   let controller: PoolController;
   let service: PoolService;
@@ -66,7 +66,12 @@ describe('PoolController', () => {
 
   describe('preview', () => {
     it('should call poolService.createPool with the dto and return the saved pool', async () => {
-      const dto = { name: 'Test', draftMode: 'mvp' as const, visibility: 'private' as const, entries: [] };
+      const dto = {
+        name: 'Test',
+        draftMode: 'mvp' as const,
+        visibility: 'private' as const,
+        entries: [],
+      };
       const savedPool = { id: 'pool-1', ...dto };
       mockPoolService.createPool.mockResolvedValue(savedPool);
 
@@ -103,7 +108,9 @@ describe('PoolController', () => {
     it('should throw NotFoundException when pool is not found', async () => {
       mockPoolService.loadPool.mockResolvedValue(null);
 
-      await expect(controller.findOne('nonexistent')).rejects.toThrow(NotFoundException);
+      await expect(controller.findOne('nonexistent')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -114,14 +121,18 @@ describe('PoolController', () => {
 
       const result = await controller.update('pool-1', { name: 'Updated' });
 
-      expect(service.updatePool).toHaveBeenCalledWith('pool-1', { name: 'Updated' });
+      expect(service.updatePool).toHaveBeenCalledWith('pool-1', {
+        name: 'Updated',
+      });
       expect(result).toBe(updatedPool);
     });
 
     it('should throw NotFoundException when pool is not found', async () => {
       mockPoolService.updatePool.mockResolvedValue(null);
 
-      await expect(controller.update('nonexistent', { name: 'X' })).rejects.toThrow(NotFoundException);
+      await expect(
+        controller.update('nonexistent', { name: 'X' }),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -136,7 +147,9 @@ describe('PoolController', () => {
     it('should throw NotFoundException when pool is not found', async () => {
       mockPoolService.deletePool.mockResolvedValue(false);
 
-      await expect(controller.remove('nonexistent')).rejects.toThrow(NotFoundException);
+      await expect(controller.remove('nonexistent')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

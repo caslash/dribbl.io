@@ -1,5 +1,5 @@
-import { PoolGenerator } from '@/nba/draft/pool/generator.interface';
-import { MvpPoolGenerator } from '@/nba/draft/pool/generators/mvp.generator';
+import { PoolGenerator } from '@/nba/pool/generator.interface';
+import { MvpPoolGenerator } from '@/nba/pool/generators/mvp.generator';
 import {
   CreatePoolDto,
   DraftRoomConfig,

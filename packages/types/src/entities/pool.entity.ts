@@ -1,7 +1,7 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { DraftMode, PoolEntry } from './draft-context';
 
-@Entity()
+@Entity('pools')
 export class SavedPool {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -9,7 +9,7 @@ export class SavedPool {
   @Column()
   name: string;
 
-  @Column({ type: 'enum', enum: ['mvp', 'franchise', 'custom'] })
+  @Column({ name: 'draft_mode', type: 'enum', enum: ['mvp', 'franchise', 'custom'] })
   draftMode: DraftMode | 'custom';
 
   @Column({ type: 'enum', enum: ['public', 'private'] })
@@ -18,9 +18,9 @@ export class SavedPool {
   @Column({ type: 'jsonb' })
   entries: PoolEntry[];
 
-  @Column({ nullable: true })
+  @Column({ name: 'created_by', type: 'text', nullable: true })
   createdBy: string | null;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }

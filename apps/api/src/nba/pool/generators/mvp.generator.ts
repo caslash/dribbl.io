@@ -1,4 +1,4 @@
-import { PoolGenerator } from '@/nba/draft/pool/generator.interface';
+import { PoolGenerator } from '@/nba/pool/generator.interface';
 import { Accolade, MvpSeasonEntry, Season } from '@dribblio/types';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';

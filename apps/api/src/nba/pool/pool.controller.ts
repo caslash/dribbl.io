@@ -1,5 +1,5 @@
-import { MvpPoolGenerator } from '@/nba/draft/pool/generators/mvp.generator';
-import { PoolService } from '@/nba/draft/pool/pool.service';
+import { MvpPoolGenerator } from '@/nba/pool/generators/mvp.generator';
+import { PoolService } from '@/nba/pool/pool.service';
 import {
   CreatePoolDto,
   MvpSeasonEntry,
