@@ -1,4 +1,4 @@
-import { MvpPoolGenerator } from '@/nba/draft/pool/generators/mvp.generator';
+import { MvpPoolGenerator } from '@/nba/pool/generators/mvp.generator';
 import { SavedPool } from '@dribblio/types';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
@@ -47,7 +47,12 @@ describe('PoolService', () => {
     it('should call the mvp generator for mvp draftMode and return entries', async () => {
       const entries = [{ id: 'entry-1', available: true }];
       mockMvpGenerator.generate.mockResolvedValue(entries);
-      const config = { draftMode: 'mvp', draftOrder: 'snake', maxRounds: 3, turnDuration: 60 } as any;
+      const config = {
+        draftMode: 'mvp',
+        draftOrder: 'snake',
+        maxRounds: 3,
+        turnDuration: 60,
+      } as any;
 
       const result = await service.generatePreview(config);
 
@@ -59,7 +64,12 @@ describe('PoolService', () => {
   describe('finalize', () => {
     it('should return overrides directly without calling the generator', async () => {
       const overrides = [{ id: 'override-1', available: true }] as any;
-      const config = { draftMode: 'mvp', draftOrder: 'snake', maxRounds: 3, turnDuration: 60 } as any;
+      const config = {
+        draftMode: 'mvp',
+        draftOrder: 'snake',
+        maxRounds: 3,
+        turnDuration: 60,
+      } as any;
 
       const result = await service.finalize(config, overrides);
 
@@ -70,7 +80,12 @@ describe('PoolService', () => {
     it('should call generatePreview when no overrides are provided', async () => {
       const entries = [{ id: 'entry-1', available: true }] as any;
       mockMvpGenerator.generate.mockResolvedValue(entries);
-      const config = { draftMode: 'mvp', draftOrder: 'snake', maxRounds: 3, turnDuration: 60 } as any;
+      const config = {
+        draftMode: 'mvp',
+        draftOrder: 'snake',
+        maxRounds: 3,
+        turnDuration: 60,
+      } as any;
 
       const result = await service.finalize(config);
 
@@ -109,10 +124,20 @@ describe('PoolService', () => {
       const savedPool = { id: 'uuid-2', name: 'Draft Pool' };
       mockSavedPoolRepository.save.mockResolvedValue(savedPool);
 
-      const config = { draftMode: 'mvp', draftOrder: 'snake', maxRounds: 3, turnDuration: 60 } as any;
+      const config = {
+        draftMode: 'mvp',
+        draftOrder: 'snake',
+        maxRounds: 3,
+        turnDuration: 60,
+      } as any;
       const entries = [{ id: 'e1' }] as any;
 
-      const result = await service.savePool('Draft Pool', 'private', config, entries);
+      const result = await service.savePool(
+        'Draft Pool',
+        'private',
+        config,
+        entries,
+      );
 
       expect(mockSavedPoolRepository.save).toHaveBeenCalledWith({
         name: 'Draft Pool',
@@ -132,7 +157,9 @@ describe('PoolService', () => {
 
       const result = await service.loadPool('pool-1');
 
-      expect(mockSavedPoolRepository.findOneBy).toHaveBeenCalledWith({ id: 'pool-1' });
+      expect(mockSavedPoolRepository.findOneBy).toHaveBeenCalledWith({
+        id: 'pool-1',
+      });
       expect(result).toBe(pool);
     });
 
@@ -152,24 +179,40 @@ describe('PoolService', () => {
 
       const result = await service.listPublicPools();
 
-      expect(mockSavedPoolRepository.findBy).toHaveBeenCalledWith({ visibility: 'public' });
+      expect(mockSavedPoolRepository.findBy).toHaveBeenCalledWith({
+        visibility: 'public',
+      });
       expect(result).toBe(pools);
     });
   });
 
   describe('updatePool', () => {
     it('should find the pool, merge the dto, save it, and return the updated pool', async () => {
-      const existingPool = { id: 'pool-1', name: 'Old Name', visibility: 'private' };
-      const updatedPool = { id: 'pool-1', name: 'New Name', visibility: 'public' };
+      const existingPool = {
+        id: 'pool-1',
+        name: 'Old Name',
+        visibility: 'private',
+      };
+      const updatedPool = {
+        id: 'pool-1',
+        name: 'New Name',
+        visibility: 'public',
+      };
       mockSavedPoolRepository.findOneBy.mockResolvedValue(existingPool);
       mockSavedPoolRepository.save.mockResolvedValue(updatedPool);
 
       const dto = { name: 'New Name', visibility: 'public' as const };
       const result = await service.updatePool('pool-1', dto);
 
-      expect(mockSavedPoolRepository.findOneBy).toHaveBeenCalledWith({ id: 'pool-1' });
+      expect(mockSavedPoolRepository.findOneBy).toHaveBeenCalledWith({
+        id: 'pool-1',
+      });
       expect(mockSavedPoolRepository.save).toHaveBeenCalledWith(
-        expect.objectContaining({ id: 'pool-1', name: 'New Name', visibility: 'public' }),
+        expect.objectContaining({
+          id: 'pool-1',
+          name: 'New Name',
+          visibility: 'public',
+        }),
       );
       expect(result).toBe(updatedPool);
     });
