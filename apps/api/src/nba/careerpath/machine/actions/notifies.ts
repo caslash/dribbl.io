@@ -23,7 +23,7 @@ const notifyNextRound = sendToSocket('socket', ({ context }) => ({
       if (acc.at(-1) !== id) acc.push(id);
       return acc;
     }, []),
-  lives: context.gameState.lives ? context.gameState.lives + 1 : undefined,
+  lives: context.gameState.lives ? context.gameState.lives : undefined,
 }));
 
 const notifyConfigSaved = sendToSocket('socket', () => ({
