@@ -1,20 +1,20 @@
 import { CareerPathContext, CareerPathEvent } from '@dribblio/types';
-import type { GuardArgs } from 'xstate';
+import { assertEvent, type GuardArgs } from 'xstate';
 
-type SinglePlayerGuardArgs = GuardArgs<CareerPathContext, CareerPathEvent>;
+type CareerPathGuardArgs = GuardArgs<CareerPathContext, CareerPathEvent>;
 
-const isCorrectSinglePlayer = ({
-  context,
-  event,
-}: SinglePlayerGuardArgs): boolean => {
-  if (event.type !== 'USER_GUESS') return false;
+const isCorrect = ({ context, event }: CareerPathGuardArgs): boolean => {
+  assertEvent(event, 'USER_GUESS');
   const { guessId } = event.guess;
-  return !!context.gameState.validAnswers.some(
-    (player) => player.playerId === guessId,
+  return context.gameState.validAnswers.some(
+    (player) => Number(player.playerId) === guessId,
   );
 };
 
-const hasLives = ({ context }: SinglePlayerGuardArgs): boolean =>
-  context.gameState.lives ? context.gameState.lives > 0 : true;
+const hasLives = ({ context }: CareerPathGuardArgs): boolean =>
+  context.gameState.lives === undefined ? true : context.gameState.lives > 0;
 
-export const guards = { isCorrectSinglePlayer, hasLives };
+const configSet = ({ context }: CareerPathGuardArgs): boolean =>
+  !!context.config.gameDifficulty;
+
+export const guards = { isCorrect, hasLives, configSet };

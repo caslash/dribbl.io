@@ -16,8 +16,13 @@ const notifyNextRound = sendToSocket('socket', ({ context }) => ({
   type: 'NOTIFY_NEXT_ROUND',
   score: context.gameState.score,
   team_history: context.gameState.validAnswers[0]?.seasons
-    .map((s) => String(s.teamId))
-    .filter((id) => id !== null),
+    ?.filter((s) => s.teamId !== null && s.seasonType === 'Regular Season')
+    .sort((a, b) => a.seasonId.localeCompare(b.seasonId))
+    .reduce<string[]>((acc, s) => {
+      const id = String(s.teamId);
+      if (acc.at(-1) !== id) acc.push(id);
+      return acc;
+    }, []),
   lives: context.gameState.lives ? context.gameState.lives + 1 : undefined,
 }));
 
@@ -32,12 +37,12 @@ const notifyCorrectGuess = sendToSocket('socket', ({ context }) => ({
 
 const notifyIncorrectGuess = sendToSocket('socket', ({ context }) => ({
   type: 'NOTIFY_INCORRECT_GUESS',
-  lives: context.gameState.lives ? context.gameState.lives + 1 : undefined,
+  lives: context.gameState.lives ? context.gameState.lives : undefined,
 }));
 
 const notifySkipRound = sendToSocket('socket', ({ context }) => ({
   type: 'NOTIFY_SKIP_ROUND',
-  lives: context.gameState.lives ? context.gameState.lives + 1 : undefined,
+  lives: context.gameState.lives ? context.gameState.lives : undefined,
 }));
 
 const notifyGameOver = sendToSocket('socket', () => ({
