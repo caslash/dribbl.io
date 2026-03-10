@@ -5,7 +5,7 @@ import { GameDifficulty, Player, Season } from '@dribblio/types';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import ShortUniqueId from 'short-unique-id';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { In, Repository } from 'typeorm';
 
 const uid = new ShortUniqueId({ length: 5, dictionary: 'alphanum_upper' });
@@ -43,10 +43,13 @@ export class CareerPathService {
     private readonly playerService: PlayerService,
   ) {}
 
-  createRoom(io: Server): string {
+  createRoom(io: Server, creatorSocket: Socket): string {
     const roomId = uid.randomUUID();
 
-    const actor = createCareerPathMachine({ io, roomId }, this.generateRound);
+    const actor = createCareerPathMachine(
+      { io, roomId, initialSocket: creatorSocket },
+      this.generateRound,
+    );
 
     actor.subscribe((state) => {
       if (state.status === 'done') {
@@ -55,7 +58,6 @@ export class CareerPathService {
     });
 
     this.rooms.set(roomId, actor);
-
     return roomId;
   }
 
@@ -71,6 +73,7 @@ export class CareerPathService {
     const randomPlayer = await this.playerService.findRandomPlayer(
       difficulty.filter,
     );
+
     if (!randomPlayer) return { validAnswers: [] };
 
     const playerWithSeasons = await this.playerRepository.findOne({
@@ -92,26 +95,33 @@ export class CareerPathService {
           SELECT
             player_id,
             team_id,
-            MIN(season_id) AS first_season,
-            ROW_NUMBER() OVER (PARTITION BY player_id ORDER BY season_id)
-              - ROW_NUMBER() OVER (PARTITION BY player_id, team_id ORDER BY season_id) AS grp
-          FROM seasons
-          WHERE team_id IS NOT NULL
-            AND season_type = 'Regular Season'
+            MIN(season_id) AS first_season
+          FROM (
+            SELECT
+              player_id,
+              team_id,
+              season_id,
+              ROW_NUMBER() OVER (PARTITION BY player_id ORDER BY season_id)
+                - ROW_NUMBER() OVER (PARTITION BY player_id, team_id ORDER BY season_id) AS grp
+            FROM seasons
+            WHERE team_id IS NOT NULL
+              AND season_type = 'Regular Season'
+          ) ranked
           GROUP BY player_id, team_id, grp
         ) t
         GROUP BY player_id
       )
       SELECT player_id FROM player_sigs WHERE sig = $1::bigint[]
-      `,
+`,
       [signature],
     );
 
     const matchingIds = rows.map((r) => r.player_id);
     if (matchingIds.length === 0) return { validAnswers: [playerWithSeasons] };
 
-    const validAnswers = await this.playerRepository.findBy({
-      playerId: In(matchingIds),
+    const validAnswers = await this.playerRepository.find({
+      where: { playerId: In(matchingIds) },
+      relations: { seasons: true },
     });
 
     return { validAnswers };

@@ -18,10 +18,11 @@ const careerPathAssign = assign<
 
 const assignConfig = careerPathAssign(({ event }) => {
   assertEvent(event, 'SAVE_CONFIG');
-  const difficulty = GameDifficulties.allModes.find(
-    (gd) => gd.name == event.config.gameDifficulty,
-  )!;
-  return { config: { ...event.config, gameDifficulty: difficulty } };
+  const difficulty =
+    GameDifficulties.allModes.find(
+      (gd) => gd.name == event.config.gameDifficulty,
+    ) ?? GameDifficulties.greatest75;
+  return { config: { lives: event.config.lives, gameDifficulty: difficulty } };
 });
 
 const assignRoundGenerated = careerPathAssign(({ context, event }) => {

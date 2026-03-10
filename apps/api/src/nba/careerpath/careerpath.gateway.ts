@@ -33,7 +33,7 @@ export class CareerPathGateway implements OnGatewayConnection {
       return;
     }
 
-    const newRoomId = this.careerPathService.createRoom(this.io);
+    const newRoomId = this.careerPathService.createRoom(this.io, socket);
     socket.join(newRoomId);
   }
 

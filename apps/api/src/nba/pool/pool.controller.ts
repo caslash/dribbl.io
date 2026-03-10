@@ -33,6 +33,7 @@ export class PoolController {
   async preview(@Body() dto: CreatePoolDto): Promise<SavedPool> {
     return this.poolService.createPool(dto);
   }
+
   @Get('public')
   async listPublic(): Promise<SavedPool[]> {
     return this.poolService.listPublicPools();
