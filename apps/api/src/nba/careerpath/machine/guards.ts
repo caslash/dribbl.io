@@ -7,7 +7,7 @@ const isCorrect = ({ context, event }: CareerPathGuardArgs): boolean => {
   assertEvent(event, 'USER_GUESS');
   const { guessId } = event.guess;
   return context.gameState.validAnswers.some(
-    (player) => Number(player.playerId) === guessId,
+    (player) => Number(player.playerId) === Number(guessId),
   );
 };
 
