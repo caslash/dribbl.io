@@ -49,4 +49,5 @@ next-env.d.ts
 **/*-lock.json
 
 /*.md
+!CLAUDE.md
 docs/
