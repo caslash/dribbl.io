@@ -18,7 +18,7 @@ import { toast } from 'react-toastify';
  * <DraftBoard />
  */
 export function DraftBoard() {
-  const { state, isMyTurn, currentTurnParticipant, submitPick } = useDraft();
+  const { state, isMyTurn, currentTurnParticipant, submitPick, notifyTimerExpired } = useDraft();
   const [filter, setFilter] = useState('');
 
   const filtered = filter.trim()
@@ -32,6 +32,7 @@ export function DraftBoard() {
   }
 
   function handleTimerExpire() {
+    notifyTimerExpired();
     toast.info("Time's up!");
   }
 

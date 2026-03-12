@@ -10,7 +10,7 @@ import { useDraftContext } from '@/context/draftcontext';
  *
  * @returns The current draft state along with `isMyTurn`, `currentTurnParticipant`,
  *   and action functions: `createRoom`, `joinRoom`, `saveConfig`, `startDraft`,
- *   `submitPick`, and `leave`.
+ *   `submitPick`, `notifyTimerExpired`, and `leave`.
  *
  * @example
  * const { state, isMyTurn, submitPick } = useDraft();
