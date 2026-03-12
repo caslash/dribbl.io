@@ -1,6 +1,22 @@
 # React/Vite Engineer Memory
 
-## Project: dribbl.io — `apps/web`
+## BRANCH DIVERGENCE NOTE
+
+The `claude/plan-dribbl-frontend-KQcP5` branch (and its worktrees) use **Next.js 15 App Router**,
+NOT Vite + React. The main branch `apps/web` conventions below may not apply to that branch.
+
+### Next.js Branch Specifics (claude/plan-dribbl-frontend-KQcP5)
+
+- All client components require `'use client'` directive
+- Context providers live in `src/context/` (not `src/providers/`)
+- Routes use `src/app/` file-system routing with `layout.tsx` files
+- Already installed: `socket.io-client`, `motion` (v12 — import via `'motion/react'`), `react-toastify`, `lucide-react`, `@radix-ui/*`, `shadcn/ui` style components
+- Draft UI: `src/components/draft/`, `src/context/draftcontext.tsx`, `src/hooks/useDraft.ts`, `src/app/draft/`
+- TypeScript `tsc --noEmit` in worktrees without `node_modules` gives false positives — use the main repo to verify
+
+---
+
+## Project: dribbl.io — `apps/web` (main / Vite branch)
 
 ### Key Architecture
 
