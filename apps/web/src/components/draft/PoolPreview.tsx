@@ -1,7 +1,5 @@
-'use client';
-
 import { PoolEntryCard } from '@/components/draft/PoolEntryCard';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components';
 import { useDraft } from '@/hooks/useDraft';
 import { useState } from 'react';
 

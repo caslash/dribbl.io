@@ -1,5 +1,3 @@
-'use client';
-
 import { Participant } from '@/components/draft/types';
 import { useDraft } from '@/hooks/useDraft';
 import { Crown, User } from 'lucide-react';

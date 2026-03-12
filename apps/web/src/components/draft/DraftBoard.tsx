@@ -1,5 +1,3 @@
-'use client';
-
 import { PoolEntryCard } from '@/components/draft/PoolEntryCard';
 import { TurnTimer } from '@/components/draft/TurnTimer';
 import { useDraft } from '@/hooks/useDraft';

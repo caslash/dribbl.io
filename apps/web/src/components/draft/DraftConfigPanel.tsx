@@ -1,13 +1,6 @@
-'use client';
-
 import { DraftMode, DraftOrder, DraftRoomConfig } from '@/components/draft/types';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
+import { Button, Card, Input } from '@/components';
 import { useDraft } from '@/hooks/useDraft';
-import { cn } from '@/lib/utils';
 import { useState } from 'react';
 
 /**
@@ -45,7 +38,7 @@ export function DraftConfigPanel() {
     <form onSubmit={handleSubmit} className="flex flex-col gap-6 w-full max-w-lg">
       {/* Draft mode */}
       <div className="flex flex-col gap-2">
-        <Label className="text-base font-semibold">Draft Mode</Label>
+        <label className="text-base font-semibold">Draft Mode</label>
         <div className="grid grid-cols-2 gap-3">
           <ModeCard
             active={draftMode === 'mvp'}
@@ -64,7 +57,7 @@ export function DraftConfigPanel() {
 
       {/* Draft order */}
       <div className="flex flex-col gap-2">
-        <Label className="text-base font-semibold">Draft Order</Label>
+        <label className="text-base font-semibold">Draft Order</label>
         <div className="flex gap-2">
           <OrderToggle
             active={draftOrder === 'snake'}
@@ -77,7 +70,7 @@ export function DraftConfigPanel() {
             label="Linear"
           />
         </div>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-navy-500 dark:text-cream-300">
           {draftOrder === 'snake'
             ? 'Round order reverses each round (1→N, N→1, …)'
             : 'Same pick order every round (1→N, 1→N, …)'}
@@ -86,9 +79,9 @@ export function DraftConfigPanel() {
 
       {/* Max rounds */}
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="max-rounds" className="text-base font-semibold">
+        <label htmlFor="max-rounds" className="text-base font-semibold">
           Max Rounds
-        </Label>
+        </label>
         <Input
           id="max-rounds"
           type="number"
@@ -103,20 +96,22 @@ export function DraftConfigPanel() {
       {/* Turn timer */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
-          <Switch
+          <input
             id="timer-toggle"
+            type="checkbox"
             checked={timerEnabled}
-            onCheckedChange={setTimerEnabled}
+            onChange={(e) => setTimerEnabled(e.target.checked)}
+            className="w-4 h-4 cursor-pointer"
           />
-          <Label htmlFor="timer-toggle" className="text-base font-semibold cursor-pointer">
+          <label htmlFor="timer-toggle" className="text-base font-semibold cursor-pointer">
             Turn Timer
-          </Label>
+          </label>
         </div>
         {timerEnabled && (
           <div className="flex flex-col gap-1.5 pl-1">
-            <Label htmlFor="turn-duration" className="text-sm">
+            <label htmlFor="turn-duration" className="text-sm font-medium">
               Seconds per turn (15–120)
-            </Label>
+            </label>
             <Input
               id="turn-duration"
               type="number"
@@ -152,17 +147,10 @@ function ModeCard({ active, onClick, title, description }: ModeCardProps) {
   return (
     <Card
       onClick={onClick}
-      className={cn(
-        'cursor-pointer transition-colors border-2 hover:border-primary',
-        active ? 'border-primary bg-primary/5' : 'border-border',
-      )}
+      className={`cursor-pointer transition-colors border-2 ${active ? 'border-burgundy-600 bg-burgundy-600/5' : 'border-navy-200 dark:border-navy-700 hover:border-burgundy-600'}`}
     >
-      <CardHeader className="pb-1 pt-4 px-4">
-        <CardTitle className="text-sm">{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="px-4 pb-4">
-        <p className="text-xs text-muted-foreground leading-snug">{description}</p>
-      </CardContent>
+      <p className="text-sm font-semibold mb-1">{title}</p>
+      <p className="text-xs text-navy-500 dark:text-cream-300 leading-snug">{description}</p>
     </Card>
   );
 }
@@ -178,12 +166,11 @@ function OrderToggle({ active, onClick, label }: OrderToggleProps) {
     <button
       type="button"
       onClick={onClick}
-      className={cn(
-        'px-4 py-2 rounded-md text-sm font-medium border transition-colors',
+      className={`px-4 py-2 rounded-md text-sm font-medium border transition-colors ${
         active
-          ? 'bg-primary text-primary-foreground border-primary'
-          : 'bg-background text-foreground border-border hover:bg-secondary',
-      )}
+          ? 'bg-burgundy-600 text-cream-50 border-burgundy-600'
+          : 'bg-transparent text-navy-800 dark:text-cream-200 border-navy-300 dark:border-navy-600 hover:bg-navy-100 dark:hover:bg-navy-800'
+      }`}
     >
       {label}
     </button>

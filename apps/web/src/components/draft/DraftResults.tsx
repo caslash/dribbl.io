@@ -1,9 +1,7 @@
-'use client';
-
 import { ParticipantTeam } from '@/components/draft/ParticipantTeam';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components';
 import { useDraft } from '@/hooks/useDraft';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router';
 
 /**
  * Post-draft results screen.
@@ -17,18 +15,18 @@ import { useRouter } from 'next/navigation';
  */
 export function DraftResults() {
   const { state, leave } = useDraft();
-  const router = useRouter();
+  const navigate = useNavigate();
 
   function handleNewDraft() {
     leave();
-    router.push('/draft');
+    navigate('/draft');
   }
 
   return (
     <div className="flex flex-col gap-8 pb-16">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <h1 className="text-2xl font-bold">Draft Complete!</h1>
-        <Button variant="outline" onClick={handleNewDraft}>
+        <Button variant="secondary" onClick={handleNewDraft}>
           New Draft
         </Button>
       </div>

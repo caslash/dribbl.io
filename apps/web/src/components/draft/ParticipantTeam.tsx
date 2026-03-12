@@ -1,5 +1,3 @@
-'use client';
-
 import { Participant, PickRecord, PoolEntry } from '@/components/draft/types';
 
 interface ParticipantTeamProps {

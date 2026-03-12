@@ -1,6 +1,3 @@
-'use client';
-
-import { cn } from '@/lib/utils';
 import { motion, useAnimation } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -73,7 +70,7 @@ export function TurnTimer({ durationSeconds, onExpire }: TurnTimerProps) {
       <div className="relative w-24 h-24">
         <svg
           viewBox="0 0 88 88"
-          className={cn('w-full h-full -rotate-90', isWarning && 'animate-pulse')}
+          className={`w-full h-full -rotate-90 ${isWarning ? 'animate-pulse' : ''}`}
           aria-hidden="true"
         >
           {/* Track ring */}
@@ -84,7 +81,7 @@ export function TurnTimer({ durationSeconds, onExpire }: TurnTimerProps) {
             fill="none"
             stroke="currentColor"
             strokeWidth="6"
-            className="text-muted-foreground/20"
+            className="text-navy-200 dark:text-navy-700"
           />
           {/* Progress ring */}
           <motion.circle
@@ -96,23 +93,19 @@ export function TurnTimer({ durationSeconds, onExpire }: TurnTimerProps) {
             strokeLinecap="round"
             strokeDasharray={CIRCUMFERENCE}
             animate={ringControls}
-            className={cn(
-              'transition-colors',
-              isWarning ? 'stroke-destructive' : 'stroke-primary',
-            )}
+            className={`transition-colors ${isWarning ? 'stroke-error' : 'stroke-burgundy-600'}`}
           />
         </svg>
         {/* Numeric display */}
         <span
-          className={cn(
-            'absolute inset-0 flex items-center justify-center text-2xl font-bold rotate-0',
-            isWarning ? 'text-destructive' : 'text-foreground',
-          )}
+          className={`absolute inset-0 flex items-center justify-center text-2xl font-bold rotate-0 ${
+            isWarning ? 'text-error' : 'text-navy-900 dark:text-cream-50'
+          }`}
         >
           {secondsLeft}
         </span>
       </div>
-      <p className="text-xs text-muted-foreground">seconds left</p>
+      <p className="text-xs text-navy-500 dark:text-cream-300">seconds left</p>
     </div>
   );
 }
