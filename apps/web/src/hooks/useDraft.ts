@@ -1,6 +1,4 @@
-'use client';
-
-import { useDraftContext } from '@/context/draftcontext';
+import { useDraftContext } from '@/providers/DraftProvider';
 
 /**
  * Exposes the full NBA All-Time Draft context: current state, computed helpers,

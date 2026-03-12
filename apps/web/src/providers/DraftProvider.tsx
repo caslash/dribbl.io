@@ -170,6 +170,15 @@ export function useDraftContext(): DraftContextValue {
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
+interface DraftProviderProps {
+  children: ReactNode;
+  /**
+   * When provided, the provider connects to this room on mount.
+   * Used by DraftRoomPage to reconnect when navigating directly to a room URL.
+   */
+  roomId?: string;
+}
+
 /**
  * Provides real-time NBA All-Time Draft state to descendant components.
  *
@@ -178,10 +187,15 @@ export function useDraftContext(): DraftContextValue {
  *
  * @example
  * <DraftProvider>
+ *   <DraftLobbyPage />
+ * </DraftProvider>
+ *
+ * @example
+ * <DraftProvider roomId={roomId}>
  *   <DraftRoomPage />
  * </DraftProvider>
  */
-export function DraftProvider({ children }: { children: ReactNode }) {
+export function DraftProvider({ children, roomId: initialRoomId }: DraftProviderProps) {
   const [state, dispatch] = useReducer(draftReducer, initialState);
   const socketRef = useRef<Socket | null>(null);
 
@@ -244,6 +258,13 @@ export function DraftProvider({ children }: { children: ReactNode }) {
       socketRef.current?.disconnect();
     };
   }, []);
+
+  // Connect immediately if a roomId is passed as a prop (direct URL navigation)
+  useEffect(() => {
+    if (initialRoomId) {
+      connectSocket(initialRoomId);
+    }
+  }, [initialRoomId, connectSocket]);
 
   const createRoom = useCallback(
     async (name: string) => {

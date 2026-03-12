@@ -1,11 +1,6 @@
-'use client';
-
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button, Card, Input } from '@/components';
 import { useDraft } from '@/hooks/useDraft';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 
@@ -20,7 +15,7 @@ import { toast } from 'react-toastify';
  */
 export function RoomEntrance() {
   const { createRoom, joinRoom } = useDraft();
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const [createName, setCreateName] = useState('');
   const [createLoading, setCreateLoading] = useState(false);
@@ -64,7 +59,7 @@ export function RoomEntrance() {
     setJoinLoading(true);
     try {
       joinRoom(trimmedCode, trimmedName);
-      router.push(`/draft/${trimmedCode}`);
+      navigate(`/draft/${trimmedCode}`);
     } catch {
       toast.error('Could not join room. Check the room code and try again.');
       setJoinLoading(false);
@@ -81,64 +76,56 @@ export function RoomEntrance() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
         {/* Create a room */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Create a Room</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleCreate} className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="create-name">Your name</Label>
-                <Input
-                  id="create-name"
-                  placeholder="e.g. Jordan"
-                  value={createName}
-                  onChange={(e) => setCreateName(e.target.value)}
-                  maxLength={32}
-                  autoComplete="off"
-                />
-              </div>
-              <Button type="submit" disabled={createLoading} className="w-full">
-                {createLoading ? 'Creating…' : 'Create Room'}
-              </Button>
-            </form>
-          </CardContent>
+          <h2 className="text-lg font-semibold mb-4">Create a Room</h2>
+          <form onSubmit={handleCreate} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="create-name" className="text-sm font-medium">Your name</label>
+              <Input
+                id="create-name"
+                placeholder="e.g. Jordan"
+                value={createName}
+                onChange={(e) => setCreateName(e.target.value)}
+                maxLength={32}
+                autoComplete="off"
+              />
+            </div>
+            <Button type="submit" disabled={createLoading} className="w-full">
+              {createLoading ? 'Creating…' : 'Create Room'}
+            </Button>
+          </form>
         </Card>
 
         {/* Join a room */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Join a Room</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleJoin} className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="join-name">Your name</Label>
-                <Input
-                  id="join-name"
-                  placeholder="e.g. Bird"
-                  value={joinName}
-                  onChange={(e) => setJoinName(e.target.value)}
-                  maxLength={32}
-                  autoComplete="off"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="join-code">Room code</Label>
-                <Input
-                  id="join-code"
-                  placeholder="e.g. XYZ12"
-                  value={joinCode}
-                  onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-                  maxLength={8}
-                  autoComplete="off"
-                  className="uppercase tracking-widest font-mono"
-                />
-              </div>
-              <Button type="submit" variant="outline" disabled={joinLoading} className="w-full">
-                {joinLoading ? 'Joining…' : 'Join Room'}
-              </Button>
-            </form>
-          </CardContent>
+          <h2 className="text-lg font-semibold mb-4">Join a Room</h2>
+          <form onSubmit={handleJoin} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="join-name" className="text-sm font-medium">Your name</label>
+              <Input
+                id="join-name"
+                placeholder="e.g. Bird"
+                value={joinName}
+                onChange={(e) => setJoinName(e.target.value)}
+                maxLength={32}
+                autoComplete="off"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="join-code" className="text-sm font-medium">Room code</label>
+              <Input
+                id="join-code"
+                placeholder="e.g. XYZ12"
+                value={joinCode}
+                onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                maxLength={8}
+                autoComplete="off"
+                className="uppercase tracking-widest font-mono"
+              />
+            </div>
+            <Button type="submit" variant="secondary" disabled={joinLoading} className="w-full">
+              {joinLoading ? 'Joining…' : 'Join Room'}
+            </Button>
+          </form>
         </Card>
       </div>
     </div>
