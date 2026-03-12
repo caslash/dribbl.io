@@ -1,0 +1,146 @@
+'use client';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useDraft } from '@/hooks/useDraft';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { toast } from 'react-toastify';
+
+/**
+ * The entry screen for the NBA All-Time Draft.
+ *
+ * Presents two flows side by side: creating a new room and joining an existing one.
+ * On success, navigates to `/draft/:roomId`.
+ *
+ * @example
+ * <RoomEntrance />
+ */
+export function RoomEntrance() {
+  const { createRoom, joinRoom } = useDraft();
+  const router = useRouter();
+
+  const [createName, setCreateName] = useState('');
+  const [createLoading, setCreateLoading] = useState(false);
+
+  const [joinName, setJoinName] = useState('');
+  const [joinCode, setJoinCode] = useState('');
+  const [joinLoading, setJoinLoading] = useState(false);
+
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmed = createName.trim();
+    if (!trimmed) {
+      toast.error('Please enter your name.');
+      return;
+    }
+    setCreateLoading(true);
+    try {
+      await createRoom(trimmed);
+      // Navigation happens in DraftLobbyPage via a useEffect watching state.roomId
+    } catch {
+      toast.error('Could not create room. Is the server running?');
+    } finally {
+      setCreateLoading(false);
+    }
+  }
+
+  function handleJoin(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmedName = joinName.trim();
+    const trimmedCode = joinCode.trim().toUpperCase();
+
+    if (!trimmedName) {
+      toast.error('Please enter your name.');
+      return;
+    }
+    if (!trimmedCode) {
+      toast.error('Please enter a room code.');
+      return;
+    }
+
+    setJoinLoading(true);
+    try {
+      joinRoom(trimmedCode, trimmedName);
+      router.push(`/draft/${trimmedCode}`);
+    } catch {
+      toast.error('Could not join room. Check the room code and try again.');
+      setJoinLoading(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
+      <h1 className="text-3xl font-bold mb-2 text-center">NBA All-Time Draft</h1>
+      <p className="text-muted-foreground mb-8 text-center">
+        Assemble your all-time roster with friends.
+      </p>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
+        {/* Create a room */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Create a Room</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleCreate} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="create-name">Your name</Label>
+                <Input
+                  id="create-name"
+                  placeholder="e.g. Jordan"
+                  value={createName}
+                  onChange={(e) => setCreateName(e.target.value)}
+                  maxLength={32}
+                  autoComplete="off"
+                />
+              </div>
+              <Button type="submit" disabled={createLoading} className="w-full">
+                {createLoading ? 'Creating…' : 'Create Room'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Join a room */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Join a Room</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleJoin} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="join-name">Your name</Label>
+                <Input
+                  id="join-name"
+                  placeholder="e.g. Bird"
+                  value={joinName}
+                  onChange={(e) => setJoinName(e.target.value)}
+                  maxLength={32}
+                  autoComplete="off"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="join-code">Room code</Label>
+                <Input
+                  id="join-code"
+                  placeholder="e.g. XYZ12"
+                  value={joinCode}
+                  onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                  maxLength={8}
+                  autoComplete="off"
+                  className="uppercase tracking-widest font-mono"
+                />
+              </div>
+              <Button type="submit" variant="outline" disabled={joinLoading} className="w-full">
+                {joinLoading ? 'Joining…' : 'Join Room'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
