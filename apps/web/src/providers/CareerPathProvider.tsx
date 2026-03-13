@@ -113,33 +113,6 @@ interface CareerPathProviderProps {
 export function CareerPathProvider({ children }: CareerPathProviderProps) {
   const [state, setState] = useState<CareerPathState>(initialState);
   const socketRef = useRef<Socket | null>(null);
-  const roomIdRef = useRef<string | null>(null);
-
-  // Create the room on mount — socket connects later on game start
-  useEffect(() => {
-    let cancelled = false;
-
-    async function createRoom() {
-      try {
-        const res = await fetch('/api/careerpath/room', { method: 'POST' });
-        if (!res.ok) throw new Error('Failed to create room');
-        const data = (await res.json()) as { roomId: string };
-        if (!cancelled) {
-          roomIdRef.current = data.roomId;
-        }
-      } catch {
-        if (!cancelled) {
-          toast.error('Could not connect to the game server. Please refresh.');
-        }
-      }
-    }
-
-    void createRoom();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   // Disconnect and notify server on unmount
   useEffect(() => {
@@ -152,10 +125,9 @@ export function CareerPathProvider({ children }: CareerPathProviderProps) {
     };
   }, []);
 
-  const connectSocket = useCallback((roomId: string): Socket => {
-    // Connect to the /careerpath namespace with the roomId query param
+  const connectSocket = useCallback((): Socket => {
+    // Connect to the /careerpath namespace — no roomId means the server creates a new room
     const socket = io('/careerpath', {
-      query: { roomId },
       transports: ['websocket'],
     });
 
@@ -213,16 +185,9 @@ export function CareerPathProvider({ children }: CareerPathProviderProps) {
 
   const saveConfig = useCallback(
     (config: CareerPathConfig) => {
-      pendingConfigRef.current = config;
-
-      if (!roomIdRef.current) {
-        toast.error('Room not ready yet. Please try again.');
-        return;
-      }
-
-      // Connect the socket now if not already connected
+      // Connect the socket now if not already connected — server creates the room on connection
       if (!socketRef.current) {
-        socketRef.current = connectSocket(roomIdRef.current);
+        socketRef.current = connectSocket();
       }
 
       socketRef.current.emit('SAVE_CONFIG', { config });

@@ -1,4 +1,4 @@
-import { Participant, PickRecord, PoolEntry } from '@/components/draft/types';
+import type { Participant, PickRecord, PoolEntry } from '@/components/draft/types';
 
 interface ParticipantTeamProps {
   participant: Participant;
@@ -37,10 +37,7 @@ export function ParticipantTeam({ participant, picks, pool }: ParticipantTeamPro
                   : pick.entryId;
 
             return (
-              <div
-                key={pick.entryId}
-                className="rounded-lg border bg-card p-3"
-              >
+              <div key={pick.entryId} className="rounded-lg border bg-card p-3">
                 <p className="text-sm font-semibold truncate">
                   {entry?.playerName ?? pick.entryId}
                 </p>

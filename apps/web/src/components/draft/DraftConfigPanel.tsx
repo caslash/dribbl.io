@@ -1,5 +1,5 @@
-import { DraftMode, DraftOrder, DraftRoomConfig } from '@/components/draft/types';
 import { Button, Card, Input } from '@/components';
+import type { DraftMode, DraftOrder, DraftRoomConfig } from '@/components/draft/types';
 import { useDraft } from '@/hooks/useDraft';
 import { useState } from 'react';
 
@@ -118,9 +118,7 @@ export function DraftConfigPanel() {
               min={15}
               max={120}
               value={turnDuration}
-              onChange={(e) =>
-                setTurnDuration(Math.min(120, Math.max(15, Number(e.target.value))))
-              }
+              onChange={(e) => setTurnDuration(Math.min(120, Math.max(15, Number(e.target.value))))}
               className="w-24"
             />
           </div>

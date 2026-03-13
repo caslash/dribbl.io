@@ -1,4 +1,4 @@
-import {
+import type {
   DraftPhase,
   DraftRoomConfig,
   NotifyConfigSavedPayload,
@@ -15,7 +15,7 @@ import {
 } from '@/components/draft/types';
 import {
   createContext,
-  ReactNode,
+  type ReactNode,
   useCallback,
   useContext,
   useEffect,
@@ -65,7 +65,13 @@ const initialState: DraftState = {
 // ─── Reducer ──────────────────────────────────────────────────────────────────
 
 type DraftAction =
-  | { type: 'SET_IDENTITY'; participantId: string; name: string; roomId: string; isOrganizer: boolean }
+  | {
+      type: 'SET_IDENTITY';
+      participantId: string;
+      name: string;
+      roomId: string;
+      isOrganizer: boolean;
+    }
   | { type: 'SET_PHASE'; phase: DraftPhase }
   | { type: 'PARTICIPANT_JOINED'; participant: Participant }
   | { type: 'PARTICIPANT_LEFT'; participantId: string }
@@ -268,15 +274,26 @@ export function DraftProvider({ children, roomId: initialRoomId }: DraftProvider
 
   const createRoom = useCallback(
     async (name: string) => {
-      const res = await fetch('/api/draft/room', { method: 'POST' });
-      if (!res.ok) {
+      // Connecting without a roomId causes the gateway to create a new room
+      // and emit ROOM_CREATED back with the generated roomId.
+      const tempSocket = io('/draft', { transports: ['websocket'] });
+
+      const roomId = await new Promise<string>((resolve, reject) => {
+        tempSocket.once('ROOM_CREATED', ({ roomId: id }: { roomId: string }) => resolve(id));
+        tempSocket.once('connect_error', () => {
+          tempSocket.disconnect();
+          reject(new Error('Failed to create draft room'));
+        });
+      }).catch(() => {
         toast.error('Failed to create room. Please try again.');
         throw new Error('Failed to create draft room');
-      }
-      const { roomId } = (await res.json()) as { roomId: string };
-      const participantId = crypto.randomUUID();
+      });
 
+      // Disconnect the bootstrap socket; connectSocket opens the real one with roomId
+      tempSocket.disconnect();
       connectSocket(roomId);
+
+      const participantId = crypto.randomUUID();
 
       dispatch({
         type: 'SET_IDENTITY',
@@ -358,9 +375,8 @@ export function DraftProvider({ children, roomId: initialRoomId }: DraftProvider
 
   const currentTurnParticipant = useMemo(
     () =>
-      state.participants.find(
-        (p) => p.participantId === state.turnOrder[state.currentTurnIndex],
-      ) ?? null,
+      state.participants.find((p) => p.participantId === state.turnOrder[state.currentTurnIndex]) ??
+      null,
     [state.participants, state.turnOrder, state.currentTurnIndex],
   );
 

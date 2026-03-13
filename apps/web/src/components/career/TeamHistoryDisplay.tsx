@@ -1,5 +1,3 @@
-import { Badge } from '@/components/Badge';
-
 interface TeamHistoryDisplayProps {
   /** Ordered list of team abbreviations representing the player's career path. */
   teamHistory: string[];
@@ -17,13 +15,11 @@ export function TeamHistoryDisplay({ teamHistory }: TeamHistoryDisplayProps) {
   return (
     <div className="flex justify-center overflow-x-auto pb-2">
       <div className="flex items-center gap-2">
-        {teamHistory.map((abbr, i) => (
+        {teamHistory.map((id, i) => (
           <div key={i} className="flex items-center gap-2">
-            <Badge label={abbr} size="md" className="text-base px-4 py-1.5" />
+            <img src={`/logos/${id}.svg`} className="px-4 py-1.5" />
             {i < teamHistory.length - 1 && (
-              <span className="text-slate-400 dark:text-slate-500 text-lg select-none">
-                →
-              </span>
+              <span className="text-slate-400 dark:text-slate-500 text-lg select-none">→</span>
             )}
           </div>
         ))}

@@ -1,4 +1,4 @@
-import { PoolEntry } from '@/components/draft/types';
+import type { PoolEntry } from '@/components/draft/types';
 
 interface PoolEntryCardProps {
   entry: PoolEntry;
@@ -30,9 +30,7 @@ export function PoolEntryCard({ entry, available, onPick, isMyTurn }: PoolEntryC
   const clickable = available && isMyTurn && !!onPick;
 
   const subtitle =
-    entry.draftMode === 'mvp'
-      ? entry.season
-      : `${entry.franchiseName} (${entry.franchiseAbbr})`;
+    entry.draftMode === 'mvp' ? entry.season : `${entry.franchiseName} (${entry.franchiseAbbr})`;
 
   return (
     <button
