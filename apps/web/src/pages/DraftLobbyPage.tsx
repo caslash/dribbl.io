@@ -1,11 +1,29 @@
+import { RoomEntrance } from '@/components/draft/RoomEntrance';
+import { useDraft } from '@/hooks/useDraft';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router';
+
 /**
- * Stub page for the NBA All-Time Draft lobby.
- * Full implementation owned by the draft engineer.
+ * Entry point for the NBA All-Time Draft.
+ *
+ * Renders the `RoomEntrance` form so users can create or join a room.
+ * Once a room is created, the `DraftProvider` sets `state.roomId` and this
+ * page automatically navigates to `/draft/:roomId`.
+ *
+ * @example
+ * // Rendered at /draft via App.tsx
+ * <DraftLobbyPage />
  */
-export const DraftLobbyPage = () => (
-  <div className="flex items-center justify-center p-8">
-    <h1 className="font-serif text-2xl text-navy-900 dark:text-cream-100">
-      Draft Lobby
-    </h1>
-  </div>
-);
+export const DraftLobbyPage = () => {
+  const { state } = useDraft();
+  const navigate = useNavigate();
+
+  // Navigate to the room once createRoom resolves and roomId is set
+  useEffect(() => {
+    if (state.roomId) {
+      navigate(`/draft/${state.roomId}`);
+    }
+  }, [state.roomId, navigate]);
+
+  return <RoomEntrance />;
+};
