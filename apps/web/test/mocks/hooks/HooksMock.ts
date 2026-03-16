@@ -1,4 +1,4 @@
-import { useMockDraft } from './index';
+import { useMockDraft } from '.';
 
 /**
  * Aggregate object shaped to match the `@/hooks` barrel.

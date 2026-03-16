@@ -1,4 +1,4 @@
-import { MockButton, MockCard, MockInput } from './index';
+import { MockButton, MockCard, MockInput } from '.';
 
 /**
  * Aggregate object shaped to match the `@/components` barrel.

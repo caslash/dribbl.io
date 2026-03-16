@@ -10,8 +10,8 @@ vi.mock('@/components', async () => {
 });
 
 vi.mock('@/hooks/useDraft', async () => {
-  const { useMockDraft } = await import('../../mocks/hooks/useMockDraft');
-  return { useDraft: useMockDraft };
+  const { HooksMock } = await import('../../mocks/hooks/HooksMock');
+  return { ...HooksMock };
 });
 
 afterEach(() => {
@@ -79,7 +79,7 @@ describe('DraftConfigPanel', () => {
     it('pre-selects MVP mode', () => {
       setup();
 
-      const mvpCard = screen.getByText('MVP Mode').closest('[class*="border-burgundy"]');
+      const mvpCard = screen.getByText('MVP Mode').closest('[class*="border-red-600"]');
       expect(mvpCard).toBeInTheDocument();
     });
 
@@ -87,7 +87,7 @@ describe('DraftConfigPanel', () => {
       setup();
 
       const snakeButton = screen.getByRole('button', { name: 'Snake' });
-      expect(snakeButton.className).toMatch(/bg-burgundy/);
+      expect(snakeButton.className).toMatch(/bg-red-600/);
     });
 
     it('pre-populates max rounds with 5', () => {
@@ -121,9 +121,7 @@ describe('DraftConfigPanel', () => {
 
       await user.click(screen.getByText('Franchise Mode'));
 
-      const franchiseCard = screen
-        .getByText('Franchise Mode')
-        .closest('[class*="border-burgundy"]');
+      const franchiseCard = screen.getByText('Franchise Mode').closest('[class*="border-red-600"]');
       expect(franchiseCard).toBeInTheDocument();
     });
 
@@ -133,7 +131,7 @@ describe('DraftConfigPanel', () => {
       await user.click(screen.getByText('Franchise Mode'));
 
       const mvpCard = screen.getByText('MVP Mode').closest('div');
-      expect(mvpCard?.className).not.toMatch(/border-burgundy-600 bg-burgundy/);
+      expect(mvpCard?.className).not.toMatch(/border-red-600 bg-red-600/);
     });
 
     it('re-activates MVP mode when MVP card is clicked after selecting Franchise', async () => {
@@ -142,7 +140,7 @@ describe('DraftConfigPanel', () => {
       await user.click(screen.getByText('Franchise Mode'));
       await user.click(screen.getByText('MVP Mode'));
 
-      const mvpCard = screen.getByText('MVP Mode').closest('[class*="border-burgundy"]');
+      const mvpCard = screen.getByText('MVP Mode').closest('[class*="border-red-600"]');
       expect(mvpCard).toBeInTheDocument();
     });
   });
@@ -154,7 +152,7 @@ describe('DraftConfigPanel', () => {
       await user.click(screen.getByRole('button', { name: 'Linear' }));
 
       const linearButton = screen.getByRole('button', { name: 'Linear' });
-      expect(linearButton.className).toMatch(/bg-burgundy/);
+      expect(linearButton.className).toMatch(/bg-red-600/);
     });
 
     it('deactivates Snake when Linear is selected', async () => {
@@ -163,7 +161,7 @@ describe('DraftConfigPanel', () => {
       await user.click(screen.getByRole('button', { name: 'Linear' }));
 
       const snakeButton = screen.getByRole('button', { name: 'Snake' });
-      expect(snakeButton.className).not.toMatch(/bg-burgundy/);
+      expect(snakeButton.className).not.toMatch(/bg-red-600/);
     });
 
     it('updates the description text when Linear is selected', async () => {
@@ -180,7 +178,7 @@ describe('DraftConfigPanel', () => {
       await user.click(screen.getByRole('button', { name: 'Linear' }));
       await user.click(screen.getByRole('button', { name: 'Snake' }));
 
-      expect(screen.getByRole('button', { name: 'Snake' }).className).toMatch(/bg-burgundy/);
+      expect(screen.getByRole('button', { name: 'Snake' }).className).toMatch(/bg-red-600/);
       expect(screen.getByText('Round order reverses each round (1→N, N→1, …)')).toBeInTheDocument();
     });
   });

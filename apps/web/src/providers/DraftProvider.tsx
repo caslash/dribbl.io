@@ -211,10 +211,13 @@ export function DraftProvider({ children, roomId: initialRoomId }: DraftProvider
       transports: ['websocket'],
     });
 
-    socket.on('NOTIFY_PARTICIPANT_JOINED', ({ participant, participants }: NotifyParticipantJoinedPayload) => {
-      dispatch({ type: 'PARTICIPANT_JOINED', participant, participants });
-      toast.info(`${participant.name} joined the room`);
-    });
+    socket.on(
+      'NOTIFY_PARTICIPANT_JOINED',
+      ({ participant, participants }: NotifyParticipantJoinedPayload) => {
+        dispatch({ type: 'PARTICIPANT_JOINED', participant, participants });
+        toast.info(`${participant.name} joined the room`);
+      },
+    );
 
     socket.on('NOTIFY_PARTICIPANT_LEFT', ({ participantId }: NotifyParticipantLeftPayload) => {
       dispatch({ type: 'PARTICIPANT_LEFT', participantId });
@@ -329,6 +332,7 @@ export function DraftProvider({ children, roomId: initialRoomId }: DraftProvider
 
   const saveConfig = useCallback((config: DraftRoomConfig) => {
     dispatch({ type: 'SET_PHASE', phase: 'configuring' });
+    socketRef.current?.emit('ORGANIZER_CONFIGURE');
     socketRef.current?.emit('SAVE_CONFIG', { config });
   }, []);
 
