@@ -1,4 +1,4 @@
-import { Participant, PickRecord, PoolEntry } from '../entities';
+import { DraftRoomConfig, Participant, PickRecord, PoolEntry } from '../entities';
 
 export type NotifyParticipantJoined = {
   type: 'NOTIFY_PARTICIPANT_JOINED';
@@ -13,6 +13,8 @@ export type NotifyParticipantLeft = {
 
 export type NotifyConfigSaved = {
   type: 'NOTIFY_CONFIG_SAVED';
+  config: DraftRoomConfig;
+  pool: PoolEntry[];
 };
 
 export type NotifyReadyToStart = {

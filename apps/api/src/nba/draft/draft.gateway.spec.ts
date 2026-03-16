@@ -14,6 +14,7 @@ describe('DraftGateway', () => {
   };
 
   const mockPoolService = {
+    generatePreview: vi.fn(),
     loadPool: vi.fn(),
     finalize: vi.fn(),
   };
@@ -64,7 +65,6 @@ describe('DraftGateway', () => {
         draftOrder: 'snake',
         maxRounds: 3,
         draftMode: 'mvp',
-        turnDuration: 0,
       });
       mockDraftService.getRoom.mockReturnValue(room);
       const socket = makeSocket('socket-1', 'ROOM1');
@@ -110,7 +110,6 @@ describe('DraftGateway', () => {
         draftOrder: 'snake',
         maxRounds: 3,
         draftMode: 'mvp',
-        turnDuration: 0,
       });
       mockDraftService.getRoom.mockReturnValue(room);
       const socket = makeSocket('socket-1', 'ROOM1');
@@ -136,7 +135,7 @@ describe('DraftGateway', () => {
     it('should return early when socket is not in any room', async () => {
       const socket = makeSocket('socket-1');
 
-      await gateway.handleStartDraft(socket as any, { config: {} } as any);
+      await gateway.handleStartDraft(socket as any, undefined);
 
       expect(mockDraftService.getRoom).not.toHaveBeenCalled();
     });
@@ -146,7 +145,6 @@ describe('DraftGateway', () => {
         draftOrder: 'snake',
         maxRounds: 3,
         draftMode: 'mvp',
-        turnDuration: 0,
       });
       mockDraftService.getRoom.mockReturnValue(room);
       mockPoolService.loadPool.mockResolvedValue(null);
@@ -154,7 +152,7 @@ describe('DraftGateway', () => {
 
       await gateway.handleStartDraft(
         socket as any,
-        { savedPoolId: 'pool-123' } as any,
+        { savedPoolId: 'pool-123' },
       );
 
       expect(mockPoolService.loadPool).toHaveBeenCalledWith('pool-123');
@@ -165,14 +163,13 @@ describe('DraftGateway', () => {
     });
 
     it('should load the saved pool and send ORGANIZER_START_DRAFT when savedPoolId resolves', async () => {
-      const participants = [
-        { id: 'p1', name: 'P1', isOrganizer: true, isConnected: true },
+      const participants: Participant[] = [
+        { participantId: 'p1', name: 'P1', isOrganizer: true },
       ];
       const config: DraftRoomConfig = {
         draftOrder: 'snake',
         maxRounds: 2,
         draftMode: 'mvp',
-        turnDuration: 60,
       };
       const room = makeRoom(participants, config);
       mockDraftService.getRoom.mockReturnValue(room);
@@ -180,8 +177,8 @@ describe('DraftGateway', () => {
       const savedPool = {
         id: 'pool-123',
         entries: [
-          { id: 'entry-1', available: false },
-          { id: 'entry-2', available: false },
+          { entryId: 'entry-1', available: false },
+          { entryId: 'entry-2', available: false },
         ],
       };
       mockPoolService.loadPool.mockResolvedValue(savedPool);
@@ -191,7 +188,7 @@ describe('DraftGateway', () => {
 
       await gateway.handleStartDraft(
         socket as any,
-        { savedPoolId: 'pool-123' } as any,
+        { savedPoolId: 'pool-123' },
       );
 
       expect(mockPoolService.loadPool).toHaveBeenCalledWith('pool-123');
@@ -203,34 +200,32 @@ describe('DraftGateway', () => {
       expect(room.send).toHaveBeenCalledWith({
         type: 'ORGANIZER_START_DRAFT',
         pool: [
-          { id: 'entry-1', available: true },
-          { id: 'entry-2', available: true },
+          { entryId: 'entry-1', available: true },
+          { entryId: 'entry-2', available: true },
         ],
         turnOrder: ['p1', 'p1'],
       });
     });
 
     it('should call finalize and send ORGANIZER_START_DRAFT when no savedPoolId is given', async () => {
-      const participants = [
-        { id: 'p1', name: 'P1', isOrganizer: true, isConnected: true },
+      const participants: Participant[] = [
+        { participantId: 'p1', name: 'P1', isOrganizer: true },
       ];
       const config: DraftRoomConfig = {
         draftOrder: 'linear',
         maxRounds: 1,
         draftMode: 'mvp',
-        turnDuration: 60,
       };
       const room = makeRoom(participants, config);
       mockDraftService.getRoom.mockReturnValue(room);
 
-      const pool = [{ id: 'entry-1', available: true }];
+      const pool = [{ entryId: 'entry-1', available: true }];
       mockPoolService.finalize.mockResolvedValue(pool);
       mockDraftService.computeTurnOrder.mockReturnValue(['p1']);
 
       const socket = makeSocket('socket-1', 'ROOM1');
-      const data = { config } as any;
 
-      await gateway.handleStartDraft(socket as any, data);
+      await gateway.handleStartDraft(socket as any, undefined);
 
       expect(mockPoolService.finalize).toHaveBeenCalledWith(config);
       expect(room.send).toHaveBeenCalledWith({

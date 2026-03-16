@@ -23,9 +23,6 @@ export const socketActor = fromCallback<
     socket.on('ORGANIZER_CONFIGURE', () =>
       sendBack({ type: 'ORGANIZER_CONFIGURE' }),
     );
-    socket.on('SAVE_CONFIG', (data) =>
-      sendBack({ type: 'SAVE_CONFIG', ...data }),
-    );
     socket.on('ORGANIZER_CANCEL_DRAFT', () =>
       sendBack({ type: 'ORGANIZER_CANCEL_DRAFT' }),
     );

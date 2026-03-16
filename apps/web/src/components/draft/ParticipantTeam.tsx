@@ -1,4 +1,4 @@
-import type { Participant, PickRecord, PoolEntry } from '@/components/draft/types';
+import type { Participant, PickRecord, PoolEntry } from '@dribblio/types';
 
 interface ParticipantTeamProps {
   participant: Participant;

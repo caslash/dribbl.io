@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { DraftBoard } from '../../../src/components/draft/DraftBoard';
-import type { DraftRoomConfig, Participant, PickRecord, PoolEntry } from '../../../src/components/draft/types';
+import { DraftBoard } from '@/components/draft/DraftBoard';
+import type { DraftRoomConfig, Participant, PickRecord, PoolEntry } from '@dribblio/types';
 
 // TurnTimer uses framer-motion and real timers — stub it so DraftBoard tests stay unit-level
 vi.mock('../../../src/components/draft/TurnTimer', () => ({

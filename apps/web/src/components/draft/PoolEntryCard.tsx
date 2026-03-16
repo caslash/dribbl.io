@@ -1,4 +1,4 @@
-import type { PoolEntry } from '@/components/draft/types';
+import type { PoolEntry } from '@dribblio/types';
 
 interface PoolEntryCardProps {
   entry: PoolEntry;

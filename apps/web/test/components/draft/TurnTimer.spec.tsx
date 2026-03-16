@@ -1,6 +1,6 @@
 import { act, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { TurnTimer } from '../../../src/components/draft/TurnTimer';
+import { TurnTimer } from '@/components/draft/TurnTimer';
 
 // framer-motion is not compatible with jsdom.
 // Stub the motion primitive to a plain circle so tests don't fail on SVG animation APIs.

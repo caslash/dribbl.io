@@ -1,7 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { DraftPhase, Participant } from '../../src/components/draft/types';
+import type { DraftPhase } from '@/providers/DraftProvider';
+import type { Participant } from '@dribblio/types';
 
 // Stub all phase-specific child components
 vi.mock('../../src/components/draft/DraftBoard', () => ({

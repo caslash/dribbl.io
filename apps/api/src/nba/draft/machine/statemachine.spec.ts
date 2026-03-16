@@ -1,6 +1,7 @@
 import { createDraftMachine } from '@/nba/draft/machine/statemachine';
 import type {
   DraftRoomConfig,
+  MvpPoolEntry,
   Participant,
   PickRecord,
   PoolEntry,
@@ -37,7 +38,7 @@ vi.mock('@/nba/draft/machine/actors/timer', async () => {
 // ---------------------------------------------------------------------------
 
 const makeParticipant = (id: string, isOrganizer = false): Participant => ({
-  id,
+  participantId: id,
   name: `Player ${id}`,
   isOrganizer,
   isConnected: true,
@@ -47,29 +48,27 @@ const makeConfig = (): DraftRoomConfig => ({
   draftMode: 'mvp',
   draftOrder: 'snake',
   maxRounds: 2,
-  turnDuration: 30000,
 });
 
-const makeEntry = (id: string, available = true): PoolEntry =>
-  ({
-    id,
-    playerId: `player-${id}`,
-    player: { id: `player-${id}`, name: `Player ${id}` },
-    season: '2023-24',
-    available,
-  }) as PoolEntry;
+const makeEntry = (id: string, available = true): MvpPoolEntry => ({
+  entryId: id,
+  draftMode: 'mvp',
+  playerId: parseInt(id, 10) || 1,
+  playerName: `Player ${id}`,
+  season: '2023-24',
+  available,
+});
 
 const makePickRecord = (
   participantId: string,
-  pick: PoolEntry,
-  turnIndex = 0,
+  entry: MvpPoolEntry,
+  pickNumber = 1,
   round = 1,
 ): PickRecord => ({
   participantId,
-  pick,
+  entryId: entry.entryId,
   round,
-  turnIndex,
-  wasAutoPicked: false,
+  pickNumber,
 });
 
 // ---------------------------------------------------------------------------
@@ -202,7 +201,8 @@ describe('NbaDraftMachine', () => {
 
     it('should transition back to waitingForPlayers and update context.config on SAVE_CONFIG', () => {
       const config = makeConfig();
-      actor.send({ type: 'SAVE_CONFIG', config });
+      const pool = [makeEntry('e1')];
+      actor.send({ type: 'SAVE_CONFIG', config, pool });
 
       expect(actor.getSnapshot().matches({ lobby: 'waitingForPlayers' })).toBe(
         true,
@@ -210,13 +210,15 @@ describe('NbaDraftMachine', () => {
       expect(actor.getSnapshot().context.config).toEqual(config);
     });
 
-    it('should send NOTIFY_CONFIG_SAVED with the saved config', () => {
+    it('should send NOTIFY_CONFIG_SAVED with the saved config and pool', () => {
       const config = makeConfig();
-      actor.send({ type: 'SAVE_CONFIG', config });
+      const pool = [makeEntry('e1')];
+      actor.send({ type: 'SAVE_CONFIG', config, pool });
 
       expect(socketState.received).toContainEqual({
         type: 'NOTIFY_CONFIG_SAVED',
         config,
+        pool,
       });
     });
   });
@@ -242,7 +244,9 @@ describe('NbaDraftMachine', () => {
         true,
       );
       expect(
-        actor.getSnapshot().context.participants.find((p) => p.id === 'B'),
+        actor
+          .getSnapshot()
+          .context.participants.find((p) => p.participantId === 'B'),
       ).toBeUndefined();
     });
 
@@ -307,8 +311,10 @@ describe('NbaDraftMachine', () => {
     });
 
     it('should enter updatingPool.invalidatingSelections and append the pick after SUBMIT_PICK', () => {
-      const pickRecord = makePickRecord('A', e1);
-      actor.send({ type: 'SUBMIT_PICK', pickRecord });
+      actor.send({
+        type: 'SUBMIT_PICK',
+        pickRecord: { participantId: 'A', entryId: e1.entryId, round: 1 },
+      });
 
       expect(
         actor
@@ -316,22 +322,32 @@ describe('NbaDraftMachine', () => {
           .matches({ draft: { updatingPool: 'invalidatingSelections' } }),
       ).toBe(true);
       expect(actor.getSnapshot().context.pickHistory).toHaveLength(1);
-      expect(actor.getSnapshot().context.pickHistory[0]).toEqual(pickRecord);
+      expect(actor.getSnapshot().context.pickHistory[0].entryId).toBe(e1.entryId);
     });
 
     it('should send NOTIFY_PICK_CONFIRMED after SUBMIT_PICK', () => {
-      const pickRecord = makePickRecord('A', e1);
-      actor.send({ type: 'SUBMIT_PICK', pickRecord });
+      actor.send({
+        type: 'SUBMIT_PICK',
+        pickRecord: { participantId: 'A', entryId: e1.entryId, round: 1 },
+      });
 
       expect(socketState.received).toContainEqual({
         type: 'NOTIFY_PICK_CONFIRMED',
-        pickRecord,
+        pickRecord: {
+          participantId: 'A',
+          entryId: e1.entryId,
+          round: 1,
+          pickNumber: 1,
+        },
       });
     });
 
     it('should return to awaitingPick after POOL_UPDATED when rounds remain', () => {
-      actor.send({ type: 'SUBMIT_PICK', pickRecord: makePickRecord('A', e1) });
-      actor.send({ type: 'POOL_UPDATED', invalidatedIds: new Set([e1.id]) });
+      actor.send({
+        type: 'SUBMIT_PICK',
+        pickRecord: { participantId: 'A', entryId: e1.entryId, round: 1 },
+      });
+      actor.send({ type: 'POOL_UPDATED', invalidatedIds: new Set([e1.entryId]) });
 
       expect(
         actor
@@ -341,27 +357,33 @@ describe('NbaDraftMachine', () => {
     });
 
     it('should mark invalidated entries as unavailable after POOL_UPDATED', () => {
-      actor.send({ type: 'SUBMIT_PICK', pickRecord: makePickRecord('A', e1) });
-      actor.send({ type: 'POOL_UPDATED', invalidatedIds: new Set([e1.id]) });
+      actor.send({
+        type: 'SUBMIT_PICK',
+        pickRecord: { participantId: 'A', entryId: e1.entryId, round: 1 },
+      });
+      actor.send({ type: 'POOL_UPDATED', invalidatedIds: new Set([e1.entryId]) });
 
       const updatedE1 = actor
         .getSnapshot()
-        .context.pool.find((e) => e.id === e1.id);
+        .context.pool.find((e) => e.entryId === e1.entryId);
       expect(updatedE1?.available).toBe(false);
 
       const updatedE2 = actor
         .getSnapshot()
-        .context.pool.find((e) => e.id === e2.id);
+        .context.pool.find((e) => e.entryId === e2.entryId);
       expect(updatedE2?.available).toBe(true);
     });
 
     it('should send NOTIFY_POOL_UPDATED and NOTIFY_TURN_ADVANCED after POOL_UPDATED', () => {
-      actor.send({ type: 'SUBMIT_PICK', pickRecord: makePickRecord('A', e1) });
-      actor.send({ type: 'POOL_UPDATED', invalidatedIds: new Set([e1.id]) });
+      actor.send({
+        type: 'SUBMIT_PICK',
+        pickRecord: { participantId: 'A', entryId: e1.entryId, round: 1 },
+      });
+      actor.send({ type: 'POOL_UPDATED', invalidatedIds: new Set([e1.entryId]) });
 
       expect(socketState.received).toContainEqual({
         type: 'NOTIFY_POOL_UPDATED',
-        invalidatedIds: [e1.id],
+        invalidatedIds: [e1.entryId],
       });
       expect(socketState.received).toContainEqual({
         type: 'NOTIFY_TURN_ADVANCED',
@@ -372,8 +394,11 @@ describe('NbaDraftMachine', () => {
     });
 
     it('should increment currentTurnIndex to 1 after a pick and pool update', () => {
-      actor.send({ type: 'SUBMIT_PICK', pickRecord: makePickRecord('A', e1) });
-      actor.send({ type: 'POOL_UPDATED', invalidatedIds: new Set([e1.id]) });
+      actor.send({
+        type: 'SUBMIT_PICK',
+        pickRecord: { participantId: 'A', entryId: e1.entryId, round: 1 },
+      });
+      actor.send({ type: 'POOL_UPDATED', invalidatedIds: new Set([e1.entryId]) });
 
       expect(actor.getSnapshot().context.currentTurnIndex).toBe(1);
     });
@@ -405,26 +430,35 @@ describe('NbaDraftMachine', () => {
     });
 
     it('should enter updatingPool.invalidatingSelections and append the pick after AUTO_PICK_RESOLVED', () => {
-      const pickRecord = makePickRecord('A', e1);
       actor.send({ type: 'TURN_TIMER_EXPIRED' });
-      actor.send({ type: 'AUTO_PICK_RESOLVED', pickRecord });
+      actor.send({
+        type: 'AUTO_PICK_RESOLVED',
+        pickRecord: { participantId: 'A', entryId: e1.entryId, round: 1 },
+      });
 
       expect(
         actor
           .getSnapshot()
           .matches({ draft: { updatingPool: 'invalidatingSelections' } }),
       ).toBe(true);
-      expect(actor.getSnapshot().context.pickHistory[0]).toEqual(pickRecord);
+      expect(actor.getSnapshot().context.pickHistory[0].entryId).toBe(e1.entryId);
     });
 
     it('should send NOTIFY_PICK_CONFIRMED after AUTO_PICK_RESOLVED', () => {
-      const pickRecord = makePickRecord('A', e1);
       actor.send({ type: 'TURN_TIMER_EXPIRED' });
-      actor.send({ type: 'AUTO_PICK_RESOLVED', pickRecord });
+      actor.send({
+        type: 'AUTO_PICK_RESOLVED',
+        pickRecord: { participantId: 'A', entryId: e1.entryId, round: 1 },
+      });
 
       expect(socketState.received).toContainEqual({
         type: 'NOTIFY_PICK_CONFIRMED',
-        pickRecord,
+        pickRecord: {
+          participantId: 'A',
+          entryId: e1.entryId,
+          round: 1,
+          pickNumber: 1,
+        },
       });
     });
   });
@@ -477,12 +511,12 @@ describe('NbaDraftMachine', () => {
 
       const pA = actor
         .getSnapshot()
-        .context.participants.find((p) => p.id === 'A');
+        .context.participants.find((p) => p.participantId === 'A');
       expect(pA?.isConnected).toBe(false);
 
       const pB = actor
         .getSnapshot()
-        .context.participants.find((p) => p.id === 'B');
+        .context.participants.find((p) => p.participantId === 'B');
       expect(pB?.isConnected).toBe(true);
 
       expect(socketState.received).toContainEqual({
@@ -499,7 +533,7 @@ describe('NbaDraftMachine', () => {
 
       const pA = actor
         .getSnapshot()
-        .context.participants.find((p) => p.id === 'A');
+        .context.participants.find((p) => p.participantId === 'A');
       expect(pA?.isConnected).toBe(true);
 
       expect(socketState.received).toContainEqual({
@@ -532,10 +566,13 @@ describe('NbaDraftMachine', () => {
     });
 
     it('should enter results.viewingTeams when all pool entries are invalidated', () => {
-      actor.send({ type: 'SUBMIT_PICK', pickRecord: makePickRecord('A', e1) });
+      actor.send({
+        type: 'SUBMIT_PICK',
+        pickRecord: { participantId: 'A', entryId: e1.entryId, round: 1 },
+      });
       actor.send({
         type: 'POOL_UPDATED',
-        invalidatedIds: new Set([e1.id, e2.id]),
+        invalidatedIds: new Set([e1.entryId, e2.entryId]),
       });
 
       expect(actor.getSnapshot().matches({ results: 'viewingTeams' })).toBe(
@@ -544,16 +581,25 @@ describe('NbaDraftMachine', () => {
     });
 
     it('should send NOTIFY_DRAFT_COMPLETE with the full pick history', () => {
-      const pickRecord = makePickRecord('A', e1);
-      actor.send({ type: 'SUBMIT_PICK', pickRecord });
+      actor.send({
+        type: 'SUBMIT_PICK',
+        pickRecord: { participantId: 'A', entryId: e1.entryId, round: 1 },
+      });
       actor.send({
         type: 'POOL_UPDATED',
-        invalidatedIds: new Set([e1.id, e2.id]),
+        invalidatedIds: new Set([e1.entryId, e2.entryId]),
       });
 
       expect(socketState.received).toContainEqual({
         type: 'NOTIFY_DRAFT_COMPLETE',
-        pickHistory: [pickRecord],
+        pickHistory: [
+          {
+            participantId: 'A',
+            entryId: e1.entryId,
+            round: 1,
+            pickNumber: 1,
+          },
+        ],
       });
     });
   });
@@ -570,10 +616,13 @@ describe('NbaDraftMachine', () => {
 
     beforeEach(() => {
       startDraft(pool, turnOrder);
-      actor.send({ type: 'SUBMIT_PICK', pickRecord: makePickRecord('A', e1) });
+      actor.send({
+        type: 'SUBMIT_PICK',
+        pickRecord: { participantId: 'A', entryId: e1.entryId, round: 1 },
+      });
       actor.send({
         type: 'POOL_UPDATED',
-        invalidatedIds: new Set([e1.id, e2.id]),
+        invalidatedIds: new Set([e1.entryId, e2.entryId]),
       });
       socketState.received = [];
     });

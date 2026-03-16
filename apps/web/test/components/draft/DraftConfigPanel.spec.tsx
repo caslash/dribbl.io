@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { DraftConfigPanel } from '../../../src/components/draft/DraftConfigPanel';
-import type { DraftRoomConfig } from '../../../src/components/draft/types';
+import { DraftConfigPanel } from '@/components/draft/DraftConfigPanel';
+import type { DraftRoomConfig } from '@dribblio/types';
 
 vi.mock('@/components', async () => {
   const { ComponentsMock } = await import('../../mocks/components/ComponentsMock');

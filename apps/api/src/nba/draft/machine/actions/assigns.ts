@@ -1,4 +1,4 @@
-import { NbaDraftContext, NbaDraftEvent } from '@dribblio/types';
+import { NbaDraftContext, NbaDraftEvent, PickRecord } from '@dribblio/types';
 import { assertEvent, assign } from 'xstate';
 
 const draftAssign = assign<
@@ -11,7 +11,7 @@ const draftAssign = assign<
 
 const assignConfig = draftAssign(({ event }) => {
   assertEvent(event, 'SAVE_CONFIG');
-  return { config: event.config };
+  return { config: event.config, pool: event.pool };
 });
 
 const assignDraftStart = draftAssign(({ event }) => {
@@ -27,14 +27,20 @@ const assignDraftStart = draftAssign(({ event }) => {
 
 const assignPick = draftAssign(({ context, event }) => {
   assertEvent(event, ['SUBMIT_PICK', 'AUTO_PICK_RESOLVED']);
-  return { pickHistory: [...context.pickHistory, event.pickRecord] };
+  const pickRecord: PickRecord = {
+    participantId: event.pickRecord.participantId,
+    entryId: event.pickRecord.entryId,
+    round: event.pickRecord.round,
+    pickNumber: context.pickHistory.length + 1,
+  };
+  return { pickHistory: [...context.pickHistory, pickRecord] };
 });
 
 const assignPool = draftAssign(({ context, event }) => {
   assertEvent(event, 'POOL_UPDATED');
   return {
     pool: context.pool.map((entry) =>
-      event.invalidatedIds.has(entry.id)
+      event.invalidatedIds.has(entry.entryId)
         ? { ...entry, available: false }
         : entry,
     ),
@@ -56,7 +62,7 @@ const removeParticipant = draftAssign(({ context, event }) => {
   assertEvent(event, 'PARTICIPANT_LEFT');
   return {
     participants: context.participants.filter(
-      (p) => p.id !== event.participantId,
+      (p) => p.participantId !== event.participantId,
     ),
   };
 });
@@ -65,7 +71,7 @@ const assignParticipantDisconnected = draftAssign(({ context, event }) => {
   assertEvent(event, 'PARTICIPANT_DISCONNECTED');
   return {
     participants: context.participants.map((p) =>
-      p.id === event.participantId ? { ...p, isConnected: false } : p,
+      p.participantId === event.participantId ? { ...p, isConnected: false } : p,
     ),
   };
 });
@@ -74,7 +80,7 @@ const assignParticipantReconnected = draftAssign(({ context, event }) => {
   assertEvent(event, 'PARTICIPANT_RECONNECTED');
   return {
     participants: context.participants.map((p) =>
-      p.id === event.participantId ? { ...p, isConnected: true } : p,
+      p.participantId === event.participantId ? { ...p, isConnected: true } : p,
     ),
   };
 });

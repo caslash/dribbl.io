@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ParticipantTeam } from '../../../src/components/draft/ParticipantTeam';
-import type { Participant, PickRecord, PoolEntry } from '../../../src/components/draft/types';
+import { ParticipantTeam } from '@/components/draft/ParticipantTeam';
+import type { Participant, PickRecord, PoolEntry } from '@dribblio/types';
 
 afterEach(() => {
   vi.clearAllMocks();

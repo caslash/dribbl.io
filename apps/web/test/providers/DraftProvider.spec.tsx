@@ -1,21 +1,21 @@
 import { act, render, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { DraftProvider, useDraftContext } from '../../src/providers/DraftProvider';
+import { DraftProvider, useDraftContext } from '@/providers/DraftProvider';
 import type {
   DraftRoomConfig,
-  NotifyConfigSavedPayload,
-  NotifyDraftCompletePayload,
-  NotifyDraftStartedPayload,
-  NotifyParticipantJoinedPayload,
-  NotifyParticipantLeftPayload,
-  NotifyPickConfirmedPayload,
-  NotifyPoolUpdatedPayload,
-  NotifyTurnAdvancedPayload,
+  NotifyConfigSaved,
+  NotifyDraftComplete,
+  NotifyDraftStarted,
+  NotifyParticipantJoined,
+  NotifyParticipantLeft,
+  NotifyPickConfirmed,
+  NotifyPoolUpdated,
+  NotifyTurnAdvanced,
   Participant,
   PickRecord,
   PoolEntry,
-} from '../../src/components/draft/types';
+} from '@dribblio/types';
 
 // ─── Socket mock factory ──────────────────────────────────────────────────────
 
@@ -235,7 +235,7 @@ describe('DraftProvider', () => {
       const { result } = setupHook();
       act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
 
-      const payload: NotifyConfigSavedPayload = { config: mockConfig };
+      const payload: NotifyConfigSaved = { config: mockConfig, pool: [] };
       act(() => { getMainSocket().simulateEvent('NOTIFY_CONFIG_SAVED', payload); });
 
       expect(result.current.state.config).toEqual(mockConfig);
@@ -268,7 +268,7 @@ describe('DraftProvider', () => {
       const { result } = setupHook();
       act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
 
-      const payload: NotifyParticipantJoinedPayload = {
+      const payload: NotifyParticipantJoined = {
         participant: mockParticipant,
         participants: [mockParticipant, mockParticipant2],
       };
@@ -307,7 +307,7 @@ describe('DraftProvider', () => {
         });
       });
 
-      const leftPayload: NotifyParticipantLeftPayload = { participantId: 'p1' };
+      const leftPayload: NotifyParticipantLeft = { participantId: 'p1' };
       act(() => { getMainSocket().simulateEvent('NOTIFY_PARTICIPANT_LEFT', leftPayload); });
 
       expect(result.current.state.participants).toEqual([mockParticipant2]);
@@ -337,7 +337,7 @@ describe('DraftProvider', () => {
       const { result } = setupHook();
       act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
 
-      const payload: NotifyDraftStartedPayload = {
+      const payload: NotifyDraftStarted = {
         pool: [mockMvpEntry],
         turnOrder: ['p1', 'p2'],
       };
@@ -409,7 +409,7 @@ describe('DraftProvider', () => {
       const { result } = setupHook();
       act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
 
-      const payload: NotifyPickConfirmedPayload = { pickRecord: mockPickRecord };
+      const payload: NotifyPickConfirmed = { pickRecord: mockPickRecord };
       act(() => { getMainSocket().simulateEvent('NOTIFY_PICK_CONFIRMED', payload); });
 
       expect(result.current.state.pickHistory).toEqual([mockPickRecord]);
@@ -435,10 +435,10 @@ describe('DraftProvider', () => {
       const { result } = setupHook();
       act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
 
-      const payload1: NotifyPoolUpdatedPayload = { invalidatedIds: ['entry-1', 'entry-2'] };
+      const payload1: NotifyPoolUpdated = { invalidatedIds: ['entry-1', 'entry-2'] };
       act(() => { getMainSocket().simulateEvent('NOTIFY_POOL_UPDATED', payload1); });
 
-      const payload2: NotifyPoolUpdatedPayload = { invalidatedIds: ['entry-3'] };
+      const payload2: NotifyPoolUpdated = { invalidatedIds: ['entry-3'] };
       act(() => { getMainSocket().simulateEvent('NOTIFY_POOL_UPDATED', payload2); });
 
       expect(result.current.state.invalidatedIds.has('entry-1')).toBe(true);
@@ -454,7 +454,7 @@ describe('DraftProvider', () => {
       const { result } = setupHook();
       act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
 
-      const payload: NotifyTurnAdvancedPayload = {
+      const payload: NotifyTurnAdvanced = {
         currentTurnIndex: 2,
         currentRound: 2,
         participantId: 'p1',
@@ -473,7 +473,7 @@ describe('DraftProvider', () => {
       const { result } = setupHook();
       act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
 
-      const payload: NotifyDraftCompletePayload = { pickHistory: [mockPickRecord] };
+      const payload: NotifyDraftComplete = { pickHistory: [mockPickRecord] };
       act(() => { getMainSocket().simulateEvent('NOTIFY_DRAFT_COMPLETE', payload); });
 
       expect(result.current.state.phase).toBe('results');
@@ -483,7 +483,7 @@ describe('DraftProvider', () => {
       const { result } = setupHook();
       act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
 
-      const payload: NotifyDraftCompletePayload = { pickHistory: [mockPickRecord] };
+      const payload: NotifyDraftComplete = { pickHistory: [mockPickRecord] };
       act(() => { getMainSocket().simulateEvent('NOTIFY_DRAFT_COMPLETE', payload); });
 
       expect(result.current.state.pickHistory).toEqual([mockPickRecord]);

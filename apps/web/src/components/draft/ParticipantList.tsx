@@ -1,4 +1,4 @@
-import type { Participant } from '@/components/draft/types';
+import type { Participant } from '@dribblio/types';
 import { useDraft } from '@/hooks/useDraft';
 import { Crown, User } from 'lucide-react';
 

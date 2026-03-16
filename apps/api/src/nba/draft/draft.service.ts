@@ -39,7 +39,7 @@ export class DraftService {
     draftOrder: DraftOrder,
     maxRounds: number,
   ): string[] {
-    const ids = participants.map((p) => p.id);
+    const ids = participants.map((p) => p.participantId);
 
     switch (draftOrder) {
       case 'snake':

@@ -25,7 +25,7 @@ export class PoolService {
 
   async generatePreview(config: DraftRoomConfig): Promise<PoolEntry[]> {
     const generator = this.generators[config.draftMode];
-    return generator.generate(config);
+    return generator.generate();
   }
 
   async finalize(

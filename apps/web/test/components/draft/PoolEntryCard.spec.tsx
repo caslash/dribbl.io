@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { PoolEntryCard } from '../../../src/components/draft/PoolEntryCard';
-import type { PoolEntry } from '../../../src/components/draft/types';
+import { PoolEntryCard } from '@/components/draft/PoolEntryCard';
+import type { PoolEntry } from '@dribblio/types';
 
 afterEach(() => {
   vi.clearAllMocks();

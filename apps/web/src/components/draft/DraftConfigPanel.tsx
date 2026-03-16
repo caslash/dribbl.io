@@ -1,5 +1,5 @@
 import { Button, Card, Input } from '@/components';
-import type { DraftMode, DraftOrder, DraftRoomConfig } from '@/components/draft/types';
+import type { DraftMode, DraftOrder, DraftRoomConfig } from '@dribblio/types';
 import { useDraft } from '@/hooks/useDraft';
 import { joiResolver } from '@hookform/resolvers/joi';
 import Joi from 'joi';

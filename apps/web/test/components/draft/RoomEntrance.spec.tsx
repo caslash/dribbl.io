@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { RoomEntrance } from '../../../src/components/draft/RoomEntrance';
+import { RoomEntrance } from '@/components/draft/RoomEntrance';
 
 vi.mock('@/components', async () => {
   const { ComponentsMock } = await import('../../mocks/components/ComponentsMock');

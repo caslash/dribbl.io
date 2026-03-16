@@ -1,6 +1,6 @@
 import { DraftService } from '@/nba/draft/draft.service';
 import { PoolService } from '@/nba/pool/pool.service';
-import { NbaDraftEvent, StartDraftDto } from '@dribblio/types';
+import { DraftRoomConfig, NbaDraftEvent, StartDraftDto } from '@dribblio/types';
 import {
   ConnectedSocket,
   MessageBody,
@@ -56,10 +56,10 @@ export class DraftGateway implements OnGatewayConnection {
     room.send(data);
   }
 
-  @SubscribeMessage('ORGANIZER_START_DRAFT')
-  async handleStartDraft(
+  @SubscribeMessage('SAVE_CONFIG')
+  async handleSaveConfig(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() data: StartDraftDto,
+    @MessageBody() data: { config: DraftRoomConfig },
   ): Promise<void> {
     const roomId = this.getRoomId(socket);
     if (!roomId) return;
@@ -67,20 +67,36 @@ export class DraftGateway implements OnGatewayConnection {
     const room = this.draftService.getRoom(roomId);
     if (!room) return;
 
+    const pool = await this.poolService.generatePreview(data.config);
+
+    room.send({ type: 'SAVE_CONFIG', config: data.config, pool });
+  }
+
+  @SubscribeMessage('ORGANIZER_START_DRAFT')
+  async handleStartDraft(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() data: StartDraftDto | undefined,
+  ): Promise<void> {
+    const roomId = this.getRoomId(socket);
+    if (!roomId) return;
+
+    const room = this.draftService.getRoom(roomId);
+    if (!room) return;
+
+    const { participants, config } = room.getSnapshot().context;
+
     let pool;
-    if (data.savedPoolId) {
+    if (data?.savedPoolId) {
       const savedPool = await this.poolService.loadPool(data.savedPoolId);
       if (!savedPool) {
         socket.emit('ERROR', { message: `Pool ${data.savedPoolId} not found` });
         return;
       }
-
       pool = savedPool.entries.map((entry) => ({ ...entry, available: true }));
     } else {
-      pool = await this.poolService.finalize(data.config);
+      pool = await this.poolService.finalize(config);
     }
 
-    const { participants, config } = room.getSnapshot().context;
     const turnOrder = this.draftService.computeTurnOrder(
       participants,
       config.draftOrder,
@@ -90,7 +106,7 @@ export class DraftGateway implements OnGatewayConnection {
     room.send({
       type: 'ORGANIZER_START_DRAFT',
       pool,
-      turnOrder: turnOrder,
+      turnOrder,
     });
   }
 

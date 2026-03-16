@@ -1,18 +1,25 @@
 import type {
-  DraftPhase,
   DraftRoomConfig,
-  NotifyConfigSavedPayload,
-  NotifyDraftCompletePayload,
-  NotifyDraftStartedPayload,
-  NotifyParticipantJoinedPayload,
-  NotifyParticipantLeftPayload,
-  NotifyPickConfirmedPayload,
-  NotifyPoolUpdatedPayload,
-  NotifyTurnAdvancedPayload,
+  NotifyConfigSaved,
+  NotifyDraftComplete,
+  NotifyDraftStarted,
+  NotifyParticipantJoined,
+  NotifyParticipantLeft,
+  NotifyPickConfirmed,
+  NotifyPoolUpdated,
+  NotifyTurnAdvanced,
   Participant,
   PickRecord,
   PoolEntry,
-} from '@/components/draft/types';
+} from '@dribblio/types';
+
+export type DraftPhase =
+  | 'entrance'
+  | 'lobby'
+  | 'configuring'
+  | 'pool-preview'
+  | 'drafting'
+  | 'results';
 import {
   createContext,
   type ReactNode,
@@ -75,7 +82,7 @@ type DraftAction =
   | { type: 'SET_PHASE'; phase: DraftPhase }
   | { type: 'PARTICIPANT_JOINED'; participant: Participant; participants: Participant[] }
   | { type: 'PARTICIPANT_LEFT'; participantId: string }
-  | { type: 'CONFIG_SAVED'; config: DraftRoomConfig }
+  | { type: 'CONFIG_SAVED'; config: DraftRoomConfig; pool: PoolEntry[] }
   | { type: 'DRAFT_STARTED'; pool: PoolEntry[]; turnOrder: string[] }
   | { type: 'PICK_CONFIRMED'; pickRecord: PickRecord }
   | { type: 'POOL_UPDATED'; invalidatedIds: string[] }
@@ -104,7 +111,7 @@ function draftReducer(state: DraftState, action: DraftAction): DraftState {
         participants: state.participants.filter((p) => p.participantId !== action.participantId),
       };
     case 'CONFIG_SAVED':
-      return { ...state, config: action.config };
+      return { ...state, config: action.config, pool: action.pool };
     case 'DRAFT_STARTED':
       return {
         ...state,
@@ -213,43 +220,43 @@ export function DraftProvider({ children, roomId: initialRoomId }: DraftProvider
 
     socket.on(
       'NOTIFY_PARTICIPANT_JOINED',
-      ({ participant, participants }: NotifyParticipantJoinedPayload) => {
+      ({ participant, participants }: NotifyParticipantJoined) => {
         dispatch({ type: 'PARTICIPANT_JOINED', participant, participants });
         toast.info(`${participant.name} joined the room`);
       },
     );
 
-    socket.on('NOTIFY_PARTICIPANT_LEFT', ({ participantId }: NotifyParticipantLeftPayload) => {
+    socket.on('NOTIFY_PARTICIPANT_LEFT', ({ participantId }: NotifyParticipantLeft) => {
       dispatch({ type: 'PARTICIPANT_LEFT', participantId });
     });
 
-    socket.on('NOTIFY_CONFIG_SAVED', ({ config }: NotifyConfigSavedPayload) => {
-      dispatch({ type: 'CONFIG_SAVED', config });
+    socket.on('NOTIFY_CONFIG_SAVED', ({ config, pool }: NotifyConfigSaved) => {
+      dispatch({ type: 'CONFIG_SAVED', config, pool });
       dispatch({ type: 'SET_PHASE', phase: 'pool-preview' });
       toast.success('Draft configuration saved');
     });
 
-    socket.on('NOTIFY_DRAFT_STARTED', ({ pool, turnOrder }: NotifyDraftStartedPayload) => {
+    socket.on('NOTIFY_DRAFT_STARTED', ({ pool, turnOrder }: NotifyDraftStarted) => {
       dispatch({ type: 'DRAFT_STARTED', pool, turnOrder });
       toast.success('Draft started!');
     });
 
-    socket.on('NOTIFY_PICK_CONFIRMED', ({ pickRecord }: NotifyPickConfirmedPayload) => {
+    socket.on('NOTIFY_PICK_CONFIRMED', ({ pickRecord }: NotifyPickConfirmed) => {
       dispatch({ type: 'PICK_CONFIRMED', pickRecord });
     });
 
-    socket.on('NOTIFY_POOL_UPDATED', ({ invalidatedIds }: NotifyPoolUpdatedPayload) => {
+    socket.on('NOTIFY_POOL_UPDATED', ({ invalidatedIds }: NotifyPoolUpdated) => {
       dispatch({ type: 'POOL_UPDATED', invalidatedIds });
     });
 
     socket.on(
       'NOTIFY_TURN_ADVANCED',
-      ({ currentTurnIndex, currentRound }: NotifyTurnAdvancedPayload) => {
+      ({ currentTurnIndex, currentRound }: NotifyTurnAdvanced) => {
         dispatch({ type: 'TURN_ADVANCED', currentTurnIndex, currentRound });
       },
     );
 
-    socket.on('NOTIFY_DRAFT_COMPLETE', ({ pickHistory }: NotifyDraftCompletePayload) => {
+    socket.on('NOTIFY_DRAFT_COMPLETE', ({ pickHistory }: NotifyDraftComplete) => {
       dispatch({ type: 'DRAFT_COMPLETE', pickHistory });
       toast.success('Draft complete!');
     });

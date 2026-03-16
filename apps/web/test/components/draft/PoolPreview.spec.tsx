@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { PoolPreview } from '../../../src/components/draft/PoolPreview';
-import type { PoolEntry } from '../../../src/components/draft/types';
+import { PoolPreview } from '@/components/draft/PoolPreview';
+import type { PoolEntry } from '@dribblio/types';
 
 vi.mock('@/components', async () => {
   const { ComponentsMock } = await import('../../mocks/components/ComponentsMock');

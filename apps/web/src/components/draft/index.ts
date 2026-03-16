@@ -7,4 +7,3 @@ export * from './PoolEntryCard';
 export * from './PoolPreview';
 export * from './RoomEntrance';
 export * from './TurnTimer';
-export * from './types';

@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ParticipantList } from '../../../src/components/draft/ParticipantList';
-import type { Participant } from '../../../src/components/draft/types';
+import { ParticipantList } from '@/components/draft/ParticipantList';
+import type { Participant } from '@dribblio/types';
 
 // Lucide icons render SVGs — mock to avoid environment issues
 vi.mock('lucide-react', () => ({
