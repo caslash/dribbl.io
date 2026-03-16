@@ -1,7 +1,25 @@
 import { Button, Card, Input } from '@/components';
 import type { DraftMode, DraftOrder, DraftRoomConfig } from '@/components/draft/types';
 import { useDraft } from '@/hooks/useDraft';
-import { useState } from 'react';
+import { joiResolver } from '@hookform/resolvers/joi';
+import Joi from 'joi';
+import { useForm, useWatch } from 'react-hook-form';
+
+const configSchema = Joi.object({
+  draftMode: Joi.string().valid('mvp', 'franchise').required(),
+  draftOrder: Joi.string().valid('snake', 'linear').required(),
+  maxRounds: Joi.number().integer().min(1).max(10).required(),
+  timerEnabled: Joi.boolean().required(),
+  turnDuration: Joi.number().integer().min(15).max(120).required(),
+});
+
+interface ConfigFormValues {
+  draftMode: DraftMode;
+  draftOrder: DraftOrder;
+  maxRounds: number;
+  timerEnabled: boolean;
+  turnDuration: number;
+}
 
 /**
  * Configuration panel for the room organizer to set up the draft before it starts.
@@ -17,38 +35,46 @@ import { useState } from 'react';
 export function DraftConfigPanel() {
   const { saveConfig } = useDraft();
 
-  const [draftMode, setDraftMode] = useState<DraftMode>('mvp');
-  const [draftOrder, setDraftOrder] = useState<DraftOrder>('snake');
-  const [maxRounds, setMaxRounds] = useState(5);
-  const [timerEnabled, setTimerEnabled] = useState(false);
-  const [turnDuration, setTurnDuration] = useState(60);
+  const { register, handleSubmit, setValue, control, formState: { errors } } = useForm<ConfigFormValues>({
+    resolver: joiResolver(configSchema),
+    defaultValues: {
+      draftMode: 'mvp',
+      draftOrder: 'snake',
+      maxRounds: 5,
+      timerEnabled: false,
+      turnDuration: 60,
+    },
+  });
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  const draftMode = useWatch({ control, name: 'draftMode' });
+  const draftOrder = useWatch({ control, name: 'draftOrder' });
+  const timerEnabled = useWatch({ control, name: 'timerEnabled' });
+
+  function onSubmit(values: ConfigFormValues) {
     const config: DraftRoomConfig = {
-      draftMode,
-      draftOrder,
-      maxRounds,
-      ...(timerEnabled ? { turnDuration } : {}),
+      draftMode: values.draftMode,
+      draftOrder: values.draftOrder,
+      maxRounds: values.maxRounds,
+      ...(values.timerEnabled ? { turnDuration: values.turnDuration } : {}),
     };
     saveConfig(config);
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6 w-full max-w-lg">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 w-full max-w-lg">
       {/* Draft mode */}
       <div className="flex flex-col gap-2">
         <label className="text-base font-semibold">Draft Mode</label>
         <div className="grid grid-cols-2 gap-3">
           <ModeCard
             active={draftMode === 'mvp'}
-            onClick={() => setDraftMode('mvp')}
+            onClick={() => setValue('draftMode', 'mvp')}
             title="MVP Mode"
             description="Every MVP season in the pool. Picking a player removes all their other MVP seasons."
           />
           <ModeCard
             active={draftMode === 'franchise'}
-            onClick={() => setDraftMode('franchise')}
+            onClick={() => setValue('draftMode', 'franchise')}
             title="Franchise Mode"
             description="One player per franchise. Picking a player removes that franchise from the pool."
           />
@@ -61,12 +87,12 @@ export function DraftConfigPanel() {
         <div className="flex gap-2">
           <OrderToggle
             active={draftOrder === 'snake'}
-            onClick={() => setDraftOrder('snake')}
+            onClick={() => setValue('draftOrder', 'snake')}
             label="Snake"
           />
           <OrderToggle
             active={draftOrder === 'linear'}
-            onClick={() => setDraftOrder('linear')}
+            onClick={() => setValue('draftOrder', 'linear')}
             label="Linear"
           />
         </div>
@@ -85,12 +111,12 @@ export function DraftConfigPanel() {
         <Input
           id="max-rounds"
           type="number"
-          min={1}
-          max={10}
-          value={maxRounds}
-          onChange={(e) => setMaxRounds(Math.min(10, Math.max(1, Number(e.target.value))))}
           className="w-24"
+          {...register('maxRounds', { valueAsNumber: true })}
         />
+        {errors.maxRounds && (
+          <p className="text-xs text-red-500">{errors.maxRounds.message}</p>
+        )}
       </div>
 
       {/* Turn timer */}
@@ -99,9 +125,8 @@ export function DraftConfigPanel() {
           <input
             id="timer-toggle"
             type="checkbox"
-            checked={timerEnabled}
-            onChange={(e) => setTimerEnabled(e.target.checked)}
             className="w-4 h-4 cursor-pointer"
+            {...register('timerEnabled')}
           />
           <label htmlFor="timer-toggle" className="text-base font-semibold cursor-pointer">
             Turn Timer
@@ -115,12 +140,12 @@ export function DraftConfigPanel() {
             <Input
               id="turn-duration"
               type="number"
-              min={15}
-              max={120}
-              value={turnDuration}
-              onChange={(e) => setTurnDuration(Math.min(120, Math.max(15, Number(e.target.value))))}
               className="w-24"
+              {...register('turnDuration', { valueAsNumber: true })}
             />
+            {errors.turnDuration && (
+              <p className="text-xs text-red-500">{errors.turnDuration.message}</p>
+            )}
           </div>
         )}
       </div>

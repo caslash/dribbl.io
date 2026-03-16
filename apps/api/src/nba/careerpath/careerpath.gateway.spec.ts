@@ -79,7 +79,7 @@ describe('CareerPathGateway', () => {
 
       gateway.handleConnection(socket as any);
 
-      expect(mockCareerPathService.createRoom).toHaveBeenCalledWith(mockServer);
+      expect(mockCareerPathService.createRoom).toHaveBeenCalledWith(mockServer, socket);
       expect(socket.join).toHaveBeenCalledWith('NEW01');
       expect(socket.emit).not.toHaveBeenCalled();
     });

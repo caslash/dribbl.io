@@ -158,6 +158,7 @@ describe('NbaDraftMachine', () => {
       expect(socketState.received).toContainEqual({
         type: 'NOTIFY_PARTICIPANT_JOINED',
         participant: p,
+        participants: [p],
       });
     });
 

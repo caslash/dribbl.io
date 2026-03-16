@@ -7,7 +7,7 @@ export class PlayerController {
   constructor(private readonly playerService: PlayerService) {}
 
   @Get()
-  search(@Query('search') searchTerm): Promise<Player[]> {
+  search(@Query('search') searchTerm?: string): Promise<Player[]> {
     if (searchTerm) {
       return this.playerService.search(searchTerm);
     }
