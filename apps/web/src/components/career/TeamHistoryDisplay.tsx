@@ -3,6 +3,14 @@ interface TeamHistoryDisplayProps {
   teamHistory: string[];
 }
 
+function TeamLogo({ teamId }: { teamId: number | string }) {
+  return (
+    <div className="flex justify-center p-4 bg-white rounded-md">
+      <img src={`/logos/${teamId}.svg`} height={100} width={100} />
+    </div>
+  );
+}
+
 /**
  * Renders the ordered career path sequence as a horizontal row of team
  * abbreviation badges separated by arrows. Scrolls horizontally when
@@ -17,9 +25,9 @@ export function TeamHistoryDisplay({ teamHistory }: TeamHistoryDisplayProps) {
       <div className="flex items-center gap-2">
         {teamHistory.map((id, i) => (
           <div key={i} className="flex items-center gap-2">
-            <img src={`/logos/${id}.svg`} className="px-4 py-1.5" />
+            <TeamLogo teamId={id} />
             {i < teamHistory.length - 1 && (
-              <span className="text-slate-400 dark:text-slate-500 text-lg select-none">→</span>
+              <span className="text-slate-400 dark:text-slate-500 text-xl select-none">→</span>
             )}
           </div>
         ))}

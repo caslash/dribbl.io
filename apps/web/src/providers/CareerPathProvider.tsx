@@ -1,10 +1,4 @@
-import {
-  createContext,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { createContext, useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { io, Socket } from 'socket.io-client';
 
@@ -55,9 +49,7 @@ export interface CareerPathContextValue {
 // Context
 // ---------------------------------------------------------------------------
 
-export const CareerPathContext = createContext<CareerPathContextValue | null>(
-  null,
-);
+export const CareerPathContext = createContext<CareerPathContextValue | null>(null);
 
 const initialState: CareerPathState = {
   phase: 'config',
@@ -201,7 +193,7 @@ export function CareerPathProvider({ children }: CareerPathProviderProps) {
   }, []);
 
   const submitGuess = useCallback((playerId: number) => {
-    socketRef.current?.emit('USER_GUESS', { guess: { guessId: playerId } });
+    socketRef.current?.emit('USER_GUESS', { guessId: playerId });
   }, []);
 
   const skip = useCallback(() => {

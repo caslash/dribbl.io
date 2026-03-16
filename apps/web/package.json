@@ -10,7 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@headlessui/react": "^2.2.9",
+"class-transformer": "^0.5.1",
+    "class-validator": "^0.14.4",
+    "cmdk": "^1.1.1",
     "framer-motion": "^12.36.0",
     "lucide-react": "^0.577.0",
     "react": "^19.2.0",

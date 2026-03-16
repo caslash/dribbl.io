@@ -1,6 +1,6 @@
+import type { PlayerResult } from '@/providers/CareerPathProvider';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect } from 'react';
-import type { PlayerResult } from '@/providers/CareerPathProvider';
 
 type FeedbackResult = 'correct' | 'incorrect' | 'skip';
 
@@ -14,10 +14,7 @@ interface RoundFeedbackProps {
   onDismiss: () => void;
 }
 
-const CONFIG: Record<
-  FeedbackResult,
-  { heading: string; bgClass: string; textClass: string }
-> = {
+const CONFIG: Record<FeedbackResult, { heading: string; bgClass: string; textClass: string }> = {
   correct: {
     heading: 'Correct!',
     bgClass: 'bg-success-light dark:bg-success/20 border-success',
@@ -30,8 +27,7 @@ const CONFIG: Record<
   },
   skip: {
     heading: 'Skipped',
-    bgClass:
-      'bg-warning-light dark:bg-warning/20 border-warning dark:border-warning',
+    bgClass: 'bg-warning-light dark:bg-warning/20 border-warning dark:border-warning',
     textClass: 'text-warning',
   },
 };
@@ -50,14 +46,9 @@ const CONFIG: Record<
  *   />
  * )}
  */
-export function RoundFeedback({
-  result,
-  validAnswers,
-  lives,
-  onDismiss,
-}: RoundFeedbackProps) {
+export function RoundFeedback({ result, validAnswers, lives, onDismiss }: RoundFeedbackProps) {
   useEffect(() => {
-    const timer = setTimeout(onDismiss, 2500);
+    const timer = setTimeout(onDismiss, 3000);
     return () => clearTimeout(timer);
   }, [onDismiss]);
 
@@ -91,9 +82,7 @@ export function RoundFeedback({
         role="status"
         aria-live="polite"
       >
-        <h3 className={`text-center text-xl font-bold ${textClass}`}>
-          {heading}
-        </h3>
+        <h3 className={`text-center text-xl font-bold ${textClass}`}>{heading}</h3>
 
         {result === 'correct' && validAnswers.length > 0 && (
           <div className="mt-3 text-center">

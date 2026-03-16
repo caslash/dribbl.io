@@ -1,7 +1,7 @@
 import { DifficultyFilter, Player } from '@dribblio/types';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 
 @Injectable()
 export class PlayerService {
@@ -26,6 +26,16 @@ export class PlayerService {
 
   findActive(): Promise<Player[]> {
     return this.playerRepository.find({ where: { isActive: true } });
+  }
+
+  search(searchTerm: string): Promise<Player[]> {
+    return this.playerRepository.find({
+      where: [
+        { firstName: ILike(`%${searchTerm}%`) },
+        { lastName: ILike(`%${searchTerm}%`) },
+        { fullName: ILike(`%${searchTerm}%`) },
+      ],
+    });
   }
 
   async findRandomPlayer(filter?: DifficultyFilter): Promise<Player | null> {
