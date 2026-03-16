@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/Button';
 import { PlayerSearchInput } from '@/components/PlayerSearchInput';
 import { useCareerPath } from '@/hooks/useCareerPath';
@@ -20,6 +20,13 @@ export function GuessArea({ disabled = false }: GuessAreaProps) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [selectedName, setSelectedName] = useState('');
   const [key, setKey] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!disabled) {
+      inputRef.current?.focus();
+    }
+  }, [disabled]);
 
   const handleSelect = (playerId: number, fullName: string) => {
     setSelectedId(playerId);
@@ -48,7 +55,9 @@ export function GuessArea({ disabled = false }: GuessAreaProps) {
     <div className="flex flex-col gap-3">
       <PlayerSearchInput
         key={key}
+        ref={inputRef}
         onSelect={handleSelect}
+        onSubmit={handleSubmit}
         disabled={disabled}
         placeholder="Type a player's name..."
       />

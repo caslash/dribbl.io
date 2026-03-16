@@ -123,7 +123,7 @@ export function RoundFeedback({ result, validAnswers, lives, onDismiss }: RoundF
         )}
 
         <p className="mt-3 text-center text-xs text-slate-400 dark:text-slate-500">
-          Click or wait to continue
+          Next round loading…
         </p>
       </motion.div>
     </AnimatePresence>

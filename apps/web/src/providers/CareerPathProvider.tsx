@@ -26,6 +26,11 @@ export interface CareerPathState {
   lastResult: 'correct' | 'incorrect' | 'skip' | null;
   /** Populated after a correct guess; contains all players with the same career path */
   validAnswers: PlayerResult[];
+  /**
+   * Buffered next-round data received while feedback is still showing.
+   * Applied when feedback is dismissed so the new round doesn't clear feedback early.
+   */
+  pendingRound: { score: number; lives: number | null; teamHistory: string[] } | null;
 }
 
 export interface CareerPathConfig {
@@ -58,6 +63,7 @@ const initialState: CareerPathState = {
   teamHistory: [],
   lastResult: null,
   validAnswers: [],
+  pendingRound: null,
 };
 
 // ---------------------------------------------------------------------------
@@ -129,15 +135,25 @@ export function CareerPathProvider({ children }: CareerPathProviderProps) {
     });
 
     socket.on('NOTIFY_NEXT_ROUND', (payload: NotifyNextRound) => {
-      setState((prev) => ({
-        ...prev,
-        phase: 'playing',
+      const round = {
         score: payload.score,
         lives: payload.lives ?? null,
         teamHistory: payload.team_history ?? [],
-        lastResult: null,
-        validAnswers: [],
-      }));
+      };
+      setState((prev) => {
+        // If feedback is showing, buffer the round so it doesn't get cleared early
+        if (prev.lastResult !== null) {
+          return { ...prev, phase: 'playing', pendingRound: round };
+        }
+        return {
+          ...prev,
+          phase: 'playing',
+          ...round,
+          lastResult: null,
+          validAnswers: [],
+          pendingRound: null,
+        };
+      });
     });
 
     socket.on('NOTIFY_CORRECT_GUESS', (payload: NotifyCorrectGuess) => {
@@ -201,7 +217,13 @@ export function CareerPathProvider({ children }: CareerPathProviderProps) {
   }, []);
 
   const clearFeedback = useCallback(() => {
-    setState((prev) => ({ ...prev, lastResult: null, validAnswers: [] }));
+    setState((prev) => ({
+      ...prev,
+      lastResult: null,
+      validAnswers: [],
+      ...(prev.pendingRound ?? {}),
+      pendingRound: null,
+    }));
   }, []);
 
   return (

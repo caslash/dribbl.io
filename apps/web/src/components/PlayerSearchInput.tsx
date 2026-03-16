@@ -1,6 +1,7 @@
 import { Command } from 'cmdk';
 import { Loader2 } from 'lucide-react';
-import { useCallback, useRef, useState } from 'react';
+import { forwardRef, useCallback, useRef, useState } from 'react';
+import type { KeyboardEvent } from 'react';
 
 /** Lightweight player shape returned by the search API. */
 interface PlayerSearchResult {
@@ -11,6 +12,8 @@ interface PlayerSearchResult {
 interface PlayerSearchInputProps {
   /** Called when the user selects a player from the dropdown. */
   onSelect: (playerId: number, fullName: string) => void;
+  /** Called when Enter is pressed after a player has been selected. */
+  onSubmit?: () => void;
   /** Disables the input and dropdown. */
   disabled?: boolean;
   /** Placeholder text for the input. */
@@ -27,16 +30,20 @@ interface PlayerSearchInputProps {
  *   placeholder="Search for a player..."
  * />
  */
-export function PlayerSearchInput({
+export const PlayerSearchInput = forwardRef<HTMLInputElement, PlayerSearchInputProps>(
+  function PlayerSearchInput({
   onSelect,
+  onSubmit,
   disabled = false,
   placeholder = 'Search for a player...',
-}: PlayerSearchInputProps) {
+}, ref) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<PlayerSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Tracks whether the current query reflects a confirmed player selection
+  const hasSelectionRef = useRef(false);
 
   const fetchPlayers = useCallback(async (search: string) => {
     if (!search.trim()) {
@@ -61,6 +68,7 @@ export function PlayerSearchInput({
   }, []);
 
   const handleInputChange = (value: string) => {
+    hasSelectionRef.current = false;
     setQuery(value);
 
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -70,18 +78,27 @@ export function PlayerSearchInput({
   };
 
   const handleSelect = (player: PlayerSearchResult) => {
+    hasSelectionRef.current = true;
     setQuery(player.fullName);
     setResults([]);
     setOpen(false);
     onSelect(player.playerId, player.fullName);
   };
 
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !open && hasSelectionRef.current) {
+      onSubmit?.();
+    }
+  };
+
   return (
     <Command shouldFilter={false} className="relative">
       <div className="relative">
         <Command.Input
+          ref={ref}
           value={query}
           onValueChange={handleInputChange}
+          onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
           className="w-full rounded-md border border-cream-300 bg-cream-50 px-3 py-2 text-navy-900 placeholder:text-slate-400 focus:border-burgundy-600 focus:outline-none focus:ring-2 focus:ring-burgundy-600/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-cream-100 dark:placeholder:text-slate-500"
@@ -112,4 +129,5 @@ export function PlayerSearchInput({
       )}
     </Command>
   );
-}
+});
+

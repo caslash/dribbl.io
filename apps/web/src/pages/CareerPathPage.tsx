@@ -30,15 +30,14 @@ function CareerPathContent() {
       <ScoreBoard score={state.score} lives={state.lives} />
       <TeamHistoryDisplay teamHistory={state.teamHistory} />
 
-      {state.lastResult ? (
+      <GuessArea disabled={state.lastResult !== null} />
+      {state.lastResult && (
         <RoundFeedback
           result={state.lastResult}
           validAnswers={state.validAnswers}
           lives={state.lives}
           onDismiss={clearFeedback}
         />
-      ) : (
-        <GuessArea />
       )}
     </div>
   );
