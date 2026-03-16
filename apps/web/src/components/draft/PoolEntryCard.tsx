@@ -40,18 +40,18 @@ export function PoolEntryCard({ entry, available, onPick, isMyTurn }: PoolEntryC
       aria-label={`Pick ${entry.playerName}${available ? '' : ' (unavailable)'}`}
       className={`rounded-lg border p-3 text-left transition-all ${
         available
-          ? `bg-cream-50 dark:bg-navy-900 border-navy-200 dark:border-navy-700 ${
+          ? `bg-surface-raised border-primary-border ${
               clickable
-                ? 'hover:border-burgundy-600 hover:shadow-md cursor-pointer'
+                ? 'hover:border-red-600 hover:shadow-md cursor-pointer'
                 : 'cursor-default'
             }`
-          : 'bg-navy-100 dark:bg-navy-800 text-navy-400 dark:text-navy-500 border-navy-200 dark:border-navy-700 opacity-50 cursor-not-allowed'
+          : 'bg-surface-warm text-text-muted border-primary-border opacity-50 cursor-not-allowed'
       }`}
     >
       <p className={`text-sm font-semibold leading-snug ${!available ? 'line-through' : ''}`}>
         {entry.playerName}
       </p>
-      <p className="text-xs text-navy-500 dark:text-cream-300 mt-0.5 truncate">{subtitle}</p>
+      <p className="text-xs text-text-muted mt-0.5 truncate">{subtitle}</p>
     </button>
   );
 }

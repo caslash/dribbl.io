@@ -17,17 +17,17 @@ interface RoundFeedbackProps {
 const CONFIG: Record<FeedbackResult, { heading: string; bgClass: string; textClass: string }> = {
   correct: {
     heading: 'Correct!',
-    bgClass: 'bg-success-light dark:bg-success/20 border-success',
+    bgClass: 'bg-success-light border-success',
     textClass: 'text-success',
   },
   incorrect: {
     heading: 'Incorrect',
-    bgClass: 'bg-error-light dark:bg-error/20 border-error',
+    bgClass: 'bg-error-light border-error',
     textClass: 'text-error',
   },
   skip: {
     heading: 'Skipped',
-    bgClass: 'bg-warning-light dark:bg-warning/20 border-warning dark:border-warning',
+    bgClass: 'bg-warning-light border-warning',
     textClass: 'text-warning',
   },
 };
@@ -86,14 +86,14 @@ export function RoundFeedback({ result, validAnswers, lives, onDismiss }: RoundF
 
         {result === 'correct' && validAnswers.length > 0 && (
           <div className="mt-3 text-center">
-            <p className="mb-1.5 text-sm font-medium text-slate-600 dark:text-slate-300">
+            <p className="mb-1.5 text-sm font-medium text-text-secondary">
               Valid answers:
             </p>
             <div className="flex flex-wrap justify-center gap-2">
               {validAnswers.map((p) => (
                 <span
                   key={p.playerId}
-                  className="rounded-full bg-success/20 px-3 py-0.5 text-sm font-medium text-success dark:bg-success/30"
+                  className="rounded-full bg-success/20 px-3 py-0.5 text-sm font-medium text-success"
                 >
                   {p.fullName}
                 </span>
@@ -103,7 +103,7 @@ export function RoundFeedback({ result, validAnswers, lives, onDismiss }: RoundF
         )}
 
         {result === 'incorrect' && (
-          <p className="mt-2 text-center text-sm text-slate-600 dark:text-slate-300">
+          <p className="mt-2 text-center text-sm text-text-secondary">
             {lives === null
               ? 'Score reset to 0'
               : lives === 0
@@ -113,7 +113,7 @@ export function RoundFeedback({ result, validAnswers, lives, onDismiss }: RoundF
         )}
 
         {result === 'skip' && (
-          <p className="mt-2 text-center text-sm text-slate-600 dark:text-slate-300">
+          <p className="mt-2 text-center text-sm text-text-secondary">
             {lives === null
               ? 'Score reset to 0'
               : lives === 0
@@ -122,7 +122,7 @@ export function RoundFeedback({ result, validAnswers, lives, onDismiss }: RoundF
           </p>
         )}
 
-        <p className="mt-3 text-center text-xs text-slate-400 dark:text-slate-500">
+        <p className="mt-3 text-center text-xs text-text-placeholder">
           Next round loading…
         </p>
       </motion.div>

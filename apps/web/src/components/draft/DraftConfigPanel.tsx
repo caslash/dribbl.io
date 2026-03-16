@@ -96,7 +96,7 @@ export function DraftConfigPanel() {
             label="Linear"
           />
         </div>
-        <p className="text-xs text-navy-500 dark:text-cream-300">
+        <p className="text-xs text-text-muted">
           {draftOrder === 'snake'
             ? 'Round order reverses each round (1→N, N→1, …)'
             : 'Same pick order every round (1→N, 1→N, …)'}
@@ -170,10 +170,10 @@ function ModeCard({ active, onClick, title, description }: ModeCardProps) {
   return (
     <Card
       onClick={onClick}
-      className={`cursor-pointer transition-colors border-2 ${active ? 'border-burgundy-600 bg-burgundy-600/5' : 'border-navy-200 dark:border-navy-700 hover:border-burgundy-600'}`}
+      className={`cursor-pointer transition-colors border-2 ${active ? 'border-red-600 bg-red-600/5' : 'border-primary-border hover:border-red-600'}`}
     >
       <p className="text-sm font-semibold mb-1">{title}</p>
-      <p className="text-xs text-navy-500 dark:text-cream-300 leading-snug">{description}</p>
+      <p className="text-xs text-text-muted leading-snug">{description}</p>
     </Card>
   );
 }
@@ -191,8 +191,8 @@ function OrderToggle({ active, onClick, label }: OrderToggleProps) {
       onClick={onClick}
       className={`px-4 py-2 rounded-md text-sm font-medium border transition-colors ${
         active
-          ? 'bg-burgundy-600 text-cream-50 border-burgundy-600'
-          : 'bg-transparent text-navy-800 dark:text-cream-200 border-navy-300 dark:border-navy-600 hover:bg-navy-100 dark:hover:bg-navy-800'
+          ? 'bg-red-600 text-white border-red-600'
+          : 'bg-transparent text-text-secondary border-primary-border hover:bg-surface-warm'
       }`}
     >
       {label}

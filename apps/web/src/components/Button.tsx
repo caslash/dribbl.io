@@ -12,11 +12,11 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    'bg-burgundy-600 text-cream-50 hover:bg-burgundy-700 disabled:opacity-50 disabled:cursor-not-allowed',
+    'bg-red-600 text-white hover:bg-red-800 disabled:opacity-50 disabled:cursor-not-allowed',
   secondary:
-    'border border-navy-800 text-navy-800 hover:bg-navy-800 hover:text-cream-50 dark:border-cream-200 dark:text-cream-200 dark:hover:bg-cream-200 dark:hover:text-navy-900 disabled:opacity-50 disabled:cursor-not-allowed',
+    'border border-text-secondary text-text-secondary hover:bg-text-secondary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed',
   ghost:
-    'text-navy-800 hover:bg-navy-800/10 dark:text-cream-200 dark:hover:bg-cream-200/10 disabled:opacity-50 disabled:cursor-not-allowed',
+    'text-text-secondary hover:bg-text-secondary/10 disabled:opacity-50 disabled:cursor-not-allowed',
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -41,7 +41,7 @@ export function Button({
 }: ButtonProps) {
   return (
     <button
-      className={`inline-flex cursor-pointer items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-burgundy-600 ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+      className={`inline-flex cursor-pointer items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
       {...props}
     >
       {children}

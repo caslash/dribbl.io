@@ -86,9 +86,9 @@ export function GuessArea({ disabled = false }: GuessAreaProps) {
         </Button>
       </div>
       {selectedName && (
-        <p className="text-center text-sm text-slate-500 dark:text-slate-400">
+        <p className="text-center text-sm text-text-muted">
           Selected:{' '}
-          <span className="font-medium text-navy-800 dark:text-cream-200">
+          <span className="font-medium text-text-secondary">
             {selectedName}
           </span>
         </p>

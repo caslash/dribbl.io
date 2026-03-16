@@ -33,10 +33,10 @@ export function HomePage() {
   return (
     <div className="flex min-h-[80vh] flex-col items-center justify-center px-4 py-16">
       <div className="mb-12 text-center">
-        <h1 className="font-serif text-5xl font-bold tracking-tight text-navy-900 dark:text-cream-100 sm:text-6xl">
+        <h1 className="font-serif text-5xl font-bold tracking-tight text-primary-text sm:text-6xl">
           dribbl.io
         </h1>
-        <p className="mt-4 text-lg text-slate-500 dark:text-slate-400">
+        <p className="mt-4 text-lg text-text-muted">
           NBA knowledge games for the obsessed fan.
         </p>
       </div>
@@ -48,10 +48,10 @@ export function HomePage() {
             className="flex flex-col gap-4 transition-shadow hover:shadow-md"
           >
             <div className="flex-1">
-              <h2 className="font-serif text-2xl font-bold text-navy-900 dark:text-cream-100">
+              <h2 className="font-serif text-2xl font-bold text-primary-text">
                 {card.title}
               </h2>
-              <p className="mt-2 text-slate-500 dark:text-slate-400">
+              <p className="mt-2 text-text-muted">
                 {card.description}
               </p>
             </div>

@@ -18,13 +18,13 @@ export function GameOverScreen() {
 
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center">
-      <h1 className="font-serif text-5xl font-bold text-navy-900 dark:text-cream-100">
+      <h1 className="font-serif text-5xl font-bold text-primary-text">
         Game Over
       </h1>
-      <p className="mt-4 text-lg text-slate-500 dark:text-slate-400">
+      <p className="mt-4 text-lg text-text-muted">
         You finished with a score of
       </p>
-      <p className="mt-2 font-serif text-7xl font-bold text-burgundy-600 dark:text-burgundy-500">
+      <p className="mt-2 font-serif text-7xl font-bold text-red-600">
         {state.score}
       </p>
       <Button

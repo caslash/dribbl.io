@@ -101,18 +101,18 @@ export const PlayerSearchInput = forwardRef<HTMLInputElement, PlayerSearchInputP
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full rounded-md border border-cream-300 bg-cream-50 px-3 py-2 text-navy-900 placeholder:text-slate-400 focus:border-burgundy-600 focus:outline-none focus:ring-2 focus:ring-burgundy-600/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-cream-100 dark:placeholder:text-slate-500"
+          className="w-full rounded-md border border-border bg-surface-raised px-3 py-2 text-text-primary placeholder:text-text-placeholder focus:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/30 disabled:cursor-not-allowed disabled:opacity-50"
         />
         {isLoading && (
           <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-            <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+            <Loader2 className="h-4 w-4 animate-spin text-text-placeholder" />
           </div>
         )}
       </div>
 
       {open && (
-        <Command.List className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-cream-200 bg-cream-50 py-1 shadow-lg focus:outline-none dark:border-slate-700 dark:bg-slate-800">
-          <Command.Empty className="px-3 py-2 text-sm text-slate-500 dark:text-slate-400">
+        <Command.List className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-border bg-surface-raised py-1 shadow-lg focus:outline-none">
+          <Command.Empty className="px-3 py-2 text-sm text-text-muted">
             No players found
           </Command.Empty>
           {results.map((player) => (
@@ -120,7 +120,7 @@ export const PlayerSearchInput = forwardRef<HTMLInputElement, PlayerSearchInputP
               key={player.playerId}
               value={String(player.playerId)}
               onSelect={() => handleSelect(player)}
-              className="cursor-pointer px-3 py-2 text-navy-900 data-[selected=true]:bg-navy-800 data-[selected=true]:text-cream-50 dark:text-cream-100 dark:data-[selected=true]:bg-cream-200 dark:data-[selected=true]:text-navy-900"
+              className="cursor-pointer px-3 py-2 text-text-primary data-[selected=true]:bg-blue-800 data-[selected=true]:text-white"
             >
               {player.fullName}
             </Command.Item>

@@ -44,19 +44,19 @@ export function AppLayout() {
   }, [isDark]);
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `text-sm font-medium transition-colors hover:text-burgundy-600 dark:hover:text-burgundy-500 ${
+    `text-sm font-medium transition-colors hover:text-red-600 ${
       isActive
-        ? 'text-burgundy-600 dark:text-burgundy-500'
-        : 'text-navy-700 dark:text-cream-300'
+        ? 'text-red-600'
+        : 'text-text-secondary'
     }`;
 
   return (
-    <div className="flex min-h-screen flex-col bg-cream-50 dark:bg-navy-950">
-      <header className="sticky top-0 z-40 border-b border-cream-200 bg-cream-50/95 backdrop-blur dark:border-slate-700 dark:bg-navy-950/95">
+    <div className="flex min-h-screen flex-col bg-background">
+      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
           <Link
             to="/"
-            className="font-serif text-xl font-bold tracking-tight text-navy-900 dark:text-cream-100"
+            className="font-serif text-xl font-bold tracking-tight text-primary-text"
           >
             dribbl.io
           </Link>
@@ -75,7 +75,7 @@ export function AppLayout() {
             <button
               onClick={() => setIsDark((d) => !d)}
               aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-              className="rounded-md p-1.5 text-navy-700 transition-colors hover:bg-navy-800/10 dark:text-cream-300 dark:hover:bg-cream-200/10"
+              className="rounded-md p-1.5 text-text-secondary transition-colors hover:bg-text-secondary/10"
             >
               {isDark ? (
                 <Sun className="h-4 w-4" />

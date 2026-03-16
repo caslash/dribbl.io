@@ -19,22 +19,22 @@ const MAX_DISPLAYED_LIVES = 10;
  */
 export function ScoreBoard({ score, lives }: ScoreBoardProps) {
   return (
-    <div className="flex items-center justify-between rounded-lg border border-cream-200 bg-cream-50 px-6 py-4 dark:border-slate-700 dark:bg-slate-800">
+    <div className="flex items-center justify-between rounded-lg border border-border bg-surface-raised px-6 py-4">
       <div className="text-center">
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+        <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">
           Score
         </p>
-        <p className="font-serif text-4xl font-bold text-navy-900 dark:text-cream-100">
+        <p className="font-serif text-4xl font-bold text-text-primary">
           {score}
         </p>
       </div>
 
       <div className="text-center">
-        <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-text-muted">
           Lives
         </p>
         {lives === null ? (
-          <span className="font-serif text-3xl text-navy-900 dark:text-cream-100">
+          <span className="font-serif text-3xl text-text-primary">
             ∞
           </span>
         ) : (
@@ -43,17 +43,17 @@ export function ScoreBoard({ score, lives }: ScoreBoardProps) {
               (_, i) => (
                 <Heart
                   key={i}
-                  className="h-5 w-5 fill-burgundy-600 text-burgundy-600 dark:fill-burgundy-500 dark:text-burgundy-500"
+                  className="h-5 w-5 fill-red-600 text-red-600"
                 />
               ),
             )}
             {lives > MAX_DISPLAYED_LIVES && (
-              <span className="text-sm font-medium text-slate-500">
+              <span className="text-sm font-medium text-text-muted">
                 +{lives - MAX_DISPLAYED_LIVES}
               </span>
             )}
             {lives === 0 && (
-              <span className="text-sm text-slate-400 dark:text-slate-500">
+              <span className="text-sm text-text-placeholder">
                 none
               </span>
             )}

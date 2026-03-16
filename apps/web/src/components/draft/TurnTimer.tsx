@@ -81,7 +81,7 @@ export function TurnTimer({ durationSeconds, onExpire }: TurnTimerProps) {
             fill="none"
             stroke="currentColor"
             strokeWidth="6"
-            className="text-navy-200 dark:text-navy-700"
+            className="text-primary-border"
           />
           {/* Progress ring */}
           <motion.circle
@@ -93,19 +93,19 @@ export function TurnTimer({ durationSeconds, onExpire }: TurnTimerProps) {
             strokeLinecap="round"
             strokeDasharray={CIRCUMFERENCE}
             animate={ringControls}
-            className={`transition-colors ${isWarning ? 'stroke-error' : 'stroke-burgundy-600'}`}
+            className={`transition-colors ${isWarning ? 'stroke-error' : 'stroke-red-600'}`}
           />
         </svg>
         {/* Numeric display */}
         <span
           className={`absolute inset-0 flex items-center justify-center text-2xl font-bold rotate-0 ${
-            isWarning ? 'text-error' : 'text-navy-900 dark:text-cream-50'
+            isWarning ? 'text-error' : 'text-text-primary'
           }`}
         >
           {secondsLeft}
         </span>
       </div>
-      <p className="text-xs text-navy-500 dark:text-cream-300">seconds left</p>
+      <p className="text-xs text-text-muted">seconds left</p>
     </div>
   );
 }

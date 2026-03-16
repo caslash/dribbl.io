@@ -63,17 +63,17 @@ export function CareerPathConfig() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
       <div className="mb-8 text-center">
-        <h1 className="font-serif text-4xl font-bold text-navy-900 dark:text-cream-100">
+        <h1 className="font-serif text-4xl font-bold text-primary-text">
           Career Path
         </h1>
-        <p className="mt-2 text-slate-500 dark:text-slate-400">
+        <p className="mt-2 text-text-muted">
           Guess the player from their NBA career team history.
         </p>
       </div>
 
       <div className="space-y-6">
         <div>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-text-muted">
             Difficulty
           </h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -81,16 +81,16 @@ export function CareerPathConfig() {
               <button
                 key={opt.key}
                 onClick={() => setSelectedDifficulty(opt.key)}
-                className={`rounded-lg border p-4 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-burgundy-600 ${
+                className={`rounded-lg border p-4 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600 ${
                   selectedDifficulty === opt.key
-                    ? 'border-burgundy-600 bg-burgundy-600/10 dark:border-burgundy-500 dark:bg-burgundy-500/10'
-                    : 'border-cream-300 bg-cream-50 hover:border-navy-700 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-slate-500'
+                    ? 'border-red-600 bg-red-600/10'
+                    : 'border-border bg-surface-raised hover:border-text-secondary'
                 }`}
               >
-                <div className="font-semibold text-navy-900 dark:text-cream-100">
+                <div className="font-semibold text-text-primary">
                   {opt.label}
                 </div>
-                <div className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+                <div className="mt-0.5 text-sm text-text-muted">
                   {opt.description}
                 </div>
               </button>
@@ -99,7 +99,7 @@ export function CareerPathConfig() {
         </div>
 
         <div>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-text-muted">
             Lives
           </h2>
           <div className="flex flex-wrap gap-2">
@@ -107,10 +107,10 @@ export function CareerPathConfig() {
               <button
                 key={String(opt.value)}
                 onClick={() => setSelectedLives(opt.value)}
-                className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-burgundy-600 ${
+                className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600 ${
                   selectedLives === opt.value
-                    ? 'border-burgundy-600 bg-burgundy-600 text-cream-50 dark:border-burgundy-500 dark:bg-burgundy-500'
-                    : 'border-cream-300 text-navy-800 hover:border-navy-700 dark:border-slate-600 dark:text-cream-200 dark:hover:border-slate-400'
+                    ? 'border-red-600 bg-red-600 text-white'
+                    : 'border-border text-text-secondary hover:border-text-secondary'
                 }`}
               >
                 {opt.label}
@@ -119,9 +119,9 @@ export function CareerPathConfig() {
           </div>
         </div>
 
-        <Card className="bg-cream-100 dark:bg-slate-900">
-          <div className="text-sm text-slate-600 dark:text-slate-400">
-            <p className="font-medium text-navy-800 dark:text-cream-200">
+        <Card className="bg-surface-warm">
+          <div className="text-sm text-text-muted">
+            <p className="font-medium text-text-secondary">
               How to play
             </p>
             <ul className="mt-2 list-inside list-disc space-y-1">

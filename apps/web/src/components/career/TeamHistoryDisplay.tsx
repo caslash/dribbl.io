@@ -5,7 +5,7 @@ interface TeamHistoryDisplayProps {
 
 function TeamLogo({ teamId }: { teamId: number | string }) {
   return (
-    <div className="flex justify-center p-4 bg-white rounded-md">
+    <div className="flex justify-center p-4 bg-surface-warm rounded-md">
       <img src={`/logos/${teamId}.svg`} height={100} width={100} />
     </div>
   );
@@ -27,7 +27,7 @@ export function TeamHistoryDisplay({ teamHistory }: TeamHistoryDisplayProps) {
           <div key={i} className="flex items-center gap-2">
             <TeamLogo teamId={id} />
             {i < teamHistory.length - 1 && (
-              <span className="text-slate-400 dark:text-slate-500 text-xl select-none">→</span>
+              <span className="text-text-placeholder text-xl select-none">→</span>
             )}
           </div>
         ))}

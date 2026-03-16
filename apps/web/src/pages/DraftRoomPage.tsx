@@ -57,9 +57,9 @@ export const DraftRoomPage = () => {
         <div className="md:col-span-1">
           <h2 className="text-lg font-semibold mb-3">Room</h2>
           {state.roomId && (
-            <p className="text-xs text-navy-500 dark:text-cream-300 mb-3">
+            <p className="text-xs text-text-muted mb-3">
               Code:{' '}
-              <span className="font-mono font-bold tracking-widest text-navy-900 dark:text-cream-50">
+              <span className="font-mono font-bold tracking-widest text-text-primary">
                 {state.roomId}
               </span>
             </p>
@@ -75,7 +75,7 @@ export const DraftRoomPage = () => {
               <DraftConfigPanel />
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center h-full min-h-32 gap-3 text-center text-navy-500 dark:text-cream-300">
+            <div className="flex flex-col items-center justify-center h-full min-h-32 gap-3 text-center text-text-muted">
               <p className="text-sm">Waiting for the organizer to configure the draft…</p>
             </div>
           )}
