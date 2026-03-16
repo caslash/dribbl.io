@@ -73,7 +73,7 @@ type DraftAction =
       isOrganizer: boolean;
     }
   | { type: 'SET_PHASE'; phase: DraftPhase }
-  | { type: 'PARTICIPANT_JOINED'; participant: Participant }
+  | { type: 'PARTICIPANT_JOINED'; participant: Participant; participants: Participant[] }
   | { type: 'PARTICIPANT_LEFT'; participantId: string }
   | { type: 'CONFIG_SAVED'; config: DraftRoomConfig }
   | { type: 'DRAFT_STARTED'; pool: PoolEntry[]; turnOrder: string[] }
@@ -97,11 +97,7 @@ function draftReducer(state: DraftState, action: DraftAction): DraftState {
     case 'SET_PHASE':
       return { ...state, phase: action.phase };
     case 'PARTICIPANT_JOINED':
-      // Avoid duplicating if server re-emits for the joining participant themselves
-      if (state.participants.some((p) => p.participantId === action.participant.participantId)) {
-        return state;
-      }
-      return { ...state, participants: [...state.participants, action.participant] };
+      return { ...state, participants: action.participants };
     case 'PARTICIPANT_LEFT':
       return {
         ...state,
@@ -215,8 +211,8 @@ export function DraftProvider({ children, roomId: initialRoomId }: DraftProvider
       transports: ['websocket'],
     });
 
-    socket.on('NOTIFY_PARTICIPANT_JOINED', ({ participant }: NotifyParticipantJoinedPayload) => {
-      dispatch({ type: 'PARTICIPANT_JOINED', participant });
+    socket.on('NOTIFY_PARTICIPANT_JOINED', ({ participant, participants }: NotifyParticipantJoinedPayload) => {
+      dispatch({ type: 'PARTICIPANT_JOINED', participant, participants });
       toast.info(`${participant.name} joined the room`);
     });
 

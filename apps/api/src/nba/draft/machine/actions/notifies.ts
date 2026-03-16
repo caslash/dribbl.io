@@ -22,9 +22,10 @@ const sendToSocket = sendTo<
   NbaDraftEvent
 >;
 
-const notifyParticipantJoined = sendToSocket('socket', ({ event }) => ({
+const notifyParticipantJoined = sendToSocket('socket', ({ context, event }) => ({
   type: 'NOTIFY_PARTICIPANT_JOINED',
   participant: (event as ParticipantJoinedEvent).participant,
+  participants: context.participants,
 }));
 
 const notifyParticipantLeft = sendToSocket('socket', ({ event }) => ({

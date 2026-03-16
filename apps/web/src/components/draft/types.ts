@@ -67,6 +67,7 @@ export interface PickRecord {
 
 export interface NotifyParticipantJoinedPayload {
   participant: Participant;
+  participants: Participant[];
 }
 
 export interface NotifyParticipantLeftPayload {
