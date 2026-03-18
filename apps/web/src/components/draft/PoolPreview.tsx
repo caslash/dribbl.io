@@ -1,5 +1,5 @@
-import { PoolEntryCard } from '@/components/draft/PoolEntryCard';
 import { Button } from '@/components';
+import { PoolEntryCard } from '@/components/draft/PoolEntryCard';
 import { useDraft } from '@/hooks/useDraft';
 import { useState } from 'react';
 
@@ -17,9 +17,7 @@ export function PoolPreview() {
   const [filter, setFilter] = useState('');
 
   const filtered = filter.trim()
-    ? state.pool.filter((e) =>
-        e.playerName.toLowerCase().includes(filter.trim().toLowerCase()),
-      )
+    ? state.pool.filter((e) => e.playerName.toLowerCase().includes(filter.trim().toLowerCase()))
     : state.pool;
 
   return (
@@ -28,14 +26,18 @@ export function PoolPreview() {
         <div>
           <h2 className="text-xl font-bold">Draft Pool</h2>
           <p className="text-sm text-muted-foreground">{state.pool.length} entries</p>
+          {state.roomId && (
+            <p className="text-xs text-text-muted">
+              Code:{' '}
+              <span className="font-mono font-bold tracking-widest text-text-primary">
+                {state.roomId}
+              </span>
+            </p>
+          )}
         </div>
-        {state.isOrganizer && (
-          <Button onClick={startDraft}>Start Draft</Button>
-        )}
+        {state.isOrganizer && <Button onClick={startDraft}>Start Draft</Button>}
         {!state.isOrganizer && (
-          <p className="text-sm text-muted-foreground italic">
-            Waiting for organizer to start…
-          </p>
+          <p className="text-sm text-muted-foreground italic">Waiting for organizer to start…</p>
         )}
       </div>
 
@@ -49,12 +51,7 @@ export function PoolPreview() {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 overflow-y-auto max-h-[60vh] pr-1">
         {filtered.map((entry) => (
-          <PoolEntryCard
-            key={entry.entryId}
-            entry={entry}
-            available
-            isMyTurn={false}
-          />
+          <PoolEntryCard key={entry.entryId} entry={entry} available isMyTurn={false} />
         ))}
         {filtered.length === 0 && (
           <p className="col-span-full text-center text-sm text-muted-foreground py-8">

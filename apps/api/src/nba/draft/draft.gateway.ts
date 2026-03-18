@@ -1,6 +1,12 @@
 import { DraftService } from '@/nba/draft/draft.service';
 import { PoolService } from '@/nba/pool/pool.service';
-import { DraftRoomConfig, NbaDraftEvent, StartDraftDto } from '@dribblio/types';
+import {
+  DraftRoomConfig,
+  FranchisePoolEntry,
+  NbaDraftEvent,
+  StartDraftDto,
+  SubmitPickEvent,
+} from '@dribblio/types';
 import {
   ConnectedSocket,
   MessageBody,
@@ -108,6 +114,47 @@ export class DraftGateway implements OnGatewayConnection {
       pool,
       turnOrder,
     });
+  }
+
+  @SubscribeMessage('SUBMIT_PICK')
+  handleSubmitPick(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() data: { pickRecord: SubmitPickEvent['pickRecord'] },
+  ): void {
+    const roomId = this.getRoomId(socket);
+    if (!roomId) return;
+
+    const room = this.draftService.getRoom(roomId);
+    if (!room) return;
+
+    room.send({ type: 'SUBMIT_PICK', pickRecord: data.pickRecord });
+
+    // Compute which pool entries are invalidated by this pick and advance the machine.
+    const { pool, config } = room.getSnapshot().context;
+    const pickedEntry = pool.find((e) => e.entryId === data.pickRecord.entryId);
+    if (!pickedEntry) return;
+
+    const invalidatedIds = new Set<string>();
+    for (const entry of pool) {
+      if (config.draftMode === 'mvp') {
+        if (entry.playerId === pickedEntry.playerId) {
+          invalidatedIds.add(entry.entryId);
+        }
+      } else if (config.draftMode === 'franchise') {
+        if (entry.playerId === pickedEntry.playerId) {
+          invalidatedIds.add(entry.entryId);
+        } else if (
+          entry.draftMode === 'franchise' &&
+          pickedEntry.draftMode === 'franchise' &&
+          (entry as FranchisePoolEntry).franchiseAbbr ===
+            (pickedEntry as FranchisePoolEntry).franchiseAbbr
+        ) {
+          invalidatedIds.add(entry.entryId);
+        }
+      }
+    }
+
+    room.send({ type: 'POOL_UPDATED', invalidatedIds });
   }
 
   private getRoomId(socket: Socket): string | undefined {

@@ -56,6 +56,9 @@ const makeEntry = (id: string, available = true): MvpPoolEntry => ({
   playerId: parseInt(id, 10) || 1,
   playerName: `Player ${id}`,
   season: '2023-24',
+  ptsPg: null,
+  astPg: null,
+  rebPg: null,
   available,
 });
 

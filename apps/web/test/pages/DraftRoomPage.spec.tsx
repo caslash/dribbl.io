@@ -5,6 +5,10 @@ import type { DraftPhase } from '@/providers/DraftProvider';
 import type { Participant } from '@dribblio/types';
 
 // Stub all phase-specific child components
+vi.mock('../../src/components/draft/RoomSidebar', () => ({
+  RoomSidebar: () => <div data-testid="room-sidebar" />,
+}));
+
 vi.mock('../../src/components/draft/DraftBoard', () => ({
   DraftBoard: () => <div data-testid="draft-board" />,
 }));
@@ -104,10 +108,10 @@ describe('DraftRoomPage', () => {
       expect(screen.getByTestId('draft-board')).toBeInTheDocument();
     });
 
-    it('does not render ParticipantList in the drafting phase', async () => {
+    it('renders RoomSidebar in the drafting phase', async () => {
       await setup('drafting');
 
-      expect(screen.queryByTestId('participant-list')).not.toBeInTheDocument();
+      expect(screen.getByTestId('room-sidebar')).toBeInTheDocument();
     });
   });
 
@@ -140,10 +144,10 @@ describe('DraftRoomPage', () => {
   });
 
   describe('lobby phase', () => {
-    it('renders ParticipantList in the lobby phase', async () => {
+    it('renders RoomSidebar in the lobby phase', async () => {
       await setup('lobby', { participants: [organizer, nonOrganizer] });
 
-      expect(screen.getByTestId('participant-list')).toBeInTheDocument();
+      expect(screen.getByTestId('room-sidebar')).toBeInTheDocument();
     });
 
     it('renders DraftConfigPanel for the organizer in the lobby phase', async () => {
@@ -166,10 +170,10 @@ describe('DraftRoomPage', () => {
       expect(screen.queryByTestId('draft-config-panel')).not.toBeInTheDocument();
     });
 
-    it('shows the room code', async () => {
+    it('renders RoomSidebar (which shows the room code)', async () => {
       await setup('lobby', { roomId: 'ABC99' });
 
-      expect(screen.getByText('ABC99')).toBeInTheDocument();
+      expect(screen.getByTestId('room-sidebar')).toBeInTheDocument();
     });
   });
 
@@ -178,7 +182,7 @@ describe('DraftRoomPage', () => {
       await setup('configuring', { isOrganizer: true });
 
       expect(screen.getByTestId('draft-config-panel')).toBeInTheDocument();
-      expect(screen.getByTestId('participant-list')).toBeInTheDocument();
+      expect(screen.getByTestId('room-sidebar')).toBeInTheDocument();
     });
 
     it('renders the same lobby layout in the configuring phase (non-organizer sees waiting message)', async () => {

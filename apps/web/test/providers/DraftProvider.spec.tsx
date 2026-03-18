@@ -93,6 +93,9 @@ const mockMvpEntry: PoolEntry = {
   playerId: 23,
   playerName: 'LeBron James',
   season: '2012-13',
+  ptsPg: 27.1,
+  astPg: 7.3,
+  rebPg: 8.0,
 };
 
 const mockPickRecord: PickRecord = {

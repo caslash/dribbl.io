@@ -1,23 +1,36 @@
-import { PoolEntryCard } from '@/components/draft/PoolEntryCard';
-import { TurnTimer } from '@/components/draft/TurnTimer';
-import { useDraft } from '@/hooks/useDraft';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
+import type { PoolEntry, PickRecord } from '@dribblio/types';
+import { useDraft } from '@/hooks/useDraft';
+import { DraftTimeline } from '@/components/draft/DraftTimeline';
+import { PoolEntryRow } from '@/components/draft/PoolEntryRow';
+import { PickConfirmModal } from '@/components/draft/PickConfirmModal';
+import { PickAnnouncementModal } from '@/components/draft/PickAnnouncementModal';
 
 /**
  * The main active-draft view.
  *
- * Layout:
- * - Left (70%): filterable pool grid with `PoolEntryCard` components.
- * - Right sidebar (30%): current-turn banner with optional timer,
- *   participant pick counts, and the 5 most recent picks.
+ * Layout (top to bottom):
+ * - `DraftTimeline`: horizontal scrollable pick history strip (~180px)
+ * - Search filter bar
+ * - Scrollable list of `PoolEntryRow` components
+ * - `PickConfirmModal` overlay (when a row is selected)
+ * - `PickAnnouncementModal` overlay (auto-dismissed after each confirmed pick)
+ *
+ * Pick flow:
+ * 1. User clicks a `PoolEntryRow` → sets `selectedEntry`
+ * 2. `PickConfirmModal` appears → user confirms → `submitPick` is called
+ * 3. `useEffect` on `pickHistory.length` captures the latest pick → sets `announcedPick`
+ * 4. `PickAnnouncementModal` auto-dismisses after 2500ms
  *
  * @example
  * <DraftBoard />
  */
 export function DraftBoard() {
-  const { state, isMyTurn, currentTurnParticipant, submitPick, notifyTimerExpired } = useDraft();
+  const { state, isMyTurn, submitPick, notifyTimerExpired } = useDraft();
   const [filter, setFilter] = useState('');
+  const [selectedEntry, setSelectedEntry] = useState<PoolEntry | null>(null);
+  const [announcedPick, setAnnouncedPick] = useState<PickRecord | null>(null);
 
   const filtered = filter.trim()
     ? state.pool.filter((e) =>
@@ -25,8 +38,14 @@ export function DraftBoard() {
       )
     : state.pool;
 
-  function handlePick(entryId: string) {
-    submitPick(entryId);
+  function handleSelectEntry(entry: PoolEntry) {
+    setSelectedEntry(entry);
+  }
+
+  function handleConfirmPick() {
+    if (!selectedEntry) return;
+    submitPick(selectedEntry.entryId);
+    setSelectedEntry(null);
   }
 
   function handleTimerExpire() {
@@ -34,109 +53,85 @@ export function DraftBoard() {
     toast.info("Time's up!");
   }
 
-  // Build a pick-count lookup by participantId
-  const pickCounts: Record<string, number> = {};
-  for (const pick of state.pickHistory) {
-    pickCounts[pick.participantId] = (pickCounts[pick.participantId] ?? 0) + 1;
-  }
+  const handleDismissAnnouncement = useCallback(() => {
+    setAnnouncedPick(null);
+  }, []);
 
-  const recentPicks = state.pickHistory.slice(-5).reverse();
+  // Watch for new picks and trigger the announcement overlay
+  useEffect(() => {
+    if (state.pickHistory.length === 0) return;
+    const lastPick = state.pickHistory[state.pickHistory.length - 1];
+    setAnnouncedPick(lastPick);
+  }, [state.pickHistory.length]);
+
+  const announcedEntry = announcedPick
+    ? state.pool.find((e) => e.entryId === announcedPick.entryId)
+    : undefined;
+  const announcedParticipant = announcedPick
+    ? state.participants.find((p) => p.participantId === announcedPick.participantId)
+    : undefined;
 
   return (
-    <div className="flex gap-4 h-full">
-      {/* Pool grid */}
-      <div className="flex-1 flex flex-col gap-3 min-w-0">
-        <div className="flex items-center gap-3 flex-wrap">
-          <h2 className="text-lg font-bold shrink-0">Draft Pool</h2>
-          <input
-            type="text"
-            placeholder="Filter by player…"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="flex h-9 w-full max-w-xs rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          />
-        </div>
+    <div className="relative flex flex-col h-full overflow-hidden">
+      {/* Draft order timeline */}
+      <DraftTimeline
+        turnOrder={state.turnOrder}
+        currentTurnIndex={state.currentTurnIndex}
+        pickHistory={state.pickHistory}
+        participants={state.participants}
+        pool={state.pool}
+        isMyTurn={isMyTurn}
+        timerDurationSeconds={state.config?.turnDuration}
+        onTimerExpire={handleTimerExpire}
+      />
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 overflow-y-auto flex-1 pr-1">
-          {filtered.map((entry) => {
-            const available = !state.invalidatedIds.has(entry.entryId);
-            return (
-              <PoolEntryCard
-                key={entry.entryId}
-                entry={entry}
-                available={available}
-                isMyTurn={isMyTurn}
-                onPick={() => handlePick(entry.entryId)}
-              />
-            );
-          })}
-          {filtered.length === 0 && (
-            <p className="col-span-full text-center text-sm text-muted-foreground py-8">
-              No entries match.
-            </p>
-          )}
-        </div>
+      {/* Filter bar */}
+      <div className="flex items-center gap-3 px-2 py-2 shrink-0 border-b border-primary-border">
+        <h2 className="text-sm font-bold shrink-0 text-text-muted">Draft Pool</h2>
+        <input
+          type="text"
+          placeholder="Filter by player…"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          className="flex h-8 w-full max-w-xs rounded-md border border-primary-border bg-transparent px-3 py-1 text-sm shadow-sm placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-600"
+        />
       </div>
 
-      {/* Sidebar */}
-      <aside className="w-64 shrink-0 flex flex-col gap-4">
-        {/* Current turn banner */}
-        <div className="rounded-lg border p-4 flex flex-col items-center gap-3 bg-card">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            Round {state.currentRound}
-          </p>
-          {currentTurnParticipant ? (
-            <p className="text-sm font-bold text-center">
-              {isMyTurn ? "It's your turn!" : `${currentTurnParticipant.name}'s turn`}
-            </p>
-          ) : (
-            <p className="text-sm text-muted-foreground">Waiting…</p>
-          )}
-          {state.config?.turnDuration && (
-            <TurnTimer
-              durationSeconds={state.config.turnDuration}
-              onExpire={handleTimerExpire}
+      {/* Scrollable pool list */}
+      <div className="overflow-y-auto flex-1 flex flex-col gap-1 p-2">
+        {filtered.map((entry) => {
+          const available = !state.invalidatedIds.has(entry.entryId);
+          return (
+            <PoolEntryRow
+              key={entry.entryId}
+              entry={entry}
+              available={available}
+              isMyTurn={isMyTurn}
+              onSelect={() => handleSelectEntry(entry)}
             />
-          )}
-        </div>
-
-        {/* Participant pick counts */}
-        <div className="rounded-lg border p-4 flex flex-col gap-2 bg-card">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            Participants
-          </p>
-          {state.participants.map((p) => (
-            <div key={p.participantId} className="flex justify-between items-center text-sm">
-              <span className="truncate">{p.name}</span>
-              <span className="text-muted-foreground shrink-0 ml-2">
-                {pickCounts[p.participantId] ?? 0} picks
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* Recent picks */}
-        {recentPicks.length > 0 && (
-          <div className="rounded-lg border p-4 flex flex-col gap-2 bg-card">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              Recent Picks
-            </p>
-            {recentPicks.map((pick, i) => {
-              const entry = state.pool.find((e) => e.entryId === pick.entryId);
-              const participant = state.participants.find(
-                (p) => p.participantId === pick.participantId,
-              );
-              return (
-                <div key={i} className="text-xs text-muted-foreground">
-                  <span className="font-medium text-foreground">{participant?.name ?? '?'}</span>
-                  {' → '}
-                  {entry?.playerName ?? pick.entryId}
-                </div>
-              );
-            })}
-          </div>
+          );
+        })}
+        {filtered.length === 0 && (
+          <p className="text-center text-sm text-text-muted py-8">No entries match.</p>
         )}
-      </aside>
+      </div>
+
+      {/* Pick confirmation modal */}
+      {selectedEntry && (
+        <PickConfirmModal
+          entry={selectedEntry}
+          onConfirm={handleConfirmPick}
+          onCancel={() => setSelectedEntry(null)}
+        />
+      )}
+
+      {/* Pick announcement overlay */}
+      <PickAnnouncementModal
+        pick={announcedPick}
+        entry={announcedEntry}
+        participant={announcedParticipant}
+        onDismiss={handleDismissAnnouncement}
+      />
     </div>
   );
 }

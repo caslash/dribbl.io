@@ -37,6 +37,9 @@ export class MvpPoolGenerator implements PoolGenerator {
       playerId: season.player.playerId,
       playerName: season.player.fullName,
       season: season.seasonId,
+      ptsPg: season.ptsPg,
+      astPg: season.astPg,
+      rebPg: season.rebPg,
       available: true,
     }));
   }

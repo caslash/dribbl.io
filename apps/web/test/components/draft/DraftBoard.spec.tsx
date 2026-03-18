@@ -4,13 +4,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DraftBoard } from '@/components/draft/DraftBoard';
 import type { DraftRoomConfig, Participant, PickRecord, PoolEntry } from '@dribblio/types';
 
-// TurnTimer uses framer-motion and real timers — stub it so DraftBoard tests stay unit-level
-vi.mock('../../../src/components/draft/TurnTimer', () => ({
-  TurnTimer: ({ durationSeconds, onExpire }: { durationSeconds: number; onExpire: () => void }) => (
-    <button onClick={onExpire} data-testid="turn-timer">
-      {durationSeconds}s
-    </button>
-  ),
+// Stub DraftTimeline — it has its own spec; avoid pulling in its full dependency tree here
+vi.mock('@/components/draft/DraftTimeline', () => ({
+  DraftTimeline: () => <div data-testid="draft-timeline" />,
 }));
 
 vi.mock('react-toastify', () => ({
@@ -29,6 +25,8 @@ interface MockDraftContext {
   invalidatedIds: Set<string>;
   pickHistory: PickRecord[];
   currentRound: number;
+  currentTurnIndex: number;
+  turnOrder: string[];
   config: DraftRoomConfig | null;
   myParticipantId: string;
   isMyTurn: boolean;
@@ -41,6 +39,8 @@ let mockCtx: MockDraftContext = {
   invalidatedIds: new Set(),
   pickHistory: [],
   currentRound: 1,
+  currentTurnIndex: 0,
+  turnOrder: [],
   config: null,
   myParticipantId: 'p1',
   isMyTurn: false,
@@ -58,6 +58,8 @@ vi.mock('@/hooks/useDraft', () => ({
       invalidatedIds: mockCtx.invalidatedIds,
       pickHistory: mockCtx.pickHistory,
       currentRound: mockCtx.currentRound,
+      currentTurnIndex: mockCtx.currentTurnIndex,
+      turnOrder: mockCtx.turnOrder,
       config: mockCtx.config,
       myParticipantId: mockCtx.myParticipantId,
     },
@@ -84,6 +86,9 @@ const mvpEntry: PoolEntry = {
   playerId: 23,
   playerName: 'LeBron James',
   season: '2012-13',
+  ptsPg: 27.1,
+  astPg: 7.3,
+  rebPg: 8.0,
 };
 
 const mvpEntry2: PoolEntry = {
@@ -92,6 +97,9 @@ const mvpEntry2: PoolEntry = {
   playerId: 33,
   playerName: "Shaquille O'Neal",
   season: '1999-00',
+  ptsPg: 29.7,
+  astPg: 2.5,
+  rebPg: 13.2,
 };
 
 const pick1: PickRecord = { participantId: 'p1', entryId: 'entry-1', round: 1, pickNumber: 1 };
@@ -108,10 +116,24 @@ function setup({
   invalidatedIds = new Set<string>(),
   pickHistory = [] as PickRecord[],
   currentRound = 1,
+  currentTurnIndex = 0,
+  turnOrder = [] as string[],
   config = null as DraftRoomConfig | null,
   myParticipantId = 'p1',
 }: SetupOptions = {}) {
-  mockCtx = { pool, participants, isMyTurn, currentTurnParticipant, invalidatedIds, pickHistory, currentRound, config, myParticipantId };
+  mockCtx = {
+    pool,
+    participants,
+    isMyTurn,
+    currentTurnParticipant,
+    invalidatedIds,
+    pickHistory,
+    currentRound,
+    currentTurnIndex,
+    turnOrder,
+    config,
+    myParticipantId,
+  };
 
   const user = userEvent.setup();
   render(<DraftBoard />);
@@ -125,33 +147,15 @@ afterEach(() => {
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('DraftBoard', () => {
-  describe('current turn banner', () => {
-    it('shows the current round number', () => {
-      setup({ currentRound: 3 });
+  describe('timeline', () => {
+    it('renders the DraftTimeline', () => {
+      setup();
 
-      expect(screen.getByText('Round 3')).toBeInTheDocument();
-    });
-
-    it("shows \"It's your turn!\" when it is the current user's turn", () => {
-      setup({ isMyTurn: true, currentTurnParticipant: p1 });
-
-      expect(screen.getByText("It's your turn!")).toBeInTheDocument();
-    });
-
-    it("shows the participant name + \"'s turn\" when it is not the current user's turn", () => {
-      setup({ isMyTurn: false, currentTurnParticipant: p2 });
-
-      expect(screen.getByText("Bird's turn")).toBeInTheDocument();
-    });
-
-    it('shows "Waiting…" when there is no current turn participant', () => {
-      setup({ currentTurnParticipant: null });
-
-      expect(screen.getByText('Waiting…')).toBeInTheDocument();
+      expect(screen.getByTestId('draft-timeline')).toBeInTheDocument();
     });
   });
 
-  describe('pool grid', () => {
+  describe('pool list', () => {
     it('renders all pool entries', () => {
       setup({ pool: [mvpEntry, mvpEntry2] });
 
@@ -178,20 +182,37 @@ describe('DraftBoard', () => {
   });
 
   describe('picking', () => {
-    it("calls submitPick with the entryId when it is the user's turn and the entry is available", async () => {
+    it("opens the PickConfirmModal when it is the user's turn and entry is clicked", async () => {
       const { user } = setup({ isMyTurn: true, invalidatedIds: new Set() });
 
-      await user.click(screen.getByRole('button', { name: /Pick LeBron James$/i }));
+      await user.click(screen.getByRole('button', { name: /Select LeBron James$/i }));
+
+      expect(screen.getByRole('button', { name: 'Confirm Pick' })).toBeInTheDocument();
+    });
+
+    it("calls submitPick with the entryId when the user confirms the pick", async () => {
+      const { user } = setup({ isMyTurn: true, invalidatedIds: new Set() });
+
+      await user.click(screen.getByRole('button', { name: /Select LeBron James$/i }));
+      await user.click(screen.getByRole('button', { name: 'Confirm Pick' }));
 
       expect(mockSubmitPick).toHaveBeenCalledWith('entry-1');
     });
 
-    it("does not call submitPick when it is not the user's turn (button is disabled)", async () => {
+    it('closes the PickConfirmModal when the user cancels', async () => {
+      const { user } = setup({ isMyTurn: true, invalidatedIds: new Set() });
+
+      await user.click(screen.getByRole('button', { name: /Select LeBron James$/i }));
+      await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+      expect(screen.queryByRole('button', { name: 'Confirm Pick' })).not.toBeInTheDocument();
+    });
+
+    it("does not open PickConfirmModal when it is not the user's turn (button is disabled)", async () => {
       setup({ isMyTurn: false });
 
-      const pickButton = screen.getByRole('button', { name: /Pick LeBron James/i });
-      expect(pickButton).toBeDisabled();
-      expect(mockSubmitPick).not.toHaveBeenCalled();
+      const entryButton = screen.getByRole('button', { name: /Select LeBron James/i });
+      expect(entryButton).toBeDisabled();
     });
 
     it('renders invalidated entries with the unavailable aria-label', () => {
@@ -205,7 +226,7 @@ describe('DraftBoard', () => {
       ).toBeInTheDocument();
     });
 
-    it("does not call submitPick for an invalidated entry even when it is the user's turn", () => {
+    it('disables invalidated entries even when it is the user\'s turn', () => {
       setup({
         isMyTurn: true,
         invalidatedIds: new Set(['entry-1']),
@@ -213,97 +234,24 @@ describe('DraftBoard', () => {
 
       const pickButton = screen.getByRole('button', { name: /LeBron James \(unavailable\)/i });
       expect(pickButton).toBeDisabled();
-      expect(mockSubmitPick).not.toHaveBeenCalled();
     });
   });
 
-  describe('participant pick counts sidebar', () => {
-    it("shows \"0 picks\" for participants with no picks", () => {
-      setup({ participants: [p1, p2], pickHistory: [] });
-
-      const zeroPickEls = screen.getAllByText('0 picks');
-      expect(zeroPickEls).toHaveLength(2);
-    });
-
-    it('correctly counts picks per participant', () => {
+  describe('announcement modal', () => {
+    it('shows the announcement modal when a new pick is added to pickHistory', () => {
       setup({
+        pool: [mvpEntry],
         participants: [p1, p2],
-        pickHistory: [
-          pick1,
-          { participantId: 'p1', entryId: 'entry-2', round: 2, pickNumber: 3 },
-        ],
+        pickHistory: [pick1],
       });
 
-      expect(screen.getByText('2 picks')).toBeInTheDocument();
-      expect(screen.getByText('0 picks')).toBeInTheDocument();
+      expect(screen.getByText('The Pick Is In')).toBeInTheDocument();
     });
-  });
 
-  describe('recent picks', () => {
-    it('does not render the recent picks section when there are no picks', () => {
+    it('does not show the announcement modal when pickHistory is empty', () => {
       setup({ pickHistory: [] });
 
-      expect(screen.queryByText('Recent Picks')).not.toBeInTheDocument();
-    });
-
-    it('renders up to 5 most recent picks in reverse order', () => {
-      const picks: PickRecord[] = Array.from({ length: 6 }, (_, i) => ({
-        participantId: 'p1',
-        entryId: `entry-${i + 1}`,
-        round: 1,
-        pickNumber: i + 1,
-      }));
-      const pool: PoolEntry[] = picks.map((_, i) => ({
-        entryId: `entry-${i + 1}`,
-        draftMode: 'mvp' as const,
-        playerId: i,
-        playerName: `Player ${i + 1}`,
-        season: '2020-21',
-      }));
-
-      setup({ pickHistory: picks, pool });
-
-      expect(screen.getByText('Recent Picks')).toBeInTheDocument();
-
-      // Only 5 most recent picks are shown (picks 2–6) and they appear in reverse
-      // chronological order (most recent first: Player 6, 5, 4, 3, 2).
-      // Player 1 (oldest) should be omitted entirely.
-      const recentPicksSection = screen.getByText('Recent Picks').closest('div')!;
-      const text = recentPicksSection.textContent ?? '';
-
-      expect(text).not.toContain('Player 1');
-      expect(text).toContain('Player 6');
-
-      // Verify reverse order: Player 6 must appear before Player 2 in the rendered output
-      expect(text.indexOf('Player 6')).toBeLessThan(text.indexOf('Player 2'));
-    });
-  });
-
-  describe('turn timer', () => {
-    it('renders the TurnTimer when a turnDuration is configured', () => {
-      setup({
-        config: { draftMode: 'mvp', draftOrder: 'snake', maxRounds: 5, turnDuration: 60 },
-      });
-
-      expect(screen.getByTestId('turn-timer')).toBeInTheDocument();
-    });
-
-    it('does not render the TurnTimer when no turnDuration is configured', () => {
-      setup({ config: null });
-
-      expect(screen.queryByTestId('turn-timer')).not.toBeInTheDocument();
-    });
-
-    it('calls notifyTimerExpired and shows a toast when the timer expires', async () => {
-      const { toast } = await import('react-toastify');
-      const { user } = setup({
-        config: { draftMode: 'mvp', draftOrder: 'snake', maxRounds: 5, turnDuration: 30 },
-      });
-
-      await user.click(screen.getByTestId('turn-timer'));
-
-      expect(mockNotifyTimerExpired).toHaveBeenCalledOnce();
-      expect(toast.info).toHaveBeenCalledWith("Time's up!");
+      expect(screen.queryByText('The Pick Is In')).not.toBeInTheDocument();
     });
   });
 });

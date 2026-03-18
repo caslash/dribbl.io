@@ -38,20 +38,26 @@ export function PoolEntryCard({ entry, available, onPick, isMyTurn }: PoolEntryC
       disabled={!clickable}
       onClick={clickable ? onPick : undefined}
       aria-label={`Pick ${entry.playerName}${available ? '' : ' (unavailable)'}`}
-      className={`rounded-lg border p-3 text-left transition-all ${
+      className={`rounded-lg border p-3 transition-all ${
         available
           ? `bg-surface-raised border-primary-border ${
-              clickable
-                ? 'hover:border-red-600 hover:shadow-md cursor-pointer'
-                : 'cursor-default'
+              clickable ? 'hover:border-red-600 hover:shadow-md cursor-pointer' : 'cursor-default'
             }`
           : 'bg-surface-warm text-text-muted border-primary-border opacity-50 cursor-not-allowed'
       }`}
     >
-      <p className={`text-sm font-semibold leading-snug ${!available ? 'line-through' : ''}`}>
-        {entry.playerName}
-      </p>
-      <p className="text-xs text-text-muted mt-0.5 truncate">{subtitle}</p>
+      <div className="flex flex-col justify-center">
+        <img
+          src={`https://cdn.nba.com/headshots/nba/latest/260x190/${entry.playerId}.png`}
+          width={130}
+          height={95}
+          className="object-cover mask-b-from-75% mask-b-to-90% w-full"
+        />
+        <p className={`text-sm font-semibold leading-snug ${!available ? 'line-through' : ''}`}>
+          {entry.playerName}
+        </p>
+        <p className="text-xs text-text-muted mt-0.5 truncate">{subtitle}</p>
+      </div>
     </button>
   );
 }

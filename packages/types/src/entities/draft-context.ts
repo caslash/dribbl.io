@@ -15,6 +15,9 @@ export type MvpPoolEntry = {
   playerId: number;
   playerName: string;
   season: string;
+  ptsPg: number | null;
+  astPg: number | null;
+  rebPg: number | null;
   /** Used internally by the machine to track availability. Not sent to clients. */
   available?: boolean;
 };

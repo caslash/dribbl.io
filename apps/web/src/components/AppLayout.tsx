@@ -51,7 +51,7 @@ export function AppLayout() {
     }`;
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex h-screen flex-col bg-background">
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
           <Link
@@ -87,7 +87,7 @@ export function AppLayout() {
         </div>
       </header>
 
-      <main className="flex-1">
+      <main className="flex-1 min-h-0 overflow-auto">
         <Outlet />
       </main>
     </div>
