@@ -46,6 +46,7 @@ const mockActor = {
 };
 
 const mockServer = {} as any;
+const mockSocket = {} as any;
 
 describe('CareerPath', () => {
   let service: CareerPathService;
@@ -137,13 +138,14 @@ describe('CareerPath', () => {
         { player_id: 1 },
         { player_id: 2 },
       ]);
-      mockPlayerRepository.findBy.mockResolvedValue([player1, player2]);
+      mockPlayerRepository.find.mockResolvedValue([player1, player2]);
 
       const result = await service['generateRound'](mockDifficulty);
 
       expect(result).toEqual({ validAnswers: [player1, player2] });
-      expect(mockPlayerRepository.findBy).toHaveBeenCalledWith({
-        playerId: expect.anything(),
+      expect(mockPlayerRepository.find).toHaveBeenCalledWith({
+        where: { playerId: expect.anything() },
+        relations: { seasons: true },
       });
     });
 
@@ -174,19 +176,19 @@ describe('CareerPath', () => {
 
   describe('createRoom', () => {
     it('should call createCareerPathMachine, subscribe to the actor, and return a room id', () => {
-      const roomId = service.createRoom(mockServer);
+      const roomId = service.createRoom(mockServer, mockSocket);
 
       expect(typeof roomId).toBe('string');
       expect(roomId.length).toBe(5);
       expect(vi.mocked(createCareerPathMachine)).toHaveBeenCalledWith(
-        { io: mockServer, roomId },
+        { io: mockServer, roomId, initialSocket: mockSocket },
         expect.any(Function),
       );
       expect(mockActor.subscribe).toHaveBeenCalledTimes(1);
     });
 
     it('should remove the room when the actor reaches a done status', () => {
-      const roomId = service.createRoom(mockServer);
+      const roomId = service.createRoom(mockServer, mockSocket);
 
       const [[subscriberFn]] = mockActor.subscribe.mock.calls;
       subscriberFn({ status: 'done' });
@@ -196,7 +198,7 @@ describe('CareerPath', () => {
     });
 
     it('should not remove the room when the actor status is not done', () => {
-      const roomId = service.createRoom(mockServer);
+      const roomId = service.createRoom(mockServer, mockSocket);
 
       const [[subscriberFn]] = mockActor.subscribe.mock.calls;
       subscriberFn({ status: 'active' });
@@ -212,7 +214,7 @@ describe('CareerPath', () => {
     });
 
     it('should return the actor for a room that was created', () => {
-      const roomId = service.createRoom(mockServer);
+      const roomId = service.createRoom(mockServer, mockSocket);
       expect(service.getRoom(roomId)).toBe(mockActor);
     });
   });

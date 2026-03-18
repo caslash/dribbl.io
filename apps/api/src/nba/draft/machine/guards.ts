@@ -4,7 +4,7 @@ import type { GuardArgs } from 'xstate';
 type DraftGuardArgs = GuardArgs<NbaDraftContext, NbaDraftEvent>;
 
 const areRoundsRemaining = ({ context }: DraftGuardArgs): boolean => {
-  return context.currentTurnIndex < context.turnOrder.length;
+  return context.currentTurnIndex + 1 < context.turnOrder.length;
 };
 
 const isPoolEmpty = ({ context }: DraftGuardArgs): boolean => {

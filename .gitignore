@@ -36,6 +36,10 @@ yarn-error.log*
 .DS_Store
 *.pem
 
+# Claude Code internal
+.claire/
+.claude/worktrees/
+
 # production
 /build
 

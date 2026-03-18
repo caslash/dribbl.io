@@ -11,8 +11,10 @@ const isCorrect = ({ context, event }: CareerPathGuardArgs): boolean => {
   );
 };
 
+// Guards are evaluated before actions run, so "hasLives" must check whether
+// lives will remain *after* the decrement action (i.e. > 1, not > 0).
 const hasLives = ({ context }: CareerPathGuardArgs): boolean =>
-  context.gameState.lives === undefined ? true : context.gameState.lives > 0;
+  context.gameState.lives === undefined ? true : context.gameState.lives > 1;
 
 const configSet = ({ context }: CareerPathGuardArgs): boolean =>
   !!context.config.gameDifficulty;

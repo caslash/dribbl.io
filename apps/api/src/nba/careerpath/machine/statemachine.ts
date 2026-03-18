@@ -97,7 +97,8 @@ export const createCareerPathMachine = (
                 target: 'generatingRound',
                 actions: ['assignSkipRound', 'notifySkipRound'],
               },
-              { target: 'gameOver' },
+              // Last life used — notify client (lives: 0) before ending the game
+              { target: 'gameOver', actions: ['assignSkipRound', 'notifySkipRound'] },
             ],
           },
           processingGuess: {
@@ -112,7 +113,8 @@ export const createCareerPathMachine = (
                 target: 'waitingForGuess',
                 actions: ['assignIncorrectGuess', 'notifyIncorrectGuess'],
               },
-              { target: 'gameOver' },
+              // Last life used — notify client (lives: 0) before ending the game
+              { target: 'gameOver', actions: ['assignIncorrectGuess', 'notifyIncorrectGuess'] },
             ],
           },
           gameOver: {

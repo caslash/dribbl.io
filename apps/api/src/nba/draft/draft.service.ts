@@ -24,8 +24,9 @@ export class DraftService {
       }
     });
 
-    this.rooms.set(roomId, actor);
+    console.log(`[DraftService] Creating room: ${roomId}`);
 
+    this.rooms.set(roomId, actor);
     return roomId;
   }
 
@@ -38,7 +39,7 @@ export class DraftService {
     draftOrder: DraftOrder,
     maxRounds: number,
   ): string[] {
-    const ids = participants.map((p) => p.id);
+    const ids = participants.map((p) => p.participantId);
 
     switch (draftOrder) {
       case 'snake':
@@ -58,12 +59,13 @@ export class DraftService {
     ).flat();
   }
 
-  private destroyRoom(roomId: string) {
+  destroyRoom(roomId: string) {
     const actor = this.rooms.get(roomId);
 
     if (actor) {
       actor.stop();
       this.rooms.delete(roomId);
+      console.log(`[DraftService] Room destroyed: ${roomId}`);
     }
   }
 }
