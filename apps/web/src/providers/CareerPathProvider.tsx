@@ -31,6 +31,11 @@ export interface CareerPathState {
    * Applied when feedback is dismissed so the new round doesn't clear feedback early.
    */
   pendingRound: { score: number; lives: number | null; teamHistory: string[] } | null;
+  /**
+   * True when NOTIFY_GAME_OVER arrived while feedback was still showing.
+   * Applied when feedback is dismissed so the game-over screen appears after feedback.
+   */
+  pendingGameOver: boolean;
 }
 
 export interface CareerPathConfig {
@@ -64,6 +69,7 @@ const initialState: CareerPathState = {
   lastResult: null,
   validAnswers: [],
   pendingRound: null,
+  pendingGameOver: false,
 };
 
 // ---------------------------------------------------------------------------
@@ -181,7 +187,13 @@ export function CareerPathProvider({ children }: CareerPathProviderProps) {
     });
 
     socket.on('NOTIFY_GAME_OVER', () => {
-      setState((prev) => ({ ...prev, phase: 'game-over' }));
+      setState((prev) => {
+        // If feedback is still showing, buffer the game-over so it appears after dismiss
+        if (prev.lastResult !== null) {
+          return { ...prev, pendingGameOver: true };
+        }
+        return { ...prev, phase: 'game-over' };
+      });
     });
 
     socket.on('ERROR', (payload: { message: string }) => {
@@ -217,13 +229,18 @@ export function CareerPathProvider({ children }: CareerPathProviderProps) {
   }, []);
 
   const clearFeedback = useCallback(() => {
-    setState((prev) => ({
-      ...prev,
-      lastResult: null,
-      validAnswers: [],
-      ...(prev.pendingRound ?? {}),
-      pendingRound: null,
-    }));
+    setState((prev) => {
+      if (prev.pendingGameOver) {
+        return { ...prev, lastResult: null, validAnswers: [], pendingGameOver: false, phase: 'game-over' };
+      }
+      return {
+        ...prev,
+        lastResult: null,
+        validAnswers: [],
+        ...(prev.pendingRound ?? {}),
+        pendingRound: null,
+      };
+    });
   }, []);
 
   return (

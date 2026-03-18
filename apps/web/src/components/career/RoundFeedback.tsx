@@ -122,9 +122,11 @@ export function RoundFeedback({ result, validAnswers, lives, onDismiss }: RoundF
           </p>
         )}
 
-        <p className="mt-3 text-center text-xs text-text-placeholder">
-          Next round loading…
-        </p>
+        {lives !== 0 && (
+          <p className="mt-3 text-center text-xs text-text-placeholder">
+            Next round loading…
+          </p>
+        )}
       </motion.div>
     </AnimatePresence>
   );
