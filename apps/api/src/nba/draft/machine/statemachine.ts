@@ -43,6 +43,11 @@ export const createDraftMachine = (socketInfo: SocketActorInput) => {
       turnOrder: [],
       pickHistory: [],
     },
+    on: {
+      PARTICIPANT_LEFT: {
+        actions: ['removeParticipant', 'notifyParticipantLeft'],
+      },
+    },
     states: {
       lobby: {
         initial: 'waitingForPlayers',
@@ -57,9 +62,6 @@ export const createDraftMachine = (socketInfo: SocketActorInput) => {
               PARTICIPANT_JOINED: {
                 actions: ['assignParticipant', 'notifyParticipantJoined'],
               },
-              PARTICIPANT_LEFT: {
-                actions: ['removeParticipant', 'notifyParticipantLeft'],
-              },
             },
           },
           configuring: {
@@ -73,10 +75,6 @@ export const createDraftMachine = (socketInfo: SocketActorInput) => {
           readyToStart: {
             entry: 'notifyReadyToStart',
             on: {
-              PARTICIPANT_LEFT: {
-                target: 'waitingForPlayers',
-                actions: ['removeParticipant', 'notifyParticipantLeft'],
-              },
               ORGANIZER_CONFIGURE: 'configuring',
               ORGANIZER_START_DRAFT: {
                 target: '#nbaDraft.draft',
@@ -145,12 +143,8 @@ export const createDraftMachine = (socketInfo: SocketActorInput) => {
             initial: 'invalidatingSelections',
             states: {
               invalidatingSelections: {
-                on: {
-                  POOL_UPDATED: {
-                    target: 'done',
-                    actions: ['assignPool', 'notifyPoolUpdated'],
-                  },
-                },
+                entry: ['invalidatePool', 'notifyPoolUpdated'],
+                always: { target: 'done' },
               },
               done: {
                 type: 'final',

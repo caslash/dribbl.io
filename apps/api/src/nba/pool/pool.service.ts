@@ -8,7 +8,11 @@ import {
   SavedPool,
   UpdatePoolDto,
 } from '@dribblio/types';
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -27,6 +31,10 @@ export class PoolService {
 
   async generatePreview(config: DraftRoomConfig): Promise<PoolEntry[]> {
     const generator = this.generators[config.draftMode];
+    if (!generator)
+      throw new InternalServerErrorException(
+        `Generator for ${config.draftMode} does not exist.`,
+      );
     return generator.generate();
   }
 
@@ -83,8 +91,9 @@ export class PoolService {
 
   async deletePool(poolId: string): Promise<boolean> {
     const result = await this.savedPoolRepository.delete(poolId);
-    return result.affected === undefined || result.affected === null
-      ? true
-      : result.affected > 0;
+    if (result.affected === undefined || result.affected === null)
+      throw new NotFoundException();
+
+    return result.affected > 0;
   }
 }

@@ -55,6 +55,12 @@ describe('DraftService', () => {
       const result = service.computeTurnOrder(single, 'linear', 3);
       expect(result).toEqual(['A', 'A', 'A']);
     });
+
+    it('should default to linear for an unknown draftOrder', () => {
+      const result = service.computeTurnOrder(participants, 'unknown' as any, 3);
+      const expected = service.computeTurnOrder(participants, 'linear', 3);
+      expect(result).toEqual(expected);
+    });
   });
 
   describe('createRoom', () => {

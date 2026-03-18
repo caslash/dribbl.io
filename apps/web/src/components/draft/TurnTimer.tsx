@@ -93,7 +93,7 @@ export function TurnTimer({ durationSeconds, onExpire }: TurnTimerProps) {
             strokeLinecap="round"
             strokeDasharray={CIRCUMFERENCE}
             animate={ringControls}
-            className={`transition-colors ${isWarning ? 'stroke-error' : 'stroke-red-600'}`}
+            className={`transition-colors ${isWarning ? 'stroke-error' : 'stroke-primary'}`}
           />
         </svg>
         {/* Numeric display */}

@@ -35,9 +35,6 @@ export const socketActor = fromCallback<
     socket.on('AUTO_PICK_RESOLVED', (data) =>
       sendBack({ type: 'AUTO_PICK_RESOLVED', ...data }),
     );
-    socket.on('POOL_UPDATED', (data) =>
-      sendBack({ type: 'POOL_UPDATED', ...data }),
-    );
 
     socket.on('disconnect', () =>
       sendBack({

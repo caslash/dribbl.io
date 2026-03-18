@@ -28,6 +28,7 @@ describe('DraftGateway', () => {
     join: vi.fn(),
     disconnect: vi.fn(),
     handshake: { query: { roomId } },
+    data: {} as Record<string, unknown>,
   });
 
   const makeRoom = (

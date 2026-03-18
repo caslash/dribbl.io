@@ -45,6 +45,7 @@ export class DraftService {
       case 'snake':
         return this.snake(ids, maxRounds);
       case 'linear':
+      default:
         return this.linear(ids, maxRounds);
     }
   }

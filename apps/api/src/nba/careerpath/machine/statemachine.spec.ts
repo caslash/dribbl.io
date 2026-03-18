@@ -407,7 +407,20 @@ describe('createCareerPathMachine', () => {
       expect(actor.getSnapshot().context.gameState.lives).toBeUndefined();
     });
 
-    it('should not modify the score on an incorrect guess', () => {
+    it('should reset score to 0 on an incorrect guess in infinite mode', async () => {
+      // Build up a score first
+      actor.send({
+        type: 'USER_GUESS',
+        guess: { guessId: validPlayers[0].playerId },
+      });
+      await waitFor(
+        actor,
+        (s) => s.matches({ gameActive: 'waitingForGuess' }),
+        WAIT_TIMEOUT,
+      );
+      expect(actor.getSnapshot().context.gameState.score).toBe(1);
+
+      // Incorrect guess should reset score to 0 in infinite mode
       actor.send({ type: 'USER_GUESS', guess: { guessId: 999 } });
       expect(actor.getSnapshot().context.gameState.score).toBe(0);
     });
@@ -442,12 +455,10 @@ describe('createCareerPathMachine', () => {
     });
 
     it('should transition to waitingForGameStart when lives reach 0', () => {
-      // hasLives is evaluated BEFORE assignIncorrectGuess runs, so N lives requires N+1 wrong
-      // guesses to trigger gameOver: each wrong guess is allowed (hasLives>0 is true), then
-      // decrements lives. Only when lives===0 at the START of processingGuess does gameOver fire.
+      // hasLives checks lives > 1 (pre-decrement), so with lives=2:
+      // guess 1 passes (2 > 1), guess 2 fails (1 > 1) → gameOver directly.
       actor.send({ type: 'USER_GUESS', guess: { guessId: 999 } }); // hasLives(2)=true → lives=1
-      actor.send({ type: 'USER_GUESS', guess: { guessId: 999 } }); // hasLives(1)=true → lives=0
-      actor.send({ type: 'USER_GUESS', guess: { guessId: 999 } }); // hasLives(0)=false → gameOver
+      actor.send({ type: 'USER_GUESS', guess: { guessId: 999 } }); // hasLives(1)=false → gameOver, lives=0
       expect(actor.getSnapshot().value).toBe('waitingForGameStart');
     });
 
@@ -463,8 +474,7 @@ describe('createCareerPathMachine', () => {
       );
 
       actor.send({ type: 'USER_GUESS', guess: { guessId: 999 } }); // hasLives(2)=true → lives=1
-      actor.send({ type: 'USER_GUESS', guess: { guessId: 999 } }); // hasLives(1)=true → lives=0
-      actor.send({ type: 'USER_GUESS', guess: { guessId: 999 } }); // hasLives(0)=false → gameOver
+      actor.send({ type: 'USER_GUESS', guess: { guessId: 999 } }); // hasLives(1)=false → gameOver, lives=0
       expect(actor.getSnapshot().value).toBe('waitingForGameStart');
 
       // assignGameStart runs on gameActive entry — reset happens on next START_GAME, not on game over.
@@ -585,21 +595,15 @@ describe('createCareerPathMachine', () => {
       });
 
       it('should transition to waitingForGameStart when lives are exhausted by skipping', async () => {
-        // Same N+1 dynamic as incorrect guesses: skip goes through generatingRound (async),
-        // so waitFor is needed between skips. The final skip (lives=0) is synchronous to gameOver.
-        actor.send({ type: 'SKIP' }); // hasLives(2)=true → generatingRound, lives=1
+        // hasLives checks lives > 1 (pre-decrement), so with lives=2:
+        // skip 1 passes (2 > 1), skip 2 fails (1 > 1) → gameOver directly.
+        actor.send({ type: 'SKIP' }); // hasLives(2)=true → assignSkipRound(lives=1), generatingRound
         await waitFor(
           actor,
           (s) => s.matches({ gameActive: 'waitingForGuess' }),
           WAIT_TIMEOUT,
         );
-        actor.send({ type: 'SKIP' }); // hasLives(1)=true → generatingRound, lives=0
-        await waitFor(
-          actor,
-          (s) => s.matches({ gameActive: 'waitingForGuess' }),
-          WAIT_TIMEOUT,
-        );
-        actor.send({ type: 'SKIP' }); // hasLives(0)=false → gameOver → waitingForGameStart
+        actor.send({ type: 'SKIP' }); // hasLives(1)=false → assignSkipRound(lives=0), gameOver → waitingForGameStart
         expect(actor.getSnapshot().value).toBe('waitingForGameStart');
       });
     });

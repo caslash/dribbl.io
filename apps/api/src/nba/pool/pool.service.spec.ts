@@ -1,5 +1,10 @@
+import { FranchisePoolGenerator } from '@/nba/pool/generators/franchise.generator';
 import { MvpPoolGenerator } from '@/nba/pool/generators/mvp.generator';
 import { SavedPool } from '@dribblio/types';
+import {
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { PoolService } from './pool.service';
@@ -9,6 +14,10 @@ describe('PoolService', () => {
   let generator: MvpPoolGenerator;
 
   const mockMvpGenerator = {
+    generate: vi.fn(),
+  };
+
+  const mockFranchiseGenerator = {
     generate: vi.fn(),
   };
 
@@ -24,6 +33,7 @@ describe('PoolService', () => {
       providers: [
         PoolService,
         { provide: MvpPoolGenerator, useValue: mockMvpGenerator },
+        { provide: FranchisePoolGenerator, useValue: mockFranchiseGenerator },
         {
           provide: getRepositoryToken(SavedPool),
           useValue: mockSavedPoolRepository,
@@ -44,6 +54,12 @@ describe('PoolService', () => {
   });
 
   describe('generatePreview', () => {
+    it('should throw InternalServerErrorException for unsupported draftMode', async () => {
+      await expect(
+        service.generatePreview({ draftMode: 'manual' } as any),
+      ).rejects.toThrow(InternalServerErrorException);
+    });
+
     it('should call the mvp generator for mvp draftMode and return entries', async () => {
       const entries = [{ id: 'entry-1', available: true }];
       mockMvpGenerator.generate.mockResolvedValue(entries);
@@ -245,12 +261,12 @@ describe('PoolService', () => {
       expect(result).toBe(false);
     });
 
-    it('should return true when affected is undefined (driver does not report count)', async () => {
+    it('should throw NotFoundException when affected is undefined', async () => {
       mockSavedPoolRepository.delete.mockResolvedValue({ affected: undefined });
 
-      const result = await service.deletePool('pool-1');
-
-      expect(result).toBe(true);
+      await expect(service.deletePool('pool-1')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

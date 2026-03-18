@@ -2,7 +2,6 @@ import { DraftService } from '@/nba/draft/draft.service';
 import { PoolService } from '@/nba/pool/pool.service';
 import {
   DraftRoomConfig,
-  FranchisePoolEntry,
   NbaDraftEvent,
   StartDraftDto,
   SubmitPickEvent,
@@ -149,33 +148,6 @@ export class DraftGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!room) return;
 
     room.send({ type: 'SUBMIT_PICK', pickRecord: data.pickRecord });
-
-    // Compute which pool entries are invalidated by this pick and advance the machine.
-    const { pool, config } = room.getSnapshot().context;
-    const pickedEntry = pool.find((e) => e.entryId === data.pickRecord.entryId);
-    if (!pickedEntry) return;
-
-    const invalidatedIds = new Set<string>();
-    for (const entry of pool) {
-      if (config.draftMode === 'mvp') {
-        if (entry.playerId === pickedEntry.playerId) {
-          invalidatedIds.add(entry.entryId);
-        }
-      } else if (config.draftMode === 'franchise') {
-        if (entry.playerId === pickedEntry.playerId) {
-          invalidatedIds.add(entry.entryId);
-        } else if (
-          entry.draftMode === 'franchise' &&
-          pickedEntry.draftMode === 'franchise' &&
-          (entry as FranchisePoolEntry).franchiseAbbr ===
-            (pickedEntry as FranchisePoolEntry).franchiseAbbr
-        ) {
-          invalidatedIds.add(entry.entryId);
-        }
-      }
-    }
-
-    room.send({ type: 'POOL_UPDATED', invalidatedIds });
   }
 
   private getRoomId(socket: Socket): string | undefined {

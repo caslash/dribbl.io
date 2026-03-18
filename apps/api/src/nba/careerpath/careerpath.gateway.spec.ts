@@ -108,6 +108,7 @@ describe('CareerPathGateway', () => {
     });
 
     it('should return early and not send when room does not exist', () => {
+      const room = makeRoom();
       mockCareerPathService.getRoom.mockReturnValue(undefined);
       const socket = makeSocket('socket-1', 'ROOM1');
       const event = { type: 'PLAYER_GUESS' } as any;
@@ -115,6 +116,7 @@ describe('CareerPathGateway', () => {
       gateway.handleMessage(socket as any, event);
 
       expect(mockCareerPathService.getRoom).toHaveBeenCalledWith('ROOM1');
+      expect(room.send).not.toHaveBeenCalled();
     });
   });
 });
