@@ -1,4 +1,5 @@
 import { PoolGenerator } from '@/nba/pool/generator.interface';
+import { FranchisePoolGenerator } from '@/nba/pool/generators/franchise.generator';
 import { MvpPoolGenerator } from '@/nba/pool/generators/mvp.generator';
 import {
   CreatePoolDto,
@@ -14,18 +15,19 @@ import { Repository } from 'typeorm';
 @Injectable()
 export class PoolService {
   private get generators(): Record<string, PoolGenerator> {
-    return { mvp: this.mvpGenerator };
+    return { mvp: this.mvpGenerator, franchise: this.franchiseGenerator };
   }
 
   constructor(
     private readonly mvpGenerator: MvpPoolGenerator,
+    private readonly franchiseGenerator: FranchisePoolGenerator,
     @InjectRepository(SavedPool)
     private readonly savedPoolRepository: Repository<SavedPool>,
   ) {}
 
   async generatePreview(config: DraftRoomConfig): Promise<PoolEntry[]> {
     const generator = this.generators[config.draftMode];
-    return generator.generate(config);
+    return generator.generate();
   }
 
   async finalize(

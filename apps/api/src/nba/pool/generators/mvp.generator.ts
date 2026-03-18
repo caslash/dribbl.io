@@ -1,5 +1,5 @@
 import { PoolGenerator } from '@/nba/pool/generator.interface';
-import { Accolade, MvpSeasonEntry, Season } from '@dribblio/types';
+import { Accolade, MvpPoolEntry, Season } from '@dribblio/types';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -11,7 +11,7 @@ export class MvpPoolGenerator implements PoolGenerator {
     private readonly seasonRepository: Repository<Season>,
   ) {}
 
-  async generate(): Promise<MvpSeasonEntry[]> {
+  async generate(): Promise<MvpPoolEntry[]> {
     const seasons = await this.seasonRepository
       .createQueryBuilder('season')
       .innerJoin(
@@ -32,10 +32,14 @@ export class MvpPoolGenerator implements PoolGenerator {
       .getMany();
 
     return seasons.map((season) => ({
-      id: `${season.player.playerId}-${season.seasonId}`,
-      playerId: `${season.player.playerId}`,
-      player: { id: `${season.player.playerId}`, name: season.player.fullName },
+      entryId: `${season.player.playerId}-${season.seasonId}`,
+      draftMode: 'mvp' as const,
+      playerId: season.player.playerId,
+      playerName: season.player.fullName,
       season: season.seasonId,
+      ptsPg: season.ptsPg,
+      astPg: season.astPg,
+      rebPg: season.rebPg,
       available: true,
     }));
   }

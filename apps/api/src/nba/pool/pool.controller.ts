@@ -2,7 +2,7 @@ import { MvpPoolGenerator } from '@/nba/pool/generators/mvp.generator';
 import { PoolService } from '@/nba/pool/pool.service';
 import {
   CreatePoolDto,
-  MvpSeasonEntry,
+  MvpPoolEntry,
   SavedPool,
   UpdatePoolDto,
 } from '@dribblio/types';
@@ -25,7 +25,7 @@ export class PoolController {
   ) {}
 
   @Get('mvp')
-  async getMvpPool(): Promise<MvpSeasonEntry[]> {
+  async getMvpPool(): Promise<MvpPoolEntry[]> {
     return this.mvpGenerator.generate();
   }
 

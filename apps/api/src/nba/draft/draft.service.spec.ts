@@ -36,8 +36,8 @@ describe('DraftService', () => {
 
   describe('computeTurnOrder', () => {
     const participants = [
-      { id: 'A', name: 'Player A', isOrganizer: true, isConnected: true },
-      { id: 'B', name: 'Player B', isOrganizer: false, isConnected: true },
+      { participantId: 'A', name: 'Player A', isOrganizer: true },
+      { participantId: 'B', name: 'Player B', isOrganizer: false },
     ];
 
     it('should produce a flat linear order repeated for each round', () => {
@@ -51,7 +51,7 @@ describe('DraftService', () => {
     });
 
     it('should handle a single participant correctly', () => {
-      const single = [{ id: 'A', name: 'Player A', isOrganizer: true, isConnected: true }];
+      const single = [{ participantId: 'A', name: 'Player A', isOrganizer: true }];
       const result = service.computeTurnOrder(single, 'linear', 3);
       expect(result).toEqual(['A', 'A', 'A']);
     });

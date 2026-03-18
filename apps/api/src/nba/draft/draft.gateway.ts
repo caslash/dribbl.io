@@ -1,10 +1,17 @@
 import { DraftService } from '@/nba/draft/draft.service';
 import { PoolService } from '@/nba/pool/pool.service';
-import { NbaDraftEvent, StartDraftDto } from '@dribblio/types';
+import {
+  DraftRoomConfig,
+  FranchisePoolEntry,
+  NbaDraftEvent,
+  StartDraftDto,
+  SubmitPickEvent,
+} from '@dribblio/types';
 import {
   ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
+  OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -12,9 +19,12 @@ import {
 import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway({ namespace: '/draft' })
-export class DraftGateway implements OnGatewayConnection {
+export class DraftGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   io: Server;
+
+  /** Tracks the number of active sockets per room for cleanup purposes. */
+  private readonly roomSocketCounts = new Map<string, number>();
 
   constructor(
     private readonly draftService: DraftService,
@@ -33,13 +43,30 @@ export class DraftGateway implements OnGatewayConnection {
         return;
       }
 
+      socket.data.roomId = roomId;
       socket.join(roomId);
+      this.roomSocketCounts.set(roomId, (this.roomSocketCounts.get(roomId) ?? 0) + 1);
       return;
     }
 
+    // Temp socket used only to obtain a generated roomId — not tracked for cleanup.
     const newRoomId = this.draftService.createRoom(this.io);
     socket.join(newRoomId);
     socket.emit('ROOM_CREATED', { roomId: newRoomId });
+  }
+
+  handleDisconnect(socket: Socket) {
+    const roomId = socket.data.roomId as string | undefined;
+    // Temp room-creation sockets have no roomId stored — nothing to clean up.
+    if (!roomId) return;
+
+    const remaining = (this.roomSocketCounts.get(roomId) ?? 1) - 1;
+    if (remaining <= 0) {
+      this.roomSocketCounts.delete(roomId);
+      this.draftService.destroyRoom(roomId);
+    } else {
+      this.roomSocketCounts.set(roomId, remaining);
+    }
   }
 
   @SubscribeMessage('*')
@@ -56,10 +83,10 @@ export class DraftGateway implements OnGatewayConnection {
     room.send(data);
   }
 
-  @SubscribeMessage('ORGANIZER_START_DRAFT')
-  async handleStartDraft(
+  @SubscribeMessage('SAVE_CONFIG')
+  async handleSaveConfig(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() data: StartDraftDto,
+    @MessageBody() data: { config: DraftRoomConfig },
   ): Promise<void> {
     const roomId = this.getRoomId(socket);
     if (!roomId) return;
@@ -67,20 +94,36 @@ export class DraftGateway implements OnGatewayConnection {
     const room = this.draftService.getRoom(roomId);
     if (!room) return;
 
+    const pool = await this.poolService.generatePreview(data.config);
+
+    room.send({ type: 'SAVE_CONFIG', config: data.config, pool });
+  }
+
+  @SubscribeMessage('ORGANIZER_START_DRAFT')
+  async handleStartDraft(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() data: StartDraftDto | undefined,
+  ): Promise<void> {
+    const roomId = this.getRoomId(socket);
+    if (!roomId) return;
+
+    const room = this.draftService.getRoom(roomId);
+    if (!room) return;
+
+    const { participants, config } = room.getSnapshot().context;
+
     let pool;
-    if (data.savedPoolId) {
+    if (data?.savedPoolId) {
       const savedPool = await this.poolService.loadPool(data.savedPoolId);
       if (!savedPool) {
         socket.emit('ERROR', { message: `Pool ${data.savedPoolId} not found` });
         return;
       }
-
       pool = savedPool.entries.map((entry) => ({ ...entry, available: true }));
     } else {
-      pool = await this.poolService.finalize(data.config);
+      pool = await this.poolService.finalize(config);
     }
 
-    const { participants, config } = room.getSnapshot().context;
     const turnOrder = this.draftService.computeTurnOrder(
       participants,
       config.draftOrder,
@@ -90,8 +133,49 @@ export class DraftGateway implements OnGatewayConnection {
     room.send({
       type: 'ORGANIZER_START_DRAFT',
       pool,
-      turnOrder: turnOrder,
+      turnOrder,
     });
+  }
+
+  @SubscribeMessage('SUBMIT_PICK')
+  handleSubmitPick(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() data: { pickRecord: SubmitPickEvent['pickRecord'] },
+  ): void {
+    const roomId = this.getRoomId(socket);
+    if (!roomId) return;
+
+    const room = this.draftService.getRoom(roomId);
+    if (!room) return;
+
+    room.send({ type: 'SUBMIT_PICK', pickRecord: data.pickRecord });
+
+    // Compute which pool entries are invalidated by this pick and advance the machine.
+    const { pool, config } = room.getSnapshot().context;
+    const pickedEntry = pool.find((e) => e.entryId === data.pickRecord.entryId);
+    if (!pickedEntry) return;
+
+    const invalidatedIds = new Set<string>();
+    for (const entry of pool) {
+      if (config.draftMode === 'mvp') {
+        if (entry.playerId === pickedEntry.playerId) {
+          invalidatedIds.add(entry.entryId);
+        }
+      } else if (config.draftMode === 'franchise') {
+        if (entry.playerId === pickedEntry.playerId) {
+          invalidatedIds.add(entry.entryId);
+        } else if (
+          entry.draftMode === 'franchise' &&
+          pickedEntry.draftMode === 'franchise' &&
+          (entry as FranchisePoolEntry).franchiseAbbr ===
+            (pickedEntry as FranchisePoolEntry).franchiseAbbr
+        ) {
+          invalidatedIds.add(entry.entryId);
+        }
+      }
+    }
+
+    room.send({ type: 'POOL_UPDATED', invalidatedIds });
   }
 
   private getRoomId(socket: Socket): string | undefined {

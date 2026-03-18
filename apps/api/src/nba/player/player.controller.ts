@@ -1,13 +1,17 @@
 import { PlayerService } from '@/nba/player/player.service';
 import { Player } from '@dribblio/types';
-import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
 
 @Controller('players')
 export class PlayerController {
   constructor(private readonly playerService: PlayerService) {}
 
   @Get()
-  findAll(): Promise<Player[]> {
+  search(@Query('search') searchTerm?: string): Promise<Player[]> {
+    if (searchTerm) {
+      return this.playerService.search(searchTerm);
+    }
+
     return this.playerService.findAll();
   }
 

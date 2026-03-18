@@ -35,7 +35,6 @@ export const createDraftMachine = (socketInfo: SocketActorInput) => {
         draftMode: 'mvp',
         draftOrder: 'snake',
         maxRounds: 0,
-        turnDuration: 0,
       },
       participants: [],
       pool: [],

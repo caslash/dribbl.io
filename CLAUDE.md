@@ -168,7 +168,7 @@ PostgreSQL with a `readonly` `api_user` for most tables. The `pools` table addit
 
 ### Concept
 
-The player is shown an ordered sequence of NBA team logos/abbreviations representing a player's career path. They must guess which NBA player had that exact team history.
+The player is shown an ordered sequence of NBA team logos/abbreviations representing a player's career path. They must guess an NBA player that has had that exact team history.
 
 ### Backend Architecture
 

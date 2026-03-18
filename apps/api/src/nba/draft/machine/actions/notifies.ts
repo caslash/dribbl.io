@@ -1,6 +1,5 @@
 import { socketActor } from '@/nba/draft/machine/actors/websocket';
 import {
-  AutoPickResolvedEvent,
   NbaDraftContext,
   NbaDraftEvent,
   ParticipantDisconnectedEvent,
@@ -8,7 +7,6 @@ import {
   ParticipantLeftEvent,
   ParticipantReconnectedEvent,
   PoolUpdatedEvent,
-  SubmitPickEvent,
 } from '@dribblio/types';
 import { ActorRefFrom, sendTo } from 'xstate';
 
@@ -22,9 +20,10 @@ const sendToSocket = sendTo<
   NbaDraftEvent
 >;
 
-const notifyParticipantJoined = sendToSocket('socket', ({ event }) => ({
+const notifyParticipantJoined = sendToSocket('socket', ({ context, event }) => ({
   type: 'NOTIFY_PARTICIPANT_JOINED',
   participant: (event as ParticipantJoinedEvent).participant,
+  participants: context.participants,
 }));
 
 const notifyParticipantLeft = sendToSocket('socket', ({ event }) => ({
@@ -35,6 +34,7 @@ const notifyParticipantLeft = sendToSocket('socket', ({ event }) => ({
 const notifyConfigSaved = sendToSocket('socket', ({ context }) => ({
   type: 'NOTIFY_CONFIG_SAVED',
   config: context.config,
+  pool: context.pool,
 }));
 
 const notifyReadyToStart = sendToSocket('socket', () => ({
@@ -51,9 +51,9 @@ const notifyDraftCancelled = sendToSocket('socket', () => ({
   type: 'NOTIFY_DRAFT_CANCELLED',
 }));
 
-const notifyPickConfirmed = sendToSocket('socket', ({ event }) => ({
+const notifyPickConfirmed = sendToSocket('socket', ({ context }) => ({
   type: 'NOTIFY_PICK_CONFIRMED',
-  pickRecord: (event as SubmitPickEvent | AutoPickResolvedEvent).pickRecord,
+  pickRecord: context.pickHistory[context.pickHistory.length - 1],
 }));
 
 const notifyPoolUpdated = sendToSocket('socket', ({ event }) => ({

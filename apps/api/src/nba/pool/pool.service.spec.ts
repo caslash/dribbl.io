@@ -56,7 +56,7 @@ describe('PoolService', () => {
 
       const result = await service.generatePreview(config);
 
-      expect(generator.generate).toHaveBeenCalledWith(config);
+      expect(generator.generate).toHaveBeenCalledWith();
       expect(result).toBe(entries);
     });
   });
@@ -89,7 +89,7 @@ describe('PoolService', () => {
 
       const result = await service.finalize(config);
 
-      expect(mockMvpGenerator.generate).toHaveBeenCalledWith(config);
+      expect(mockMvpGenerator.generate).toHaveBeenCalledWith();
       expect(result).toBe(entries);
     });
   });

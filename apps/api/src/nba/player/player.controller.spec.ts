@@ -40,7 +40,7 @@ describe('PlayerController', () => {
       const players = [{ playerId: 1 }, { playerId: 2 }];
       mockPlayerService.findAll.mockResolvedValue(players);
 
-      const result = await controller.findAll();
+      const result = await controller.search();
 
       expect(service.findAll).toHaveBeenCalledWith();
       expect(result).toBe(players);
