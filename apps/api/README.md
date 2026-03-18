@@ -1,98 +1,166 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# @dribblio/api
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+NestJS REST + WebSocket API for dribbl.io. Runs on port 3002. All routes are prefixed with `/api`.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Stack
 
-## Description
+- **NestJS 11** — framework (modules, DI, controllers, gateways)
+- **TypeORM** — PostgreSQL ORM; entities sourced from `@dribblio/types`
+- **XState v5** — state machines for stateful game modes
+- **Socket.io** — real-time WebSocket communication via NestJS gateways
+- **Vitest** — unit and E2E tests
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
+## Getting Started
 
 ```bash
-$ npm install
+npm install
+npm run start:dev
 ```
 
-## Compile and run the project
+Requires the environment variables below to be set. Copy `.env.example` to `.env` and fill in values.
+
+## Environment Variables
+
+| Variable          | Description              |
+| ----------------- | ------------------------ |
+| `PG_HOST`         | PostgreSQL host          |
+| `PG_PORT`         | PostgreSQL port          |
+| `PG_NBA_USERNAME` | DB username              |
+| `PG_NBA_PASSWORD` | DB password              |
+| `PG_NBA_DATABASE` | DB name                  |
+| `PORT`            | Server port (default: `3002`) |
+
+## Scripts
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm run start:dev   # Development with watch mode
+npm run start:prod  # Production
+npm run build       # Compile TypeScript
+npm test            # Run unit tests
+npm run test:watch  # Unit tests in watch mode
+npm run test:cov    # Unit tests with coverage
+npm run test:e2e    # E2E tests
+npm run check-types # Type-check only
+npm run lint        # ESLint
 ```
 
-## Run tests
+## Source Structure
 
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+```
+src/
+├── main.ts               # Bootstrap: ValidationPipe, /api prefix, port 3002
+├── app.module.ts         # Root module: TypeORM config, imports NbaModule
+└── nba/                  # All game and domain logic
+    ├── nba.module.ts
+    ├── careerpath/       # Career Path game mode (WebSocket + XState)
+    ├── draft/            # Draft game mode (WebSocket + XState)
+    ├── pool/             # Pool management (REST)
+    ├── player/           # Player data (REST)
+    └── team/             # Team data (REST)
 ```
 
-## Deployment
+Each feature module follows this layout:
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g mau
-$ mau deploy
+```
+feature/
+├── feature.module.ts
+├── feature.service.ts
+├── feature.controller.ts     # REST endpoints
+├── feature.gateway.ts        # WebSocket gateway
+├── feature.*.spec.ts         # Tests co-located with source
+└── machine/                  # XState machine (stateful modes only)
+    ├── statemachine.ts       # Machine definition
+    ├── statemachine.spec.ts
+    ├── guards.ts
+    ├── actions/
+    │   ├── assigns.ts        # Context mutation actions
+    │   └── notifies.ts       # Socket.io emit actions
+    └── actors/
+        ├── websocket.ts      # Bidirectional Socket.io actor
+        └── timer.ts          # Turn timer actor (draft only)
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## Game Modes
 
-## Resources
+### Career Path (`/careerpath`)
 
-Check out a few resources that may come in handy when working with NestJS:
+Single-player WebSocket game. One XState machine per room. Rooms are created via `POST /api/careerpath/room` and cleaned up when the machine reaches its `closed` final state.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+**Socket namespace:** `/careerpath`
 
-## Support
+**Inbound events (client → server):**
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+| Event                 | Payload                                   | Description                              |
+| --------------------- | ----------------------------------------- | ---------------------------------------- |
+| `SAVE_CONFIG`         | `{ config: { lives: number \| null } }`   | Configure lives; omit/null for infinite  |
+| `START_GAME`          | —                                         | Begin the game                           |
+| `USER_GUESS`          | `{ guess: { guessId: number } }`          | Submit a player ID as guess              |
+| `SKIP`                | —                                         | Skip the current round                   |
+| `PLAYER_DISCONNECTED` | —                                         | Graceful disconnect; triggers cleanup    |
 
-## Stay in touch
+**Outbound events (server → client):**
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+| Event                    | Payload                                                       | Description                              |
+| ------------------------ | ------------------------------------------------------------- | ---------------------------------------- |
+| `NOTIFY_CONFIG_SAVED`    | `{ config }`                                                  | Config acknowledged                      |
+| `NOTIFY_NEXT_ROUND`      | `{ score, team_history: string[], lives: number \| null }`    | New round data                           |
+| `NOTIFY_CORRECT_GUESS`   | `{ validAnswers }`                                            | Correct — includes all co-answers        |
+| `NOTIFY_INCORRECT_GUESS` | `{ lives }`                                                   | Wrong guess; remaining lives             |
+| `NOTIFY_SKIP_ROUND`      | `{ lives }`                                                   | Round skipped; remaining lives           |
+| `NOTIFY_GAME_OVER`       | —                                                             | No lives remaining                       |
 
-## License
+### NBA All-Time Draft (`/draft`)
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Multiplayer WebSocket game. One XState machine per room. Rooms are created via the `CREATE_ROOM` WebSocket event. The server generates a 5-character alphanumeric room ID.
+
+**Socket namespace:** `/draft`
+
+**Pool types:**
+
+| Mode        | Description                                                                  |
+| ----------- | ---------------------------------------------------------------------------- |
+| `mvp`       | Every MVP-winning season. Picking a player invalidates their other MVP seasons. |
+| `franchise` | One player per franchise. Picking removes both the player and franchise.     |
+| `manual`    | Organizer hand-picks players (scaffolded, not yet implemented).              |
+| `nlq`       | Natural language query generates the pool (scaffolded, not yet implemented). |
+
+**Draft order:** `snake` or `linear`. Turn order is pre-expanded server-side into a flat `participantId[]` array.
+
+## REST Endpoints
+
+| Method | Path                        | Description                        |
+| ------ | --------------------------- | ---------------------------------- |
+| POST   | `/api/careerpath/room`      | Create a new Career Path room      |
+| GET    | `/api/players`              | Search/list players                |
+| GET    | `/api/players/:player_id`   | Get a player by ID                 |
+| GET    | `/api/teams`                | List all teams                     |
+| GET    | `/api/teams/:team_id`       | Get a team by ID                   |
+| GET    | `/api/pools`                | List saved pools                   |
+| POST   | `/api/pools`                | Create a saved pool                |
+| GET    | `/api/pools/:id`            | Get a pool by ID                   |
+| PATCH  | `/api/pools/:id`            | Update a pool                      |
+| DELETE | `/api/pools/:id`            | Delete a pool                      |
+| POST   | `/api/pools/preview`        | Preview a pool without saving      |
+
+## Naming Conventions
+
+| Thing                 | Convention               | Example                   |
+| --------------------- | ------------------------ | ------------------------- |
+| Files                 | `feature.type.ts`        | `draft.service.ts`        |
+| Classes               | PascalCase               | `DraftGateway`            |
+| XState events         | SCREAMING_SNAKE_CASE     | `PARTICIPANT_JOINED`      |
+| XState guards         | `is*` / `are*` prefix    | `areRoundsRemaining`      |
+| XState assign actions | `assign*` prefix         | `assignConfig`            |
+| XState notify actions | `notify*` prefix         | `notifyPickConfirmed`     |
+| XState states         | camelCase                | `waitingForPlayers`       |
+| Room IDs              | 5-char uppercase alphanum | `XYZ12`                  |
+| REST params           | snake_case               | `/players/:player_id`     |
+| WebSocket namespaces  | lowercase                | `/draft`                  |
+
+## Path Aliases
+
+`@/` resolves to `src/`:
+
+```typescript
+import { DraftService } from '@/nba/draft/draft.service';
+```
