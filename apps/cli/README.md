@@ -1,6 +1,6 @@
 # @dribblio/cli
 
-Interactive terminal client for the **dribbl.io career path game**, written in TypeScript.
+Interactive terminal client for the dribbl.io **Career Path** game, written in TypeScript. Connects to the API over WebSocket for real-time gameplay and uses REST for team/player lookups.
 
 ## Setup
 
@@ -11,7 +11,7 @@ npm install
 ## Usage
 
 ```bash
-# Development (no build step)
+# Development — run directly with tsx, no build step needed
 npm run dev
 
 # Build and run
@@ -22,31 +22,35 @@ npm start
 npm run typecheck
 ```
 
-## Environment
+## Environment Variables
 
-| Variable | Default | Description |
-|---|---|---|
-| `DRIBBL_API_URL` | `http://localhost:3002` | Base URL of the dribbl.io API |
+| Variable        | Default                   | Description                  |
+| --------------- | ------------------------- | ---------------------------- |
+| `DRIBBL_API_URL`| `http://localhost:3002`   | Base URL of the dribbl.io API |
 
 ```bash
 DRIBBL_API_URL=https://your-api.com npm run dev
 ```
 
-## Project structure
+## Source Structure
 
 ```
 src/
-  index.ts    — entrypoint, orchestrates setup and play-again loop
-  game.ts     — core game loop (rounds, guesses, skip logic)
-  prompts.ts  — typed inquirer wrappers for all user input
-  socket.ts   — typed Socket.io connection and waitForEvent helper
-  api.ts      — typed REST helpers (teams, player search)
-  ui.ts       — rendering helpers (banner, round header, results)
-  config.ts   — constants (URLs, difficulties, limits)
-  types.ts    — local type mirrors of @dribblio/types (no backend deps)
+├── index.ts    # Entry point — setup, play-again loop
+├── game.ts     # Core game loop — rounds, guesses, skip logic
+├── prompts.ts  # Typed inquirer wrappers for all user input
+├── socket.ts   # Typed Socket.io connection and waitForEvent helper
+├── api.ts      # Typed REST helpers — teams, player search
+├── ui.ts       # Rendering helpers — banner, round header, results
+├── config.ts   # Constants — URLs, difficulties, limits
+└── types.ts    # Local type mirrors (no backend/TypeORM dependencies)
 ```
 
-## Monorepo integration
+`types.ts` contains lightweight mirrors of `@dribblio/types` so the CLI never imports TypeORM or backend-coupled code.
 
-To add this as a Turborepo app, move the folder to `apps/cli` and add
-`@dribblio/cli` to the root `turbo.json` pipeline.
+## How It Works
+
+1. `index.ts` creates a REST client and opens a Socket.io connection to `/careerpath`.
+2. The server creates a room and returns a `roomId`.
+3. `game.ts` drives the round loop: displays team history, prompts for a guess or skip, and handles server responses.
+4. On game over, the user is offered a play-again option, which resets the session without reconnecting.
