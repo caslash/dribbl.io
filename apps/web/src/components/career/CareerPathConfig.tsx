@@ -1,8 +1,14 @@
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { useCareerPath } from '@/hooks/useCareerPath';
-import { GameDifficulties } from '@dribblio/types';
 import { useState } from 'react';
+
+const DIFFICULTY_OPTIONS = [
+  { name: 'firstallnba', display_name: 'First Team All-NBA Players', description: 'Every player that has appeared in the All-NBA First Team' },
+  { name: 'allnba', display_name: 'All-NBA Players', description: 'Every player that has appeared in any All-NBA team' },
+  { name: 'greatest75', display_name: 'Greatest 75', description: "Players named to the NBA's Greatest 75 list" },
+  { name: 'allplayers', display_name: 'All Players', description: 'Every. Single. Player. Ever.' },
+] as const;
 
 const LIVES_OPTIONS = [
   { label: 'Infinite', value: undefined },
@@ -43,7 +49,7 @@ export function CareerPathConfig() {
             Difficulty
           </h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {GameDifficulties.allModes.map((opt) => (
+            {DIFFICULTY_OPTIONS.map((opt) => (
               <button
                 key={opt.name}
                 onClick={() => setSelectedDifficulty(opt.name)}

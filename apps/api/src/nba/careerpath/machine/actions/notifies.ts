@@ -41,6 +41,7 @@ const notifyIncorrectGuess = sendToSocket('socket', ({ context }) => ({
   // Use !== undefined so that 0 (last life used) is sent, not treated as infinite
   lives:
     context.gameState.lives !== undefined ? context.gameState.lives : undefined,
+  score: context.gameState.score,
 }));
 
 const notifySkipRound = sendToSocket('socket', ({ context }) => ({

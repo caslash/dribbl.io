@@ -1,6 +1,3 @@
-import { act, render, renderHook, waitFor } from '@testing-library/react';
-import type { ReactNode } from 'react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DraftProvider, useDraftContext } from '@/providers/DraftProvider';
 import type {
   DraftRoomConfig,
@@ -16,6 +13,9 @@ import type {
   PickRecord,
   PoolEntry,
 } from '@dribblio/types';
+import { act, render, renderHook, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Socket mock factory ──────────────────────────────────────────────────────
 
@@ -236,19 +236,31 @@ describe('DraftProvider', () => {
   describe('socket event: NOTIFY_CONFIG_SAVED', () => {
     it('updates the config field', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
-      const payload: NotifyConfigSaved = { config: mockConfig, pool: [] };
-      act(() => { getMainSocket().simulateEvent('NOTIFY_CONFIG_SAVED', payload); });
+      const payload: NotifyConfigSaved = {
+        config: mockConfig,
+        pool: [],
+        type: 'NOTIFY_CONFIG_SAVED',
+      };
+      act(() => {
+        getMainSocket().simulateEvent('NOTIFY_CONFIG_SAVED', payload);
+      });
 
       expect(result.current.state.config).toEqual(mockConfig);
     });
 
     it('transitions phase to pool-preview', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
-      act(() => { getMainSocket().simulateEvent('NOTIFY_CONFIG_SAVED', { config: mockConfig }); });
+      act(() => {
+        getMainSocket().simulateEvent('NOTIFY_CONFIG_SAVED', { config: mockConfig });
+      });
 
       expect(result.current.state.phase).toBe('pool-preview');
     });
@@ -256,9 +268,13 @@ describe('DraftProvider', () => {
     it('calls toast.success', async () => {
       const { toast } = await import('react-toastify');
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
-      act(() => { getMainSocket().simulateEvent('NOTIFY_CONFIG_SAVED', { config: mockConfig }); });
+      act(() => {
+        getMainSocket().simulateEvent('NOTIFY_CONFIG_SAVED', { config: mockConfig });
+      });
 
       expect(toast.success).toHaveBeenCalledWith('Draft configuration saved');
     });
@@ -269,13 +285,18 @@ describe('DraftProvider', () => {
   describe('socket event: NOTIFY_PARTICIPANT_JOINED', () => {
     it('replaces the participants array with the payload participants', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
       const payload: NotifyParticipantJoined = {
         participant: mockParticipant,
         participants: [mockParticipant, mockParticipant2],
+        type: 'NOTIFY_PARTICIPANT_JOINED',
       };
-      act(() => { getMainSocket().simulateEvent('NOTIFY_PARTICIPANT_JOINED', payload); });
+      act(() => {
+        getMainSocket().simulateEvent('NOTIFY_PARTICIPANT_JOINED', payload);
+      });
 
       expect(result.current.state.participants).toEqual([mockParticipant, mockParticipant2]);
     });
@@ -283,7 +304,9 @@ describe('DraftProvider', () => {
     it('calls toast.info with the joining participant name', async () => {
       const { toast } = await import('react-toastify');
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
       act(() => {
         getMainSocket().simulateEvent('NOTIFY_PARTICIPANT_JOINED', {
@@ -301,7 +324,9 @@ describe('DraftProvider', () => {
   describe('socket event: NOTIFY_PARTICIPANT_LEFT', () => {
     it('filters out the participant with the matching participantId', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
       act(() => {
         getMainSocket().simulateEvent('NOTIFY_PARTICIPANT_JOINED', {
@@ -310,15 +335,22 @@ describe('DraftProvider', () => {
         });
       });
 
-      const leftPayload: NotifyParticipantLeft = { participantId: 'p1' };
-      act(() => { getMainSocket().simulateEvent('NOTIFY_PARTICIPANT_LEFT', leftPayload); });
+      const leftPayload: NotifyParticipantLeft = {
+        participantId: 'p1',
+        type: 'NOTIFY_PARTICIPANT_LEFT',
+      };
+      act(() => {
+        getMainSocket().simulateEvent('NOTIFY_PARTICIPANT_LEFT', leftPayload);
+      });
 
       expect(result.current.state.participants).toEqual([mockParticipant2]);
     });
 
     it('leaves the array unchanged when the participantId is not found', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
       act(() => {
         getMainSocket().simulateEvent('NOTIFY_PARTICIPANT_JOINED', {
@@ -327,7 +359,9 @@ describe('DraftProvider', () => {
         });
       });
 
-      act(() => { getMainSocket().simulateEvent('NOTIFY_PARTICIPANT_LEFT', { participantId: 'unknown' }); });
+      act(() => {
+        getMainSocket().simulateEvent('NOTIFY_PARTICIPANT_LEFT', { participantId: 'unknown' });
+      });
 
       expect(result.current.state.participants).toEqual([mockParticipant]);
     });
@@ -338,13 +372,18 @@ describe('DraftProvider', () => {
   describe('socket event: NOTIFY_DRAFT_STARTED', () => {
     it('sets pool and turnOrder from the payload', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
       const payload: NotifyDraftStarted = {
         pool: [mockMvpEntry],
         turnOrder: ['p1', 'p2'],
+        type: 'NOTIFY_DRAFT_STARTED',
       };
-      act(() => { getMainSocket().simulateEvent('NOTIFY_DRAFT_STARTED', payload); });
+      act(() => {
+        getMainSocket().simulateEvent('NOTIFY_DRAFT_STARTED', payload);
+      });
 
       expect(result.current.state.pool).toEqual([mockMvpEntry]);
       expect(result.current.state.turnOrder).toEqual(['p1', 'p2']);
@@ -352,10 +391,15 @@ describe('DraftProvider', () => {
 
     it('transitions phase to drafting', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
       act(() => {
-        getMainSocket().simulateEvent('NOTIFY_DRAFT_STARTED', { pool: [mockMvpEntry], turnOrder: ['p1'] });
+        getMainSocket().simulateEvent('NOTIFY_DRAFT_STARTED', {
+          pool: [mockMvpEntry],
+          turnOrder: ['p1'],
+        });
       });
 
       expect(result.current.state.phase).toBe('drafting');
@@ -363,14 +407,23 @@ describe('DraftProvider', () => {
 
     it('resets currentTurnIndex to 0 and currentRound to 1', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
-
       act(() => {
-        getMainSocket().simulateEvent('NOTIFY_TURN_ADVANCED', { currentTurnIndex: 3, currentRound: 2, participantId: 'p1' });
+        result.current.joinRoom('ROOM1', 'Bird');
       });
 
       act(() => {
-        getMainSocket().simulateEvent('NOTIFY_DRAFT_STARTED', { pool: [mockMvpEntry], turnOrder: ['p1'] });
+        getMainSocket().simulateEvent('NOTIFY_TURN_ADVANCED', {
+          currentTurnIndex: 3,
+          currentRound: 2,
+          participantId: 'p1',
+        });
+      });
+
+      act(() => {
+        getMainSocket().simulateEvent('NOTIFY_DRAFT_STARTED', {
+          pool: [mockMvpEntry],
+          turnOrder: ['p1'],
+        });
       });
 
       expect(result.current.state.currentTurnIndex).toBe(0);
@@ -379,13 +432,22 @@ describe('DraftProvider', () => {
 
     it('resets pickHistory and invalidatedIds', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
-
-      act(() => { getMainSocket().simulateEvent('NOTIFY_PICK_CONFIRMED', { pickRecord: mockPickRecord }); });
-      act(() => { getMainSocket().simulateEvent('NOTIFY_POOL_UPDATED', { invalidatedIds: ['entry-1'] }); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
       act(() => {
-        getMainSocket().simulateEvent('NOTIFY_DRAFT_STARTED', { pool: [mockMvpEntry], turnOrder: ['p1'] });
+        getMainSocket().simulateEvent('NOTIFY_PICK_CONFIRMED', { pickRecord: mockPickRecord });
+      });
+      act(() => {
+        getMainSocket().simulateEvent('NOTIFY_POOL_UPDATED', { invalidatedIds: ['entry-1'] });
+      });
+
+      act(() => {
+        getMainSocket().simulateEvent('NOTIFY_DRAFT_STARTED', {
+          pool: [mockMvpEntry],
+          turnOrder: ['p1'],
+        });
       });
 
       expect(result.current.state.pickHistory).toEqual([]);
@@ -395,10 +457,15 @@ describe('DraftProvider', () => {
     it('calls toast.success', async () => {
       const { toast } = await import('react-toastify');
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
       act(() => {
-        getMainSocket().simulateEvent('NOTIFY_DRAFT_STARTED', { pool: [mockMvpEntry], turnOrder: ['p1'] });
+        getMainSocket().simulateEvent('NOTIFY_DRAFT_STARTED', {
+          pool: [mockMvpEntry],
+          turnOrder: ['p1'],
+        });
       });
 
       expect(toast.success).toHaveBeenCalledWith('Draft started!');
@@ -410,22 +477,40 @@ describe('DraftProvider', () => {
   describe('socket event: NOTIFY_PICK_CONFIRMED', () => {
     it('appends the pickRecord to pickHistory', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
-      const payload: NotifyPickConfirmed = { pickRecord: mockPickRecord };
-      act(() => { getMainSocket().simulateEvent('NOTIFY_PICK_CONFIRMED', payload); });
+      const payload: NotifyPickConfirmed = {
+        pickRecord: mockPickRecord,
+        type: 'NOTIFY_PICK_CONFIRMED',
+      };
+      act(() => {
+        getMainSocket().simulateEvent('NOTIFY_PICK_CONFIRMED', payload);
+      });
 
       expect(result.current.state.pickHistory).toEqual([mockPickRecord]);
     });
 
     it('accumulates multiple picks in order', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
-      const pick2: PickRecord = { participantId: 'p2', entryId: 'entry-2', round: 1, pickNumber: 2 };
+      const pick2: PickRecord = {
+        participantId: 'p2',
+        entryId: 'entry-2',
+        round: 1,
+        pickNumber: 2,
+      };
 
-      act(() => { getMainSocket().simulateEvent('NOTIFY_PICK_CONFIRMED', { pickRecord: mockPickRecord }); });
-      act(() => { getMainSocket().simulateEvent('NOTIFY_PICK_CONFIRMED', { pickRecord: pick2 }); });
+      act(() => {
+        getMainSocket().simulateEvent('NOTIFY_PICK_CONFIRMED', { pickRecord: mockPickRecord });
+      });
+      act(() => {
+        getMainSocket().simulateEvent('NOTIFY_PICK_CONFIRMED', { pickRecord: pick2 });
+      });
 
       expect(result.current.state.pickHistory).toEqual([mockPickRecord, pick2]);
     });
@@ -436,13 +521,25 @@ describe('DraftProvider', () => {
   describe('socket event: NOTIFY_POOL_UPDATED', () => {
     it('adds invalidated IDs to the Set without removing existing ones', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
-      const payload1: NotifyPoolUpdated = { invalidatedIds: ['entry-1', 'entry-2'] };
-      act(() => { getMainSocket().simulateEvent('NOTIFY_POOL_UPDATED', payload1); });
+      const payload1: NotifyPoolUpdated = {
+        invalidatedIds: ['entry-1', 'entry-2'],
+        type: 'NOTIFY_POOL_UPDATED',
+      };
+      act(() => {
+        getMainSocket().simulateEvent('NOTIFY_POOL_UPDATED', payload1);
+      });
 
-      const payload2: NotifyPoolUpdated = { invalidatedIds: ['entry-3'] };
-      act(() => { getMainSocket().simulateEvent('NOTIFY_POOL_UPDATED', payload2); });
+      const payload2: NotifyPoolUpdated = {
+        invalidatedIds: ['entry-3'],
+        type: 'NOTIFY_POOL_UPDATED',
+      };
+      act(() => {
+        getMainSocket().simulateEvent('NOTIFY_POOL_UPDATED', payload2);
+      });
 
       expect(result.current.state.invalidatedIds.has('entry-1')).toBe(true);
       expect(result.current.state.invalidatedIds.has('entry-2')).toBe(true);
@@ -455,14 +552,19 @@ describe('DraftProvider', () => {
   describe('socket event: NOTIFY_TURN_ADVANCED', () => {
     it('updates currentTurnIndex and currentRound', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
       const payload: NotifyTurnAdvanced = {
         currentTurnIndex: 2,
         currentRound: 2,
         participantId: 'p1',
+        type: 'NOTIFY_TURN_ADVANCED',
       };
-      act(() => { getMainSocket().simulateEvent('NOTIFY_TURN_ADVANCED', payload); });
+      act(() => {
+        getMainSocket().simulateEvent('NOTIFY_TURN_ADVANCED', payload);
+      });
 
       expect(result.current.state.currentTurnIndex).toBe(2);
       expect(result.current.state.currentRound).toBe(2);
@@ -474,20 +576,34 @@ describe('DraftProvider', () => {
   describe('socket event: NOTIFY_DRAFT_COMPLETE', () => {
     it('transitions phase to results', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
-      const payload: NotifyDraftComplete = { pickHistory: [mockPickRecord] };
-      act(() => { getMainSocket().simulateEvent('NOTIFY_DRAFT_COMPLETE', payload); });
+      const payload: NotifyDraftComplete = {
+        pickHistory: [mockPickRecord],
+        type: 'NOTIFY_DRAFT_COMPLETE',
+      };
+      act(() => {
+        getMainSocket().simulateEvent('NOTIFY_DRAFT_COMPLETE', payload);
+      });
 
       expect(result.current.state.phase).toBe('results');
     });
 
     it('sets pickHistory from the payload', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
-      const payload: NotifyDraftComplete = { pickHistory: [mockPickRecord] };
-      act(() => { getMainSocket().simulateEvent('NOTIFY_DRAFT_COMPLETE', payload); });
+      const payload: NotifyDraftComplete = {
+        pickHistory: [mockPickRecord],
+        type: 'NOTIFY_DRAFT_COMPLETE',
+      };
+      act(() => {
+        getMainSocket().simulateEvent('NOTIFY_DRAFT_COMPLETE', payload);
+      });
 
       expect(result.current.state.pickHistory).toEqual([mockPickRecord]);
     });
@@ -495,9 +611,13 @@ describe('DraftProvider', () => {
     it('calls toast.success', async () => {
       const { toast } = await import('react-toastify');
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
-      act(() => { getMainSocket().simulateEvent('NOTIFY_DRAFT_COMPLETE', { pickHistory: [] }); });
+      act(() => {
+        getMainSocket().simulateEvent('NOTIFY_DRAFT_COMPLETE', { pickHistory: [] });
+      });
 
       expect(toast.success).toHaveBeenCalledWith('Draft complete!');
     });
@@ -508,9 +628,13 @@ describe('DraftProvider', () => {
   describe('leave (RESET)', () => {
     it('returns state to the initial shape after leave', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
-      act(() => { result.current.leave(); });
+      act(() => {
+        result.current.leave();
+      });
 
       expect(result.current.state.phase).toBe('entrance');
       expect(result.current.state.roomId).toBeNull();
@@ -523,9 +647,13 @@ describe('DraftProvider', () => {
   describe('saveConfig', () => {
     it('emits ORGANIZER_CONFIGURE before SAVE_CONFIG', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
-      act(() => { result.current.saveConfig(mockConfig); });
+      act(() => {
+        result.current.saveConfig(mockConfig);
+      });
 
       const calls = getMainSocket().emit.mock.calls;
       const configureIdx = calls.findIndex(([ev]) => ev === 'ORGANIZER_CONFIGURE');
@@ -538,9 +666,13 @@ describe('DraftProvider', () => {
 
     it('emits SAVE_CONFIG with the config wrapped in { config }', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
-      act(() => { result.current.saveConfig(mockConfig); });
+      act(() => {
+        result.current.saveConfig(mockConfig);
+      });
 
       expect(getMainSocket().emit).toHaveBeenCalledWith('SAVE_CONFIG', { config: mockConfig });
     });
@@ -549,9 +681,13 @@ describe('DraftProvider', () => {
   describe('startDraft', () => {
     it('emits ORGANIZER_START_DRAFT', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
-      act(() => { result.current.startDraft(); });
+      act(() => {
+        result.current.startDraft();
+      });
 
       expect(getMainSocket().emit).toHaveBeenCalledWith('ORGANIZER_START_DRAFT');
     });
@@ -560,11 +696,15 @@ describe('DraftProvider', () => {
   describe('submitPick', () => {
     it('emits SUBMIT_PICK with participantId, entryId, and round', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
       const myId = result.current.state.myParticipantId!;
 
-      act(() => { result.current.submitPick('entry-abc'); });
+      act(() => {
+        result.current.submitPick('entry-abc');
+      });
 
       expect(getMainSocket().emit).toHaveBeenCalledWith('SUBMIT_PICK', {
         pickRecord: {
@@ -578,14 +718,18 @@ describe('DraftProvider', () => {
     it('does not emit when myParticipantId is null', () => {
       const { result } = setupHook();
 
-      act(() => { result.current.submitPick('entry-abc'); });
+      act(() => {
+        result.current.submitPick('entry-abc');
+      });
 
       expect(getMainSocket().emit).not.toHaveBeenCalledWith('SUBMIT_PICK', expect.anything());
     });
 
     it('uses the current round from state', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
       act(() => {
         getMainSocket().simulateEvent('NOTIFY_TURN_ADVANCED', {
@@ -595,20 +739,29 @@ describe('DraftProvider', () => {
         });
       });
 
-      act(() => { result.current.submitPick('entry-xyz'); });
+      act(() => {
+        result.current.submitPick('entry-xyz');
+      });
 
-      expect(getMainSocket().emit).toHaveBeenCalledWith('SUBMIT_PICK', expect.objectContaining({
-        pickRecord: expect.objectContaining({ round: 3 }),
-      }));
+      expect(getMainSocket().emit).toHaveBeenCalledWith(
+        'SUBMIT_PICK',
+        expect.objectContaining({
+          pickRecord: expect.objectContaining({ round: 3 }),
+        }),
+      );
     });
   });
 
   describe('notifyTimerExpired', () => {
     it('emits TURN_TIMER_EXPIRED', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
-      act(() => { result.current.notifyTimerExpired(); });
+      act(() => {
+        result.current.notifyTimerExpired();
+      });
 
       expect(getMainSocket().emit).toHaveBeenCalledWith('TURN_TIMER_EXPIRED');
     });
@@ -617,20 +770,30 @@ describe('DraftProvider', () => {
   describe('leave', () => {
     it('emits PARTICIPANT_LEFT with participantId', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
       const myId = result.current.state.myParticipantId!;
 
-      act(() => { result.current.leave(); });
+      act(() => {
+        result.current.leave();
+      });
 
-      expect(getMainSocket().emit).toHaveBeenCalledWith('PARTICIPANT_LEFT', { participantId: myId });
+      expect(getMainSocket().emit).toHaveBeenCalledWith('PARTICIPANT_LEFT', {
+        participantId: myId,
+      });
     });
 
     it('calls socket.disconnect', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
-      act(() => { result.current.leave(); });
+      act(() => {
+        result.current.leave();
+      });
 
       expect(getMainSocket().disconnect).toHaveBeenCalled();
     });
@@ -638,7 +801,9 @@ describe('DraftProvider', () => {
     it('does not emit PARTICIPANT_LEFT when myParticipantId is null', () => {
       const { result } = setupHook();
 
-      act(() => { result.current.leave(); });
+      act(() => {
+        result.current.leave();
+      });
 
       expect(getMainSocket().emit).not.toHaveBeenCalledWith('PARTICIPANT_LEFT', expect.anything());
     });
@@ -649,7 +814,9 @@ describe('DraftProvider', () => {
   describe('isMyTurn', () => {
     it('is true when turnOrder[currentTurnIndex] matches myParticipantId', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Jordan'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Jordan');
+      });
 
       const myId = result.current.state.myParticipantId!;
 
@@ -665,7 +832,9 @@ describe('DraftProvider', () => {
 
     it('is false when turnOrder[currentTurnIndex] is a different participant', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Jordan'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Jordan');
+      });
 
       act(() => {
         getMainSocket().simulateEvent('NOTIFY_DRAFT_STARTED', {
@@ -679,7 +848,9 @@ describe('DraftProvider', () => {
 
     it('is false when turnOrder is empty', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Jordan'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Jordan');
+      });
 
       expect(result.current.isMyTurn).toBe(false);
     });
@@ -688,7 +859,9 @@ describe('DraftProvider', () => {
   describe('currentTurnParticipant', () => {
     it('returns the participant matching turnOrder[currentTurnIndex]', () => {
       const { result } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Jordan'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Jordan');
+      });
 
       act(() => {
         getMainSocket().simulateEvent('NOTIFY_PARTICIPANT_JOINED', {
@@ -817,7 +990,9 @@ describe('DraftProvider', () => {
     it('emits PARTICIPANT_JOINED with isOrganizer: false', () => {
       const { result } = setupHook();
 
-      act(() => { result.current.joinRoom('ROOM5', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM5', 'Bird');
+      });
 
       const myId = result.current.state.myParticipantId!;
 
@@ -829,7 +1004,9 @@ describe('DraftProvider', () => {
     it('sets isOrganizer to false', () => {
       const { result } = setupHook();
 
-      act(() => { result.current.joinRoom('ROOM5', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM5', 'Bird');
+      });
 
       expect(result.current.state.isOrganizer).toBe(false);
     });
@@ -840,7 +1017,9 @@ describe('DraftProvider', () => {
   describe('cleanup', () => {
     it('disconnects the socket on unmount', () => {
       const { result, unmount } = setupHook();
-      act(() => { result.current.joinRoom('ROOM1', 'Bird'); });
+      act(() => {
+        result.current.joinRoom('ROOM1', 'Bird');
+      });
 
       unmount();
 
