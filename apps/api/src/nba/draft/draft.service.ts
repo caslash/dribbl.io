@@ -59,7 +59,7 @@ export class DraftService {
     ).flat();
   }
 
-  private destroyRoom(roomId: string) {
+  destroyRoom(roomId: string) {
     const actor = this.rooms.get(roomId);
 
     if (actor) {

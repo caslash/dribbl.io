@@ -11,6 +11,7 @@ import {
   ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
+  OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -18,9 +19,12 @@ import {
 import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway({ namespace: '/draft' })
-export class DraftGateway implements OnGatewayConnection {
+export class DraftGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   io: Server;
+
+  /** Tracks the number of active sockets per room for cleanup purposes. */
+  private readonly roomSocketCounts = new Map<string, number>();
 
   constructor(
     private readonly draftService: DraftService,
@@ -39,13 +43,30 @@ export class DraftGateway implements OnGatewayConnection {
         return;
       }
 
+      socket.data.roomId = roomId;
       socket.join(roomId);
+      this.roomSocketCounts.set(roomId, (this.roomSocketCounts.get(roomId) ?? 0) + 1);
       return;
     }
 
+    // Temp socket used only to obtain a generated roomId — not tracked for cleanup.
     const newRoomId = this.draftService.createRoom(this.io);
     socket.join(newRoomId);
     socket.emit('ROOM_CREATED', { roomId: newRoomId });
+  }
+
+  handleDisconnect(socket: Socket) {
+    const roomId = socket.data.roomId as string | undefined;
+    // Temp room-creation sockets have no roomId stored — nothing to clean up.
+    if (!roomId) return;
+
+    const remaining = (this.roomSocketCounts.get(roomId) ?? 1) - 1;
+    if (remaining <= 0) {
+      this.roomSocketCounts.delete(roomId);
+      this.draftService.destroyRoom(roomId);
+    } else {
+      this.roomSocketCounts.set(roomId, remaining);
+    }
   }
 
   @SubscribeMessage('*')
