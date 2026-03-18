@@ -1,135 +1,111 @@
-# Turborepo starter
+# dribbl.io
 
-This Turborepo starter is maintained by the Turborepo core team.
+A multiplayer NBA-themed game suite. Two game modes share a NestJS API, a PostgreSQL database of NBA players and stats, and real-time WebSocket communication via Socket.io.
 
-## Using this example
+## Game Modes
 
-Run the following command:
+### Career Path
 
-```sh
-npx create-turbo@latest
+Single-player guessing game. The player sees an ordered sequence of NBA team logos representing a player's career path and must identify a player with that exact team history. Supports a lives-based mode or infinite play.
+
+### NBA All-Time Draft
+
+Multiplayer room-based drafting game. Participants take turns selecting all-time NBA players to build their dream team. Supports snake and linear draft orders, multiple pool types (MVP seasons, franchise-based), and shareable results graphics.
+
+## Repository Structure
+
+```
+dribbl.io/
+├── apps/
+│   ├── api/      # NestJS REST + WebSocket API (port 3002)
+│   ├── web/      # Vite + React frontend (port 3000)
+│   ├── db/       # Python data pipeline (stats.nba.com → PostgreSQL)
+│   └── cli/      # TypeScript terminal client for dev/testing
+└── packages/
+    ├── types/              # @dribblio/types — shared TypeScript types
+    ├── ui/                 # @dribblio/ui — shared React component library
+    ├── typescript-config/  # Shared tsconfig bases
+    └── eslint-config/      # Shared ESLint config
 ```
 
-## What's inside?
+Each app has its own `README.md` with setup and usage details.
 
-This Turborepo includes the following packages/apps:
+## Tech Stack
 
-### Apps and Packages
+| Layer          | Technology                          |
+| -------------- | ----------------------------------- |
+| Backend        | NestJS 11, TypeORM, PostgreSQL       |
+| Real-time      | Socket.io                           |
+| State machines | XState v5                           |
+| Frontend       | React 19, Vite, Tailwind CSS         |
+| Routing        | React Router 7                      |
+| Data pipeline  | Python 3.10+, nba_api, asyncpg      |
+| Monorepo       | Turborepo, npm workspaces           |
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+## Getting Started
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+Install dependencies from the repo root:
 
-### Utilities
+```bash
+npm install
+```
 
-This Turborepo has some additional tools already setup for you:
+### Run all apps in development
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+```bash
+npm run dev
+```
+
+This starts the API (port 3002) and web app (port 3000) concurrently via Turborepo.
 
 ### Build
 
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+```bash
+npm run build
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+### Type-check
 
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+```bash
+npm run check-types
 ```
 
-### Develop
+### Lint
 
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+```bash
+npm run lint
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+### Test
 
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+```bash
+npm test
 ```
 
-### Remote Caching
+## Database
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+PostgreSQL. The `api_user` role has read access to all tables and write access only to `pools`.
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+| Table       | Description                                             |
+| ----------- | ------------------------------------------------------- |
+| `players`   | NBA player records                                      |
+| `teams`     | NBA team records, including historical franchises       |
+| `seasons`   | Per-player, per-season, per-team regular season stats   |
+| `accolades` | Awards — MVP seasons, All-Star selections, etc.         |
+| `pools`     | Saved draft pools created by users                      |
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+The database is populated by the Python pipeline in `apps/db`. See its README for setup and usage.
 
-```
-cd my-turborepo
+## Environment Variables
 
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
+Each app reads its own environment variables. See the app-level READMEs for the full list. At minimum:
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+| Variable          | App | Description                           |
+| ----------------- | --- | ------------------------------------- |
+| `PG_HOST`         | api | PostgreSQL host                       |
+| `PG_PORT`         | api | PostgreSQL port                       |
+| `PG_NBA_USERNAME` | api | DB username                           |
+| `PG_NBA_PASSWORD` | api | DB password                           |
+| `PG_NBA_DATABASE` | api | DB name                               |
+| `DATABASE_URL`    | db  | PostgreSQL connection string          |
+| `DRIBBL_API_URL`  | cli | API base URL (default: localhost:3002)|
