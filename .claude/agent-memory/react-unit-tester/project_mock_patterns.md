@@ -98,3 +98,43 @@ Reset `ioCallCount` and socket instances in `beforeEach`. First call = temp sock
 ## SVG className quirk
 
 In jsdom, SVG elements have `className` as `SVGAnimatedString`, not a plain string. Use `svg?.getAttribute('class')` instead of `svg?.className` for string operations.
+
+## framer-motion mock
+
+Components that import from `framer-motion` (`motion.*`, `AnimatePresence`, `useReducedMotion`) must have `framer-motion` mocked or they fail in jsdom. Use a minimal inline mock at the top of the test file:
+
+```ts
+vi.mock('framer-motion', () => ({
+  motion: {
+    header: ({ children, ...props }: React.HTMLAttributes<HTMLElement>) => (
+      <header {...props}>{children}</header>
+    ),
+    div: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+      <div {...props}>{children}</div>
+    ),
+  },
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useReducedMotion: () => false,
+}));
+```
+
+Add more `motion.*` keys as needed for each HTML element the component uses.
+
+## Duplicate-text pitfalls in DraftResults
+
+`DraftResults` renders a sidebar pick-count panel alongside the main table. Both render participant names and "(You)" labels. `getByText` will throw on these. Always use `getAllByText(...)` with a `length >= 1` assertion, or scope the query to the `table` element when asserting on table-specific content.
+
+## useNavigate mock for react-router
+
+`DraftResults` imports from `react-router` (not `react-router-dom`). Mock accordingly:
+
+```ts
+const mockNavigate = vi.fn();
+vi.mock('react-router', () => ({
+  useNavigate: () => mockNavigate,
+}));
+```
+
+## Static import vs dynamic import for components
+
+When a test's mock captures state via a module-level closure variable (the preferred pattern), import the component under test with a static top-level `import`. Only use `await import(...)` inside `setup()` when the module itself needs to be re-evaluated per test (e.g., when `vi.resetModules()` is called). Mixing `require()` with Vitest ESM mocks will fail with `MODULE_NOT_FOUND`.

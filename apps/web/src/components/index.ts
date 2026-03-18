@@ -15,10 +15,12 @@ export { TeamHistoryDisplay } from './career/TeamHistoryDisplay';
 
 // Draft game components
 export { DraftPickCard } from './draft/DraftPickCard';
+export { DraftResults } from './draft/DraftResults';
 export { DraftTimeline } from './draft/DraftTimeline';
+export { MyPickCard } from './draft/MyPickCard';
 export { OnTheClockCard } from './draft/OnTheClockCard';
 export { UpcomingPickCard } from './draft/UpcomingPickCard';
-export { PoolEntryRow } from './draft/PoolEntryRow';
+export { PoolEntryRow, StatPill } from './draft/PoolEntryRow';
 export { PickConfirmModal } from './draft/PickConfirmModal';
 export { PickAnnouncementModal } from './draft/PickAnnouncementModal';
 export { RoomSidebar } from './draft/RoomSidebar';

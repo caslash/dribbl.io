@@ -27,11 +27,12 @@ const assignDraftStart = draftAssign(({ event }) => {
 
 const assignPick = draftAssign(({ context, event }) => {
   assertEvent(event, ['SUBMIT_PICK', 'AUTO_PICK_RESOLVED']);
+  const n = context.participants.length;
   const pickRecord: PickRecord = {
     participantId: event.pickRecord.participantId,
     entryId: event.pickRecord.entryId,
-    round: event.pickRecord.round,
-    pickNumber: context.pickHistory.length + 1,
+    round: Math.floor(context.currentTurnIndex / n) + 1,
+    pickNumber: (context.currentTurnIndex % n) + 1,
   };
   return { pickHistory: [...context.pickHistory, pickRecord] };
 });
@@ -47,11 +48,13 @@ const assignPool = draftAssign(({ context, event }) => {
   };
 });
 
-const advanceTurn = draftAssign(({ context }) => ({
-  currentRound:
-    Math.floor(context.currentTurnIndex / context.participants.length) + 1,
-  currentTurnIndex: context.currentTurnIndex + 1,
-}));
+const advanceTurn = draftAssign(({ context }) => {
+  const newIndex = context.currentTurnIndex + 1;
+  return {
+    currentRound: Math.floor(newIndex / context.participants.length) + 1,
+    currentTurnIndex: newIndex,
+  };
+});
 
 const assignParticipant = draftAssign(({ context, event }) => {
   assertEvent(event, 'PARTICIPANT_JOINED');

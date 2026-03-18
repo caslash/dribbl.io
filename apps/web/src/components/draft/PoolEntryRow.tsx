@@ -83,11 +83,23 @@ export function PoolEntryRow({ entry, available, onSelect, isMyTurn }: PoolEntry
 }
 
 interface StatPillProps {
+  /** The stat label, e.g. "PTS", "AST", "REB". */
   label: string;
+  /** The per-game stat value, or null if unavailable. */
   value: number | null;
 }
 
-function StatPill({ label, value }: StatPillProps) {
+/**
+ * Compact pill displaying a single per-game stat with a label above the value.
+ *
+ * @param label - The stat abbreviation, e.g. "PTS".
+ * @param value - The numeric value to display; shows "–" if null.
+ *
+ * @example
+ * <StatPill label="PTS" value={28.4} />
+ * <StatPill label="AST" value={null} />
+ */
+export function StatPill({ label, value }: StatPillProps) {
   return (
     <span className="inline-flex flex-col items-center rounded bg-primary-border/30 px-1.5 py-0.5 text-center">
       <span className="text-[10px] text-text-muted leading-none">{label}</span>

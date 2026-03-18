@@ -408,7 +408,74 @@ describe('NbaDraftMachine', () => {
   });
 
   // =========================================================================
-  // 7. Draft — timer expiry (TURN_TIMER_EXPIRED → AUTO_PICK_RESOLVED)
+  // 7. Draft — round and pickNumber are computed server-side
+  // =========================================================================
+
+  describe('round and pickNumber computation', () => {
+    const e1 = makeEntry('e1');
+    const e2 = makeEntry('e2');
+    const e3 = makeEntry('e3');
+    const e4 = makeEntry('e4');
+    // 2-participant, 2-round draft: indices 0-1 = round 1, indices 2-3 = round 2
+    const pool = [e1, e2, e3, e4];
+    const turnOrder = ['A', 'B', 'B', 'A'];
+
+    beforeEach(() => {
+      startDraft(pool, turnOrder);
+      socketState.received = [];
+    });
+
+    const makePick = (participantId: string, entryId: string) => {
+      actor.send({ type: 'SUBMIT_PICK', pickRecord: { participantId, entryId, round: 0 } });
+      actor.send({ type: 'POOL_UPDATED', invalidatedIds: new Set([entryId]) });
+    };
+
+    it('should assign round 1 pick 1 to the first pick (index 0)', () => {
+      actor.send({ type: 'SUBMIT_PICK', pickRecord: { participantId: 'A', entryId: e1.entryId, round: 0 } });
+
+      expect(socketState.received).toContainEqual({
+        type: 'NOTIFY_PICK_CONFIRMED',
+        pickRecord: { participantId: 'A', entryId: e1.entryId, round: 1, pickNumber: 1 },
+      });
+    });
+
+    it('should assign round 1 pick 2 to the second pick (index 1)', () => {
+      makePick('A', e1.entryId);
+      actor.send({ type: 'SUBMIT_PICK', pickRecord: { participantId: 'B', entryId: e2.entryId, round: 0 } });
+
+      expect(socketState.received).toContainEqual({
+        type: 'NOTIFY_PICK_CONFIRMED',
+        pickRecord: { participantId: 'B', entryId: e2.entryId, round: 1, pickNumber: 2 },
+      });
+    });
+
+    it('should assign round 2 pick 1 to the third pick (index 2)', () => {
+      makePick('A', e1.entryId);
+      makePick('B', e2.entryId);
+      actor.send({ type: 'SUBMIT_PICK', pickRecord: { participantId: 'B', entryId: e3.entryId, round: 0 } });
+
+      expect(socketState.received).toContainEqual({
+        type: 'NOTIFY_PICK_CONFIRMED',
+        pickRecord: { participantId: 'B', entryId: e3.entryId, round: 2, pickNumber: 1 },
+      });
+    });
+
+    it('should send NOTIFY_TURN_ADVANCED with round 2 after the second pick crosses the round boundary', () => {
+      makePick('A', e1.entryId);
+      actor.send({ type: 'SUBMIT_PICK', pickRecord: { participantId: 'B', entryId: e2.entryId, round: 0 } });
+      actor.send({ type: 'POOL_UPDATED', invalidatedIds: new Set([e2.entryId]) });
+
+      expect(socketState.received).toContainEqual({
+        type: 'NOTIFY_TURN_ADVANCED',
+        currentTurnIndex: 2,
+        currentRound: 2,
+        participantId: 'B',
+      });
+    });
+  });
+
+  // =========================================================================
+  // 8. Draft — timer expiry (TURN_TIMER_EXPIRED → AUTO_PICK_RESOLVED)
   // =========================================================================
 
   describe('draft timer expiry', () => {
@@ -547,15 +614,53 @@ describe('NbaDraftMachine', () => {
   });
 
   // =========================================================================
-  // 10. Draft — pool exhaustion triggers draftComplete
+  // 10. Draft completion
   //
-  // NOTE: areRoundsRemaining is evaluated BEFORE advanceTurn increments
-  // currentTurnIndex. This means on the last pick (index N-1), the guard sees
-  // N-1 < N = true, advances the turn to index N, and re-enters awaitingPick
-  // with an out-of-bounds participant. The draft therefore cannot end via
-  // areRoundsRemaining alone — it ends exclusively via isPoolEmpty (tested
-  // here) or ORGANIZER_CANCEL_DRAFT.
+  // The draft ends when either all rounds are exhausted (areRoundsRemaining)
+  // or the pool is empty (isPoolEmpty). areRoundsRemaining checks
+  // currentTurnIndex + 1 < turnOrder.length so that the final pick (index
+  // N-1) correctly routes to draftComplete rather than advancingTurn.
   // =========================================================================
+
+  describe('draft completion via rounds exhausted (areRoundsRemaining)', () => {
+    const e1 = makeEntry('e1');
+    const e2 = makeEntry('e2');
+    const e3 = makeEntry('e3');
+    // 2-participant, 1-round draft: turnOrder has 2 slots (indices 0 and 1)
+    const pool = [e1, e2, e3];
+    const turnOrder = ['A', 'B'];
+
+    beforeEach(() => {
+      startDraft(pool, turnOrder);
+      socketState.received = [];
+    });
+
+    it('should enter results.viewingTeams after the last pick when rounds are exhausted', () => {
+      // Pick 1 (index 0) — pool still has entries left
+      actor.send({ type: 'SUBMIT_PICK', pickRecord: { participantId: 'A', entryId: e1.entryId, round: 1 } });
+      actor.send({ type: 'POOL_UPDATED', invalidatedIds: new Set([e1.entryId]) });
+      // Pick 2 (index 1, final) — rounds exhausted
+      actor.send({ type: 'SUBMIT_PICK', pickRecord: { participantId: 'B', entryId: e2.entryId, round: 1 } });
+      actor.send({ type: 'POOL_UPDATED', invalidatedIds: new Set([e2.entryId]) });
+
+      expect(actor.getSnapshot().matches({ results: 'viewingTeams' })).toBe(true);
+    });
+
+    it('should send NOTIFY_DRAFT_COMPLETE with the full pick history after rounds exhausted', () => {
+      actor.send({ type: 'SUBMIT_PICK', pickRecord: { participantId: 'A', entryId: e1.entryId, round: 1 } });
+      actor.send({ type: 'POOL_UPDATED', invalidatedIds: new Set([e1.entryId]) });
+      actor.send({ type: 'SUBMIT_PICK', pickRecord: { participantId: 'B', entryId: e2.entryId, round: 1 } });
+      actor.send({ type: 'POOL_UPDATED', invalidatedIds: new Set([e2.entryId]) });
+
+      expect(socketState.received).toContainEqual({
+        type: 'NOTIFY_DRAFT_COMPLETE',
+        pickHistory: [
+          { participantId: 'A', entryId: e1.entryId, round: 1, pickNumber: 1 },
+          { participantId: 'B', entryId: e2.entryId, round: 1, pickNumber: 2 },
+        ],
+      });
+    });
+  });
 
   describe('draft completion via pool exhaustion (isPoolEmpty)', () => {
     const e1 = makeEntry('e1');

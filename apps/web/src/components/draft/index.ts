@@ -1,6 +1,7 @@
 export * from './DraftBoard';
 export * from './DraftConfigPanel';
 export * from './DraftResults';
+export * from './MyPickCard';
 export * from './ParticipantList';
 export * from './ParticipantTeam';
 export * from './PoolEntryCard';
