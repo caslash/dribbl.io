@@ -32,15 +32,15 @@ Each app has its own `README.md` with setup and usage details.
 
 ## Tech Stack
 
-| Layer          | Technology                          |
-| -------------- | ----------------------------------- |
-| Backend        | NestJS 11, TypeORM, PostgreSQL       |
-| Real-time      | Socket.io                           |
-| State machines | XState v5                           |
-| Frontend       | React 19, Vite, Tailwind CSS         |
-| Routing        | React Router 7                      |
-| Data pipeline  | Python 3.10+, nba_api, asyncpg      |
-| Monorepo       | Turborepo, npm workspaces           |
+| Layer          | Technology                     |
+| -------------- | ------------------------------ |
+| Backend        | NestJS 11, TypeORM, PostgreSQL |
+| Real-time      | Socket.io                      |
+| State machines | XState v5                      |
+| Frontend       | React 19, Vite, Tailwind CSS   |
+| Routing        | React Router 7                 |
+| Data pipeline  | Python 3.10+, nba_api, asyncpg |
+| Monorepo       | Turborepo, npm workspaces      |
 
 ## Getting Started
 
@@ -86,13 +86,13 @@ npm test
 
 PostgreSQL. The `api_user` role has read access to all tables and write access only to `pools`.
 
-| Table       | Description                                             |
-| ----------- | ------------------------------------------------------- |
-| `players`   | NBA player records                                      |
-| `teams`     | NBA team records, including historical franchises       |
-| `seasons`   | Per-player, per-season, per-team regular season stats   |
-| `accolades` | Awards — MVP seasons, All-Star selections, etc.         |
-| `pools`     | Saved draft pools created by users                      |
+| Table       | Description                                           |
+| ----------- | ----------------------------------------------------- |
+| `players`   | NBA player records                                    |
+| `teams`     | NBA team records, including historical franchises     |
+| `seasons`   | Per-player, per-season, per-team regular season stats |
+| `accolades` | Awards — MVP seasons, All-Star selections, etc.       |
+| `pools`     | Saved draft pools created by users                    |
 
 The database is populated by the Python pipeline in `apps/db`. See its README for setup and usage.
 
@@ -100,12 +100,13 @@ The database is populated by the Python pipeline in `apps/db`. See its README fo
 
 Each app reads its own environment variables. See the app-level READMEs for the full list. At minimum:
 
-| Variable          | App | Description                           |
-| ----------------- | --- | ------------------------------------- |
-| `PG_HOST`         | api | PostgreSQL host                       |
-| `PG_PORT`         | api | PostgreSQL port                       |
-| `PG_NBA_USERNAME` | api | DB username                           |
-| `PG_NBA_PASSWORD` | api | DB password                           |
-| `PG_NBA_DATABASE` | api | DB name                               |
-| `DATABASE_URL`    | db  | PostgreSQL connection string          |
-| `DRIBBL_API_URL`  | cli | API base URL (default: localhost:3002)|
+| Variable          | App | Description                            |
+| ----------------- | --- | -------------------------------------- |
+| `PG_HOST`         | api | PostgreSQL host                        |
+| `PG_PORT`         | api | PostgreSQL port                        |
+| `PG_NBA_USERNAME` | api | DB username                            |
+| `PG_NBA_PASSWORD` | api | DB password                            |
+| `PG_NBA_DATABASE` | api | DB name                                |
+| `BACKEND_URL`     | web | Api base URL                           |
+| `DATABASE_URL`    | db  | PostgreSQL connection string           |
+| `DRIBBL_API_URL`  | cli | API base URL (default: localhost:3002) |
