@@ -6,13 +6,7 @@ import { AppModule } from './app.module';
 
 dotenv.config();
 
-const REQUIRED_ENV_VARS = [
-  'PG_HOST',
-  'PG_PORT',
-  'PG_NBA_USERNAME',
-  'PG_NBA_PASSWORD',
-  'PG_NBA_DATABASE',
-] as const;
+const REQUIRED_ENV_VARS = ['DATABASE_URL'] as const;
 
 const logger = new Logger('Bootstrap');
 

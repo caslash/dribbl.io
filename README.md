@@ -108,16 +108,12 @@ cp apps/db/.env.example apps/db/.env
 
 | Variable           | App | Description                                              |
 | ------------------ | --- | -------------------------------------------------------- |
-| `PG_HOST`          | api | PostgreSQL host                                          |
-| `PG_PORT`          | api | PostgreSQL port                                          |
-| `PG_NBA_USERNAME`  | api | DB username                                              |
-| `PG_NBA_PASSWORD`  | api | DB password                                              |
-| `PG_NBA_DATABASE`  | api | DB name                                                  |
+| `DATABASE_URL`     | api | PostgreSQL connection string                             |
 | `PORT`             | api | Server port (default: `3001`)                            |
 | `CORS_ORIGIN`      | api | Comma-separated allowed origins (default: `localhost:3000`) |
 | `BACKEND_URL`      | web | API base URL for Vite dev proxy                          |
 | `VITE_BACKEND_URL` | web | API base URL for production client (Socket.io + fetch)   |
-| `DATABASE_URL`     | db  | PostgreSQL connection string                             |
+| `DATABASE_URL`     | db  | PostgreSQL connection string (read/write for pipeline)   |
 | `CONCURRENCY`      | db  | Scraper concurrency limit                                |
 | `REQUEST_TIMEOUT`  | db  | Scraper request timeout in seconds                       |
 | `DRIBBL_API_URL`   | cli | API base URL (default: `localhost:3001`)                 |

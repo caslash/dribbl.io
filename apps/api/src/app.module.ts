@@ -9,14 +9,14 @@ import { NbaModule } from './nba/nba.module';
     TypeOrmModule.forRootAsync({
       useFactory: () => ({
         type: 'postgres',
-        host: process.env.PG_HOST,
-        port: Number(process.env.PG_PORT),
-        username: process.env.PG_NBA_USERNAME,
-        password: process.env.PG_NBA_PASSWORD,
-        database: process.env.PG_NBA_DATABASE,
+        url: process.env.DATABASE_URL,
         entities: [Player, Season, Accolade, Team, SavedPool],
         synchronize: false,
         migrationsRun: false,
+        ssl:
+          process.env.NODE_ENV === 'production'
+            ? { rejectUnauthorized: false }
+            : false,
       }),
     }),
     NbaModule,

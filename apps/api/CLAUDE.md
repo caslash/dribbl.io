@@ -155,11 +155,8 @@ Auth is not yet implemented — all endpoints and WebSocket namespaces are curre
 
 ## Environment Variables
 
-| Variable          | Purpose                      |
-| ----------------- | ---------------------------- |
-| `PG_HOST`         | PostgreSQL host              |
-| `PG_PORT`         | PostgreSQL port              |
-| `PG_NBA_USERNAME` | DB username                  |
-| `PG_NBA_PASSWORD` | DB password                  |
-| `PG_NBA_DATABASE` | DB name                      |
-| `PORT`            | Server port (default `3001`) |
+| Variable       | Purpose                                                          |
+| -------------- | ---------------------------------------------------------------- |
+| `DATABASE_URL` | PostgreSQL connection string                                     |
+| `PORT`         | Server port (default `3001`)                                     |
+| `CORS_ORIGIN`  | Comma-separated allowed origins (default: `http://localhost:3000`) |
