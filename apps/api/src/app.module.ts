@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { join } from 'path';
 import { HealthModule } from './health/health.module';
 import { NbaModule } from './nba/nba.module';
 
@@ -14,6 +15,7 @@ import { NbaModule } from './nba/nba.module';
         type: 'postgres',
         url: process.env.DATABASE_URL,
         entities: [Player, Season, Accolade, Team, SavedPool],
+        migrations: [join(__dirname, 'migrations/*.js')],
         synchronize: false,
         migrationsRun: false,
         ssl:
