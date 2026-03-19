@@ -21,8 +21,8 @@ function TeamLogo({ teamId }: { teamId: number | string }) {
  */
 export function TeamHistoryDisplay({ teamHistory }: TeamHistoryDisplayProps) {
   return (
-    <div className="flex justify-center overflow-x-auto overflow-y-auto pb-2">
-      <div className="flex items-center gap-2">
+    <div className="flex justify-center">
+      <div className="flex flex-wrap justify-center items-center gap-2 w-full">
         {teamHistory.map((id, i) => (
           <div key={i} className="flex items-center gap-2">
             <TeamLogo teamId={id} />

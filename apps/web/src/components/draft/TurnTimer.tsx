@@ -66,8 +66,8 @@ export function TurnTimer({ durationSeconds, onExpire }: TurnTimerProps) {
   const isWarning = secondsLeft <= 5;
 
   return (
-    <div className="flex flex-col items-center gap-1">
-      <div className="relative w-24 h-24">
+    <div className="flex flex-col items-center">
+      <div className="relative w-14 h-14">
         <svg
           viewBox="0 0 88 88"
           className={`w-full h-full -rotate-90 ${isWarning ? 'animate-pulse' : ''}`}
@@ -98,14 +98,13 @@ export function TurnTimer({ durationSeconds, onExpire }: TurnTimerProps) {
         </svg>
         {/* Numeric display */}
         <span
-          className={`absolute inset-0 flex items-center justify-center text-2xl font-bold rotate-0 ${
+          className={`absolute inset-0 flex items-center justify-center text-base font-bold rotate-0 ${
             isWarning ? 'text-error' : 'text-text-primary'
           }`}
         >
           {secondsLeft}
         </span>
       </div>
-      <p className="text-xs text-text-muted">seconds left</p>
     </div>
   );
 }

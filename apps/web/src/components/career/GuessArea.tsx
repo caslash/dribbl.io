@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/Button';
 import { PlayerSearchInput } from '@/components/PlayerSearchInput';
 import { useCareerPath } from '@/hooks/useCareerPath';
+import { useEffect, useRef, useState } from 'react';
 
 interface GuessAreaProps {
   /** When true, the form is locked (e.g. during result feedback). */
@@ -76,23 +76,11 @@ export function GuessArea({ disabled = false }: GuessAreaProps) {
           size="md"
           onClick={handleSkip}
           disabled={disabled}
-          title={
-            isInfiniteMode
-              ? 'Skip (resets score to 0)'
-              : 'Skip (costs 1 life)'
-          }
+          title={isInfiniteMode ? 'Skip (resets score to 0)' : 'Skip (costs 1 life)'}
         >
           Skip{!isInfiniteMode && ' (−1 ♥)'}
         </Button>
       </div>
-      {selectedName && (
-        <p className="text-center text-sm text-text-muted">
-          Selected:{' '}
-          <span className="font-medium text-text-secondary">
-            {selectedName}
-          </span>
-        </p>
-      )}
     </div>
   );
 }

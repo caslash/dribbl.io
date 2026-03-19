@@ -1,8 +1,8 @@
-import type { PickRecord, Participant, PoolEntry } from '@dribblio/types';
-import { useEffect, useRef } from 'react';
 import { DraftPickCard } from '@/components/draft/DraftPickCard';
 import { OnTheClockCard } from '@/components/draft/OnTheClockCard';
 import { UpcomingPickCard } from '@/components/draft/UpcomingPickCard';
+import type { Participant, PickRecord, PoolEntry } from '@dribblio/types';
+import { useEffect, useRef } from 'react';
 
 interface DraftTimelineProps {
   /** Pre-expanded ordered array of participantIds. */
@@ -78,14 +78,11 @@ export function DraftTimeline({
         const label = `R${round} P${pickNum}`;
 
         if (i < currentTurnIndex) {
-          const pick = pickHistory.find(
-            (p) => p.round === round && p.pickNumber === pickNum,
-          );
+          const pick = pickHistory.find((p) => p.round === round && p.pickNumber === pickNum);
           const entry = pick ? pool.find((e) => e.entryId === pick.entryId) : undefined;
           return (
             <DraftPickCard
               key={i}
-              pick={pick}
               playerId={entry?.playerId ?? 0}
               playerName={entry?.playerName ?? '?'}
               participant={participant}
@@ -96,7 +93,7 @@ export function DraftTimeline({
 
         if (i === currentTurnIndex) {
           return participant ? (
-            <div key={i} ref={activeRef}>
+            <div key={i} ref={activeRef} className="h-full">
               <OnTheClockCard
                 participant={participant}
                 isMyTurn={isMyTurn}

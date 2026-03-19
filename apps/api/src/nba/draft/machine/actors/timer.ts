@@ -18,7 +18,7 @@ export const timerActor = fromCallback<TimerActorEvent, TimerActorInput>(
 
     const timeout = setTimeout(() => {
       sendBack({ type: 'TURN_TIMER_EXPIRED' });
-    }, turnDuration);
+    }, turnDuration * 1000);
 
     return () => {
       clearTimeout(timeout);
