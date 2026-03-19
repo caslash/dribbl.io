@@ -11,6 +11,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
+import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway({
@@ -25,10 +26,13 @@ export class CareerPathGateway
   @WebSocketServer()
   io: Server;
 
+  private readonly logger = new Logger(CareerPathGateway.name);
+
   constructor(private readonly careerPathService: CareerPathService) {}
 
   afterInit(server: Server): void {
     server.use(createRateLimiter());
+    this.logger.log('Career path gateway initialized');
   }
 
   handleConnection(socket: Socket) {
@@ -38,6 +42,9 @@ export class CareerPathGateway
       const room = this.careerPathService.getRoom(roomId);
 
       if (!room) {
+        this.logger.warn(
+          `Socket ${socket.id} attempted to join non-existent room ${roomId}`,
+        );
         socket.emit('ERROR', { message: `Room ${roomId} not found` });
         socket.disconnect();
         return;
@@ -45,11 +52,13 @@ export class CareerPathGateway
 
       socket.data.roomId = roomId;
       socket.join(roomId);
+      this.logger.log(`Socket ${socket.id} joined room ${roomId}`);
       return;
     }
 
     const newRoomId = this.careerPathService.createRoom(this.io, socket);
     socket.join(newRoomId);
+    this.logger.log(`Socket ${socket.id} created room ${newRoomId}`);
   }
 
   handleDisconnect(socket: Socket) {
@@ -57,6 +66,9 @@ export class CareerPathGateway
 
     if (!roomId) return;
 
+    this.logger.log(
+      `Socket ${socket.id} disconnected from room ${roomId} — destroying room`,
+    );
     this.careerPathService.destroyRoom(roomId);
   }
 

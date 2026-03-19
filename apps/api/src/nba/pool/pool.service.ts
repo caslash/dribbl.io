@@ -11,6 +11,7 @@ import {
 import {
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -18,6 +19,8 @@ import { Repository } from 'typeorm';
 
 @Injectable()
 export class PoolService {
+  private readonly logger = new Logger(PoolService.name);
+
   private get generators(): Record<string, PoolGenerator> {
     return { mvp: this.mvpGenerator, franchise: this.franchiseGenerator };
   }
@@ -31,10 +34,15 @@ export class PoolService {
 
   async generatePreview(config: DraftRoomConfig): Promise<PoolEntry[]> {
     const generator = this.generators[config.draftMode];
-    if (!generator)
+    if (!generator) {
+      this.logger.error(
+        `No generator registered for draftMode "${config.draftMode}"`,
+      );
       throw new InternalServerErrorException(
         `Generator for ${config.draftMode} does not exist.`,
       );
+    }
+    this.logger.log(`Generating preview pool for draftMode "${config.draftMode}"`);
     return generator.generate();
   }
 
@@ -47,13 +55,15 @@ export class PoolService {
   }
 
   async createPool(dto: CreatePoolDto): Promise<SavedPool> {
-    return this.savedPoolRepository.save({
+    const pool = await this.savedPoolRepository.save({
       name: dto.name,
       visibility: dto.visibility,
       draftMode: dto.draftMode,
       entries: dto.entries,
       createdBy: null,
     });
+    this.logger.log(`Pool "${pool.name}" created (id: ${pool.id})`);
+    return pool;
   }
 
   async savePool(
@@ -62,17 +72,21 @@ export class PoolService {
     config: DraftRoomConfig,
     entries: PoolEntry[],
   ): Promise<SavedPool> {
-    return this.savedPoolRepository.save({
+    const pool = await this.savedPoolRepository.save({
       name,
       draftMode: config.draftMode,
       visibility,
       entries,
       createdBy: null,
     });
+    this.logger.log(`Pool "${pool.name}" saved (id: ${pool.id})`);
+    return pool;
   }
 
   async loadPool(poolId: string): Promise<SavedPool | null> {
-    return this.savedPoolRepository.findOneBy({ id: poolId });
+    const pool = await this.savedPoolRepository.findOneBy({ id: poolId });
+    if (!pool) this.logger.warn(`Pool ${poolId} not found`);
+    return pool;
   }
 
   async listPublicPools(): Promise<SavedPool[]> {

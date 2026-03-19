@@ -2,7 +2,7 @@ import { RoundProps } from '@/nba/careerpath/machine/actors/generate-round';
 import { createCareerPathMachine } from '@/nba/careerpath/machine/statemachine';
 import { PlayerService } from '@/nba/player/player.service';
 import { GameDifficulty, Player, Season } from '@dribblio/types';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import ShortUniqueId from 'short-unique-id';
 import { Server, Socket } from 'socket.io';
@@ -49,6 +49,8 @@ function computeCareerSignature(seasons: Season[]): number[] {
  */
 @Injectable()
 export class CareerPathService {
+  private readonly logger = new Logger(CareerPathService.name);
+
   private readonly rooms = new Map<
     string,
     ReturnType<typeof createCareerPathMachine>
@@ -74,6 +76,9 @@ export class CareerPathService {
    */
   createRoom(io: Server, creatorSocket: Socket): string {
     if (this.rooms.size >= MAX_ROOMS) {
+      this.logger.warn(
+        `Room limit reached (${MAX_ROOMS}) — rejecting new room creation`,
+      );
       throw new Error('Room limit reached. Try again later.');
     }
 
@@ -86,12 +91,18 @@ export class CareerPathService {
 
     const subscription = actor.subscribe((state) => {
       if (state.status === 'done') {
+        this.logger.log(
+          `Career path machine for room ${roomId} reached final state — triggering cleanup`,
+        );
         this.destroyRoom(roomId);
       }
     });
 
     this.subscriptions.set(roomId, subscription);
     this.rooms.set(roomId, actor);
+    this.logger.log(
+      `Career path room ${roomId} created (active rooms: ${this.rooms.size})`,
+    );
     return roomId;
   }
 
@@ -114,13 +125,23 @@ export class CareerPathService {
       difficulty.filter,
     );
 
-    if (!randomPlayer) return { validAnswers: [] };
+    if (!randomPlayer) {
+      this.logger.warn(
+        'generateRound: no random player found for difficulty filter',
+      );
+      return { validAnswers: [] };
+    }
 
     const playerWithSeasons = await this.playerRepository.findOne({
       where: { playerId: randomPlayer.playerId },
       relations: { seasons: true },
     });
-    if (!playerWithSeasons) return { validAnswers: [] };
+    if (!playerWithSeasons) {
+      this.logger.warn(
+        `generateRound: player ${randomPlayer.playerId} not found with seasons`,
+      );
+      return { validAnswers: [] };
+    }
 
     const signature = computeCareerSignature(playerWithSeasons.seasons);
     if (signature.length === 0) return { validAnswers: [playerWithSeasons] };
@@ -157,7 +178,12 @@ export class CareerPathService {
     );
 
     const matchingIds = rows.map((r) => r.player_id);
-    if (matchingIds.length === 0) return { validAnswers: [playerWithSeasons] };
+    if (matchingIds.length === 0) {
+      this.logger.debug(
+        `generateRound: no other players share career signature for player ${randomPlayer.playerId} — using solo answer`,
+      );
+      return { validAnswers: [playerWithSeasons] };
+    }
 
     const validAnswers = await this.playerRepository.find({
       where: { playerId: In(matchingIds) },
@@ -177,6 +203,9 @@ export class CareerPathService {
     const actor = this.rooms.get(roomId);
 
     if (actor) {
+      this.logger.log(
+        `Career path room ${roomId} destroyed (active rooms: ${this.rooms.size - 1})`,
+      );
       this.subscriptions.get(roomId)?.unsubscribe();
       this.subscriptions.delete(roomId);
       actor.stop();

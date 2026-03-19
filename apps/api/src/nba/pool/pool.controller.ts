@@ -11,6 +11,7 @@ import {
   Controller,
   Delete,
   Get,
+  Logger,
   NotFoundException,
   Param,
   Patch,
@@ -19,6 +20,8 @@ import {
 
 @Controller('pools')
 export class PoolController {
+  private readonly logger = new Logger(PoolController.name);
+
   constructor(
     private readonly mvpGenerator: MvpPoolGenerator,
     private readonly poolService: PoolService,
@@ -42,7 +45,10 @@ export class PoolController {
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<SavedPool> {
     const pool = await this.poolService.loadPool(id);
-    if (!pool) throw new NotFoundException(`Pool ${id} not found`);
+    if (!pool) {
+      this.logger.warn(`Pool ${id} not found`);
+      throw new NotFoundException(`Pool ${id} not found`);
+    }
     return pool;
   }
 
@@ -52,13 +58,19 @@ export class PoolController {
     @Body() dto: UpdatePoolDto,
   ): Promise<SavedPool> {
     const pool = await this.poolService.updatePool(id, dto);
-    if (!pool) throw new NotFoundException(`Pool ${id} not found`);
+    if (!pool) {
+      this.logger.warn(`Pool ${id} not found for update`);
+      throw new NotFoundException(`Pool ${id} not found`);
+    }
     return pool;
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<void> {
     const deleted = await this.poolService.deletePool(id);
-    if (!deleted) throw new NotFoundException(`Pool ${id} not found`);
+    if (!deleted) {
+      this.logger.warn(`Pool ${id} not found for deletion`);
+      throw new NotFoundException(`Pool ${id} not found`);
+    }
   }
 }

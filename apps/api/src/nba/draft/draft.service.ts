@@ -1,6 +1,6 @@
 import { createDraftMachine } from '@/nba/draft/machine/statemachine';
 import { DraftOrder, Participant } from '@dribblio/types';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import ShortUniqueId from 'short-unique-id';
 import { Server } from 'socket.io';
 import { Subscription } from 'xstate';
@@ -19,6 +19,8 @@ const MAX_ROOMS = 50;
  */
 @Injectable()
 export class DraftService {
+  private readonly logger = new Logger(DraftService.name);
+
   private readonly rooms = new Map<
     string,
     ReturnType<typeof createDraftMachine>
@@ -39,6 +41,7 @@ export class DraftService {
    */
   createRoom(io: Server): string {
     if (this.rooms.size >= MAX_ROOMS) {
+      this.logger.warn(`Room limit reached (${MAX_ROOMS}) — rejecting new room creation`);
       throw new Error('Room limit reached. Try again later.');
     }
 
@@ -48,12 +51,14 @@ export class DraftService {
 
     const subscription = actor.subscribe((state) => {
       if (state.status === 'done') {
+        this.logger.log(`Draft machine for room ${roomId} reached final state — triggering cleanup`);
         this.destroyRoom(roomId);
       }
     });
 
     this.subscriptions.set(roomId, subscription);
     this.rooms.set(roomId, actor);
+    this.logger.log(`Draft room ${roomId} created (active rooms: ${this.rooms.size})`);
     return roomId;
   }
 
@@ -116,6 +121,7 @@ export class DraftService {
     const actor = this.rooms.get(roomId);
 
     if (actor) {
+      this.logger.log(`Draft room ${roomId} destroyed (active rooms: ${this.rooms.size - 1})`);
       this.subscriptions.get(roomId)?.unsubscribe();
       this.subscriptions.delete(roomId);
       actor.stop();

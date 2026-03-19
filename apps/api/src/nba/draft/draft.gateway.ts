@@ -7,6 +7,7 @@ import {
   SubmitPickEvent,
 } from '@dribblio/types';
 import { createRateLimiter } from '@/nba/shared/rate-limiter';
+import { Logger } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -31,6 +32,8 @@ export class DraftGateway
   @WebSocketServer()
   io: Server;
 
+  private readonly logger = new Logger(DraftGateway.name);
+
   /** Tracks the number of active sockets per room for cleanup purposes. */
   private readonly roomSocketCounts = new Map<string, number>();
 
@@ -46,6 +49,7 @@ export class DraftGateway
 
   afterInit(server: Server): void {
     server.use(createRateLimiter());
+    this.logger.log('Draft gateway initialized');
   }
 
   handleConnection(socket: Socket) {
@@ -55,6 +59,7 @@ export class DraftGateway
       const room = this.draftService.getRoom(roomId);
 
       if (!room) {
+        this.logger.warn(`Socket ${socket.id} attempted to join non-existent room ${roomId}`);
         socket.emit('ERROR', { message: `Room ${roomId} not found` });
         socket.disconnect();
         return;
@@ -63,26 +68,42 @@ export class DraftGateway
       socket.data.roomId = roomId;
       socket.join(roomId);
       this.roomSocketCounts.set(roomId, (this.roomSocketCounts.get(roomId) ?? 0) + 1);
+      this.logger.log(`Socket ${socket.id} joined room ${roomId}`);
       return;
     }
 
-    // Temp socket used only to obtain a generated roomId — not tracked for cleanup.
+    // Temp socket used only to obtain a generated roomId.
+    // Store it so handleDisconnect can clean up if no participant ever joins.
     const newRoomId = this.draftService.createRoom(this.io);
+    socket.data.createdRoomId = newRoomId;
     socket.join(newRoomId);
     socket.emit('ROOM_CREATED', { roomId: newRoomId });
+    this.logger.log(`Socket ${socket.id} created room ${newRoomId}`);
   }
 
   handleDisconnect(socket: Socket) {
     const roomId = socket.data.roomId as string | undefined;
-    // Temp room-creation sockets have no roomId stored — nothing to clean up.
-    if (!roomId) return;
+
+    if (!roomId) {
+      // Temp room-creation socket — destroy the room if no participant joined.
+      const createdRoomId = socket.data.createdRoomId as string | undefined;
+      if (createdRoomId && !this.roomSocketCounts.has(createdRoomId)) {
+        this.logger.log(`Destroying orphaned room ${createdRoomId} — no participants joined`);
+        this.draftService.destroyRoom(createdRoomId);
+      } else {
+        this.logger.debug(`Temp socket ${socket.id} disconnected`);
+      }
+      return;
+    }
 
     const remaining = (this.roomSocketCounts.get(roomId) ?? 1) - 1;
     if (remaining <= 0) {
       this.roomSocketCounts.delete(roomId);
+      this.logger.log(`Last participant left room ${roomId} — destroying room`);
       this.draftService.destroyRoom(roomId);
     } else {
       this.roomSocketCounts.set(roomId, remaining);
+      this.logger.debug(`Socket ${socket.id} left room ${roomId} (${remaining} remaining)`);
     }
   }
 
@@ -115,6 +136,7 @@ export class DraftGateway
       const pool = await this.poolService.generatePreview(data.config);
       room.send({ type: 'SAVE_CONFIG', config: data.config, pool });
     } catch (error) {
+      this.logger.error(`Failed to generate pool preview for room ${roomId}`, error instanceof Error ? error.stack : String(error));
       socket.emit('ERROR', { message: 'Failed to generate pool preview' });
     }
   }
@@ -137,6 +159,7 @@ export class DraftGateway
       if (data?.savedPoolId) {
         const savedPool = await this.poolService.loadPool(data.savedPoolId);
         if (!savedPool) {
+          this.logger.warn(`Saved pool ${data.savedPoolId} not found for room ${roomId}`);
           socket.emit('ERROR', { message: `Pool ${data.savedPoolId} not found` });
           return;
         }
@@ -157,6 +180,7 @@ export class DraftGateway
         turnOrder,
       });
     } catch (error) {
+      this.logger.error(`Failed to start draft for room ${roomId}`, error instanceof Error ? error.stack : String(error));
       socket.emit('ERROR', { message: 'Failed to start draft' });
     }
   }

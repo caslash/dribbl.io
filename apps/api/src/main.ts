@@ -1,4 +1,4 @@
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import * as dotenv from 'dotenv';
 import * as express from 'express';
@@ -14,6 +14,8 @@ const REQUIRED_ENV_VARS = [
   'PG_NBA_DATABASE',
 ] as const;
 
+const logger = new Logger('Bootstrap');
+
 /**
  * Validates that all required environment variables are present.
  * Logs each missing variable name and exits the process if any are absent.
@@ -23,7 +25,7 @@ function validateEnv(): void {
 
   if (missing.length > 0) {
     for (const key of missing) {
-      console.error(`Missing required environment variable: ${key}`);
+      logger.error(`Missing required environment variable: ${key}`);
     }
     process.exit(1);
   }
@@ -33,7 +35,7 @@ async function bootstrap() {
   validateEnv();
 
   if (!process.env.CORS_ORIGIN && process.env.NODE_ENV === 'production') {
-    console.warn(
+    logger.warn(
       'CORS_ORIGIN is not set in production — requests may be blocked',
     );
   }
@@ -55,6 +57,7 @@ async function bootstrap() {
   app.enableShutdownHooks();
 
   await app.listen(process.env.PORT ?? 3001);
+  logger.log(`Application listening on port ${process.env.PORT ?? 3001}`);
 
   process.on('SIGTERM', async () => {
     await app.close();
