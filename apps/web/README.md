@@ -1,6 +1,6 @@
 # @dribblio/web
 
-Vite + React frontend for dribbl.io. Runs on port 3000. Proxies all `/api` requests to the API server at `localhost:3002`.
+Vite + React frontend for dribbl.io. Runs on port 3000. Proxies all `/api` requests to the API server at `localhost:3001`.
 
 ## Stack
 
@@ -19,7 +19,7 @@ npm install
 npm run dev
 ```
 
-The dev server starts on port 3000. The API must be running on port 3002 for game features to work.
+The dev server starts on port 3000. The API must be running on port 3001 for game features to work.
 
 ## Scripts
 
@@ -83,12 +83,12 @@ src/
 
 All routes are defined in `src/App.tsx` using React Router's `BrowserRouter`.
 
-| Path          | Page               | Description                        |
-| ------------- | ------------------ | ---------------------------------- |
-| `/`           | `HomePage`         | Landing page                       |
-| `/career`     | `CareerPathPage`   | Career Path single-player game     |
-| `/draft`      | `DraftLobbyPage`   | Draft lobby (create or join room)  |
-| `/draft/:id`  | `DraftRoomPage`    | Active draft room                  |
+| Path         | Page             | Description                       |
+| ------------ | ---------------- | --------------------------------- |
+| `/`          | `HomePage`       | Landing page                      |
+| `/career`    | `CareerPathPage` | Career Path single-player game    |
+| `/draft`     | `DraftLobbyPage` | Draft lobby (create or join room) |
+| `/draft/:id` | `DraftRoomPage`  | Active draft room                 |
 
 ## Imports
 
@@ -104,7 +104,7 @@ Pages are imported directly in `App.tsx` — they are not re-exported from a bar
 
 ## API Proxy
 
-In development, requests to `/api/*` are proxied to `http://localhost:3002`. You never need to hardcode the API base URL:
+In development, requests to `/api/*` are proxied to `http://localhost:3001`. You never need to hardcode the API base URL:
 
 ```ts
 const res = await fetch('/api/players');

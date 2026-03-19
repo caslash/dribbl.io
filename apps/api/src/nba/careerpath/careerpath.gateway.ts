@@ -4,6 +4,7 @@ import {
   ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
+  OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -11,7 +12,9 @@ import {
 import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway({ namespace: '/careerpath' })
-export class CareerPathGateway implements OnGatewayConnection {
+export class CareerPathGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   io: Server;
 
@@ -29,12 +32,21 @@ export class CareerPathGateway implements OnGatewayConnection {
         return;
       }
 
+      socket.data.roomId = roomId;
       socket.join(roomId);
       return;
     }
 
     const newRoomId = this.careerPathService.createRoom(this.io, socket);
     socket.join(newRoomId);
+  }
+
+  handleDisconnect(socket: Socket) {
+    const roomId = socket.data.roomId as string | undefined;
+
+    if (!roomId) return;
+
+    this.careerPathService.destroyRoom(roomId);
   }
 
   @SubscribeMessage('*')

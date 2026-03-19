@@ -1,6 +1,6 @@
 # API App — CLAUDE.md
 
-NestJS REST + WebSocket API for dribbl.io. Runs on port 3002. All routes prefixed with `/api`.
+NestJS REST + WebSocket API for dribbl.io. Runs on port 3001. All routes prefixed with `/api`.
 
 ## Stack
 
@@ -14,7 +14,7 @@ NestJS REST + WebSocket API for dribbl.io. Runs on port 3002. All routes prefixe
 
 ```
 src/
-├── main.ts               # Bootstrap: ValidationPipe, /api prefix, port 3002
+├── main.ts               # Bootstrap: ValidationPipe, /api prefix, port 3001
 ├── app.module.ts         # Root module: TypeORM config, imports NbaModule
 └── nba/                  # All game/domain logic lives here
     ├── nba.module.ts
@@ -92,6 +92,7 @@ export class FeatureGateway implements OnGatewayConnection {
 See the `nestjs-xstate` skill for full typing patterns — use it whenever creating or modifying a machine.
 
 Key conventions:
+
 - `createFeatureMachine(socketInfo)` returns a started `Actor` instance.
 - Machine is defined with `setup({ types, actions, guards, actors }).createMachine(...)`.
 - Context and event types come from `@dribblio/types`.
@@ -102,18 +103,18 @@ Key conventions:
 
 ## Naming Conventions
 
-| Thing | Convention | Example |
-|---|---|---|
-| Files | `feature.type.ts` | `draft.service.ts` |
-| Classes | PascalCase | `DraftGateway` |
-| XState events | SCREAMING_SNAKE_CASE | `PARTICIPANT_JOINED` |
-| XState guards | predicate (`is*`/`are*`) | `areRoundsRemaining` |
-| XState assign actions | `assign*` prefix | `assignConfig` |
-| XState notify actions | `notify*` prefix | `notifyPickConfirmed` |
-| XState states | camelCase | `waitingForPlayers` |
-| Room IDs | 5-char uppercase alphanumeric | `XYZ12` |
-| REST params | snake_case | `/players/:player_id` |
-| WebSocket namespaces | lowercase | `/draft` |
+| Thing                 | Convention                    | Example               |
+| --------------------- | ----------------------------- | --------------------- |
+| Files                 | `feature.type.ts`             | `draft.service.ts`    |
+| Classes               | PascalCase                    | `DraftGateway`        |
+| XState events         | SCREAMING_SNAKE_CASE          | `PARTICIPANT_JOINED`  |
+| XState guards         | predicate (`is*`/`are*`)      | `areRoundsRemaining`  |
+| XState assign actions | `assign*` prefix              | `assignConfig`        |
+| XState notify actions | `notify*` prefix              | `notifyPickConfirmed` |
+| XState states         | camelCase                     | `waitingForPlayers`   |
+| Room IDs              | 5-char uppercase alphanumeric | `XYZ12`               |
+| REST params           | snake_case                    | `/players/:player_id` |
+| WebSocket namespaces  | lowercase                     | `/draft`              |
 
 ## TypeScript Path Aliases
 
@@ -154,11 +155,11 @@ Auth is not yet implemented — all endpoints and WebSocket namespaces are curre
 
 ## Environment Variables
 
-| Variable | Purpose |
-|---|---|
-| `PG_HOST` | PostgreSQL host |
-| `PG_PORT` | PostgreSQL port |
-| `PG_NBA_USERNAME` | DB username |
-| `PG_NBA_PASSWORD` | DB password |
-| `PG_NBA_DATABASE` | DB name |
-| `PORT` | Server port (default `3002`) |
+| Variable          | Purpose                      |
+| ----------------- | ---------------------------- |
+| `PG_HOST`         | PostgreSQL host              |
+| `PG_PORT`         | PostgreSQL port              |
+| `PG_NBA_USERNAME` | DB username                  |
+| `PG_NBA_PASSWORD` | DB password                  |
+| `PG_NBA_DATABASE` | DB name                      |
+| `PORT`            | Server port (default `3001`) |

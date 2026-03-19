@@ -127,7 +127,7 @@ export class CareerPathService {
     return { validAnswers };
   };
 
-  private destroyRoom(roomId: string) {
+  destroyRoom(roomId: string) {
     const actor = this.rooms.get(roomId);
 
     if (actor) {
