@@ -11,7 +11,12 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-@WebSocketGateway({ namespace: '/careerpath' })
+@WebSocketGateway({
+  namespace: '/careerpath',
+  cors: {
+    origin: process.env.CORS_ORIGIN?.split(',') ?? 'http://localhost:3000',
+  },
+})
 export class CareerPathGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {

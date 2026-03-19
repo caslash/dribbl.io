@@ -16,6 +16,7 @@ describe('CareerPathGateway', () => {
   const makeSocket = (socketId: string, roomId?: string) => ({
     id: socketId,
     rooms: new Set(roomId ? [socketId, roomId] : [socketId]),
+    data: {} as Record<string, unknown>,
     emit: vi.fn(),
     join: vi.fn(),
     disconnect: vi.fn(),

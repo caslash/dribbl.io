@@ -13,6 +13,9 @@ export class DraftService {
     ReturnType<typeof createDraftMachine>
   >();
 
+  /** Optional callback invoked when a room is destroyed (for external cleanup). */
+  onRoomDestroyed?: (roomId: string) => void;
+
   createRoom(io: Server): string {
     const roomId = uid.randomUUID();
 
@@ -64,6 +67,7 @@ export class DraftService {
     if (actor) {
       actor.stop();
       this.rooms.delete(roomId);
+      this.onRoomDestroyed?.(roomId);
     }
   }
 }

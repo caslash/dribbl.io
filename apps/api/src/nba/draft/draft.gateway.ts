@@ -17,7 +17,12 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-@WebSocketGateway({ namespace: '/draft' })
+@WebSocketGateway({
+  namespace: '/draft',
+  cors: {
+    origin: process.env.CORS_ORIGIN?.split(',') ?? 'http://localhost:3000',
+  },
+})
 export class DraftGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   io: Server;
@@ -28,7 +33,12 @@ export class DraftGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly draftService: DraftService,
     private readonly poolService: PoolService,
-  ) {}
+  ) {
+    // Clean up socket tracking when a room is destroyed internally (e.g. machine reaches final state)
+    this.draftService.onRoomDestroyed = (roomId) => {
+      this.roomSocketCounts.delete(roomId);
+    };
+  }
 
   handleConnection(socket: Socket) {
     const roomId = socket.handshake.query.roomId as string | undefined;
@@ -93,9 +103,12 @@ export class DraftGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const room = this.draftService.getRoom(roomId);
     if (!room) return;
 
-    const pool = await this.poolService.generatePreview(data.config);
-
-    room.send({ type: 'SAVE_CONFIG', config: data.config, pool });
+    try {
+      const pool = await this.poolService.generatePreview(data.config);
+      room.send({ type: 'SAVE_CONFIG', config: data.config, pool });
+    } catch (error) {
+      socket.emit('ERROR', { message: 'Failed to generate pool preview' });
+    }
   }
 
   @SubscribeMessage('ORGANIZER_START_DRAFT')
@@ -109,31 +122,35 @@ export class DraftGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const room = this.draftService.getRoom(roomId);
     if (!room) return;
 
-    const { participants, config } = room.getSnapshot().context;
+    try {
+      const { participants, config } = room.getSnapshot().context;
 
-    let pool;
-    if (data?.savedPoolId) {
-      const savedPool = await this.poolService.loadPool(data.savedPoolId);
-      if (!savedPool) {
-        socket.emit('ERROR', { message: `Pool ${data.savedPoolId} not found` });
-        return;
+      let pool;
+      if (data?.savedPoolId) {
+        const savedPool = await this.poolService.loadPool(data.savedPoolId);
+        if (!savedPool) {
+          socket.emit('ERROR', { message: `Pool ${data.savedPoolId} not found` });
+          return;
+        }
+        pool = savedPool.entries.map((entry) => ({ ...entry, available: true }));
+      } else {
+        pool = await this.poolService.finalize(config);
       }
-      pool = savedPool.entries.map((entry) => ({ ...entry, available: true }));
-    } else {
-      pool = await this.poolService.finalize(config);
+
+      const turnOrder = this.draftService.computeTurnOrder(
+        participants,
+        config.draftOrder,
+        config.maxRounds,
+      );
+
+      room.send({
+        type: 'ORGANIZER_START_DRAFT',
+        pool,
+        turnOrder,
+      });
+    } catch (error) {
+      socket.emit('ERROR', { message: 'Failed to start draft' });
     }
-
-    const turnOrder = this.draftService.computeTurnOrder(
-      participants,
-      config.draftOrder,
-      config.maxRounds,
-    );
-
-    room.send({
-      type: 'ORGANIZER_START_DRAFT',
-      pool,
-      turnOrder,
-    });
   }
 
   @SubscribeMessage('SUBMIT_PICK')
