@@ -14,6 +14,8 @@ export const socketActor = fromCallback<
   const { io, roomId } = input;
 
   io.on('connection', (socket: Socket) => {
+    if (!socket.rooms.has(roomId)) return;
+
     socket.on('PARTICIPANT_JOINED', (data) =>
       sendBack({ type: 'PARTICIPANT_JOINED', ...data }),
     );
@@ -25,9 +27,6 @@ export const socketActor = fromCallback<
     );
     socket.on('ORGANIZER_CANCEL_DRAFT', () =>
       sendBack({ type: 'ORGANIZER_CANCEL_DRAFT' }),
-    );
-    socket.on('SUBMIT_PICK', (data) =>
-      sendBack({ type: 'SUBMIT_PICK', ...data }),
     );
     socket.on('PARTICIPANT_RECONNECTED', (data) =>
       sendBack({ type: 'PARTICIPANT_RECONNECTED', ...data }),

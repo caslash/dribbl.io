@@ -78,7 +78,9 @@ export function DraftTimeline({
         const label = `R${round} P${pickNum}`;
 
         if (i < currentTurnIndex) {
-          const pick = pickHistory[i];
+          const pick = pickHistory.find(
+            (p) => p.round === round && p.pickNumber === pickNum,
+          );
           const entry = pick ? pool.find((e) => e.entryId === pick.entryId) : undefined;
           return (
             <DraftPickCard
