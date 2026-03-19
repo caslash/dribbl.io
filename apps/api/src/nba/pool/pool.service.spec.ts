@@ -25,6 +25,7 @@ describe('PoolService', () => {
     save: vi.fn(),
     findOneBy: vi.fn(),
     findBy: vi.fn(),
+    find: vi.fn(),
     delete: vi.fn(),
   };
 
@@ -189,14 +190,32 @@ describe('PoolService', () => {
   });
 
   describe('listPublicPools', () => {
-    it('should call findBy with public visibility and return the list', async () => {
+    it('should return public pools with default pagination', async () => {
       const pools = [{ id: 'p1' }, { id: 'p2' }];
-      mockSavedPoolRepository.findBy.mockResolvedValue(pools);
+      mockSavedPoolRepository.find.mockResolvedValue(pools);
 
       const result = await service.listPublicPools();
 
-      expect(mockSavedPoolRepository.findBy).toHaveBeenCalledWith({
-        visibility: 'public',
+      expect(mockSavedPoolRepository.find).toHaveBeenCalledWith({
+        where: { visibility: 'public' },
+        take: 20,
+        skip: 0,
+        order: { createdAt: 'DESC' },
+      });
+      expect(result).toBe(pools);
+    });
+
+    it('should pass limit and offset to the repository', async () => {
+      const pools = [{ id: 'p3' }];
+      mockSavedPoolRepository.find.mockResolvedValue(pools);
+
+      const result = await service.listPublicPools(5, 10);
+
+      expect(mockSavedPoolRepository.find).toHaveBeenCalledWith({
+        where: { visibility: 'public' },
+        take: 5,
+        skip: 10,
+        order: { createdAt: 'DESC' },
       });
       expect(result).toBe(pools);
     });

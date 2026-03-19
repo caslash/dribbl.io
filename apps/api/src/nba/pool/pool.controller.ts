@@ -9,13 +9,16 @@ import {
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   Logger,
   NotFoundException,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 
 @Controller('pools')
@@ -38,8 +41,11 @@ export class PoolController {
   }
 
   @Get('public')
-  async listPublic(): Promise<SavedPool[]> {
-    return this.poolService.listPublicPools();
+  async listPublic(
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+    @Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number,
+  ): Promise<SavedPool[]> {
+    return this.poolService.listPublicPools(limit, offset);
   }
 
   @Get(':id')

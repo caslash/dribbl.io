@@ -17,7 +17,7 @@ import { Server, Socket } from 'socket.io';
 @WebSocketGateway({
   namespace: '/careerpath',
   cors: {
-    origin: process.env.CORS_ORIGIN?.split(',') ?? 'http://localhost:3000',
+    origin: process.env.CORS_ORIGIN?.split(',').map((o) => o.trim()) ?? ['http://localhost:3000'],
   },
 })
 export class CareerPathGateway

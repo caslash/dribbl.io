@@ -89,8 +89,13 @@ export class PoolService {
     return pool;
   }
 
-  async listPublicPools(): Promise<SavedPool[]> {
-    return this.savedPoolRepository.findBy({ visibility: 'public' });
+  async listPublicPools(limit = 20, offset = 0): Promise<SavedPool[]> {
+    return this.savedPoolRepository.find({
+      where: { visibility: 'public' },
+      take: limit,
+      skip: offset,
+      order: { createdAt: 'DESC' },
+    });
   }
 
   async updatePool(

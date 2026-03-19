@@ -37,12 +37,15 @@ export const socketActor = fromCallback<
 
   const registerListeners = (socket: Socket) => {
     socket.on('START_GAME', () => sendBack({ type: 'START_GAME' }));
-    socket.on('SAVE_CONFIG', (data) =>
-      sendBack({ type: 'SAVE_CONFIG', ...data }),
-    );
-    socket.on('USER_GUESS', (data) =>
-      sendBack({ type: 'USER_GUESS', guess: data }),
-    );
+    socket.on('SAVE_CONFIG', (data) => {
+      if (!data || typeof data !== 'object') return;
+      sendBack({ type: 'SAVE_CONFIG', ...data });
+    });
+    socket.on('USER_GUESS', (data) => {
+      if (!data || typeof data !== 'object') return;
+      if (!Number.isFinite(data.guessId)) return;
+      sendBack({ type: 'USER_GUESS', guess: data });
+    });
     socket.on('SKIP', () => sendBack({ type: 'SKIP' }));
     socket.on('disconnect', () => sendBack({ type: 'PLAYER_DISCONNECTED' }));
   };

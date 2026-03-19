@@ -1,11 +1,14 @@
 import { Accolade, Player, SavedPool, Season, Team } from '@dribblio/types';
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { HealthModule } from './health/health.module';
 import { NbaModule } from './nba/nba.module';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 60 }]),
     TypeOrmModule.forRootAsync({
       useFactory: () => ({
         type: 'postgres',
@@ -17,10 +20,16 @@ import { NbaModule } from './nba/nba.module';
           process.env.NODE_ENV === 'production'
             ? { rejectUnauthorized: false }
             : false,
+        extra: {
+          max: 20,
+          idleTimeoutMillis: 30_000,
+          connectionTimeoutMillis: 5_000,
+        },
       }),
     }),
     NbaModule,
     HealthModule,
   ],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

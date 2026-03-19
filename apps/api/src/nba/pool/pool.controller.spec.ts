@@ -87,9 +87,9 @@ describe('PoolController', () => {
       const pools = [{ id: 'p1' }, { id: 'p2' }];
       mockPoolService.listPublicPools.mockResolvedValue(pools);
 
-      const result = await controller.listPublic();
+      const result = await controller.listPublic(20, 0);
 
-      expect(service.listPublicPools).toHaveBeenCalledWith();
+      expect(service.listPublicPools).toHaveBeenCalledWith(20, 0);
       expect(result).toBe(pools);
     });
   });

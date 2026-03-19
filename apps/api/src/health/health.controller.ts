@@ -1,20 +1,33 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
+import { DataSource } from 'typeorm';
 
 /**
- * Exposes a liveness probe endpoint for load balancers and orchestrators.
+ * Exposes a readiness probe endpoint that verifies both process liveness
+ * and database reachability.
  *
  * @example
  * // GET /api/health → { status: 'ok' }
+ * // GET /api/health → 503 Service Unavailable (when DB is unreachable)
  */
 @Controller('health')
 export class HealthController {
+  constructor(private readonly dataSource: DataSource) {}
+
   /**
-   * Returns a static `ok` status to confirm the process is running.
+   * Runs a lightweight DB ping and returns `ok` when the connection is healthy.
+   * Throws a 503 if the database cannot be reached, allowing load balancers
+   * to route traffic away from an unhealthy instance.
    *
-   * @returns An object indicating the service is alive.
+   * @returns An object indicating the service and database are reachable.
+   * @throws {ServiceUnavailableException} When the database query fails.
    */
   @Get()
-  check(): { status: string } {
-    return { status: 'ok' };
+  async check(): Promise<{ status: string }> {
+    try {
+      await this.dataSource.query('SELECT 1');
+      return { status: 'ok' };
+    } catch {
+      throw new ServiceUnavailableException('Database unreachable');
+    }
   }
 }
