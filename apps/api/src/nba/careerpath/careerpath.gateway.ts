@@ -12,8 +12,10 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Logger } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { Server, Socket } from 'socket.io';
 
+@SkipThrottle()
 @WebSocketGateway({
   namespace: '/careerpath',
   cors: {

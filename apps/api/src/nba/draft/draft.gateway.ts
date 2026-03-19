@@ -8,6 +8,7 @@ import {
 } from '@dribblio/types';
 import { createRateLimiter } from '@/nba/shared/rate-limiter';
 import { Logger } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import {
   ConnectedSocket,
   MessageBody,
@@ -20,6 +21,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
+@SkipThrottle()
 @WebSocketGateway({
   namespace: '/draft',
   cors: {
