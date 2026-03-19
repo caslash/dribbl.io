@@ -57,8 +57,6 @@ export class CareerPathService {
       }
     });
 
-    console.log(`[CareerPathService] Creating room: ${roomId}`);
-
     this.rooms.set(roomId, actor);
     return roomId;
   }
@@ -135,7 +133,6 @@ export class CareerPathService {
     if (actor) {
       actor.stop();
       this.rooms.delete(roomId);
-      console.log(`[CareerPathService] Room destroyed: ${roomId}`);
     }
   }
 }

@@ -24,8 +24,6 @@ export class DraftService {
       }
     });
 
-    console.log(`[DraftService] Creating room: ${roomId}`);
-
     this.rooms.set(roomId, actor);
     return roomId;
   }
@@ -66,7 +64,6 @@ export class DraftService {
     if (actor) {
       actor.stop();
       this.rooms.delete(roomId);
-      console.log(`[DraftService] Room destroyed: ${roomId}`);
     }
   }
 }
