@@ -33,6 +33,11 @@ vi.mock('@/nba/draft/machine/actors/timer', async () => {
   return { timerActor: fromCallback(() => () => {}) };
 });
 
+vi.mock('@/nba/draft/machine/actors/auto-pick', async () => {
+  const { fromCallback } = await import('xstate');
+  return { autoPickActor: fromCallback(() => () => {}) };
+});
+
 // ---------------------------------------------------------------------------
 // Helper factories
 // ---------------------------------------------------------------------------
