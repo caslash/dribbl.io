@@ -7,9 +7,20 @@ import { InjectRepository } from '@nestjs/typeorm';
 import ShortUniqueId from 'short-unique-id';
 import { Server, Socket } from 'socket.io';
 import { In, Repository } from 'typeorm';
+import { Subscription } from 'xstate';
 
 const uid = new ShortUniqueId({ length: 5, dictionary: 'alphanum_upper' });
 
+/** Maximum number of concurrent career path rooms allowed. */
+const MAX_ROOMS = 200;
+
+/**
+ * Derives a player's canonical career signature as an ordered list of team IDs,
+ * collapsing consecutive stints with the same team into a single entry.
+ *
+ * @param seasons - All seasons for a given player.
+ * @returns An ordered array of team IDs representing the player's career path.
+ */
 function computeCareerSignature(seasons: Season[]): number[] {
   const sorted = seasons
     .filter(
@@ -29,12 +40,21 @@ function computeCareerSignature(seasons: Season[]): number[] {
   return sig;
 }
 
+/**
+ * Manages the lifecycle of active career path rooms and their XState actors.
+ *
+ * @example
+ * const roomId = careerPathService.createRoom(io, socket);
+ * careerPathService.getRoom(roomId)?.send({ type: 'START_GAME' });
+ */
 @Injectable()
 export class CareerPathService {
   private readonly rooms = new Map<
     string,
     ReturnType<typeof createCareerPathMachine>
   >();
+
+  private readonly subscriptions = new Map<string, Subscription>();
 
   constructor(
     @InjectRepository(Player)
@@ -43,7 +63,20 @@ export class CareerPathService {
     private readonly playerService: PlayerService,
   ) {}
 
+  /**
+   * Creates a new career path room, starts its XState actor, and registers a
+   * subscription to auto-destroy the room when the machine reaches a final state.
+   *
+   * @param io - The Socket.io server instance.
+   * @param creatorSocket - The socket of the player creating the room.
+   * @returns The newly created room ID.
+   * @throws {Error} When the room limit has been reached.
+   */
   createRoom(io: Server, creatorSocket: Socket): string {
+    if (this.rooms.size >= MAX_ROOMS) {
+      throw new Error('Room limit reached. Try again later.');
+    }
+
     const roomId = uid.randomUUID();
 
     const actor = createCareerPathMachine(
@@ -51,16 +84,23 @@ export class CareerPathService {
       this.generateRound,
     );
 
-    actor.subscribe((state) => {
+    const subscription = actor.subscribe((state) => {
       if (state.status === 'done') {
         this.destroyRoom(roomId);
       }
     });
 
+    this.subscriptions.set(roomId, subscription);
     this.rooms.set(roomId, actor);
     return roomId;
   }
 
+  /**
+   * Retrieves the running XState actor for a given room.
+   *
+   * @param roomId - The room ID to look up.
+   * @returns The actor instance, or `undefined` if the room does not exist.
+   */
   getRoom(
     roomId: string,
   ): ReturnType<typeof createCareerPathMachine> | undefined {
@@ -127,10 +167,18 @@ export class CareerPathService {
     return { validAnswers };
   };
 
+  /**
+   * Stops the XState actor for a room, cleans up its subscription, and
+   * removes it from the active rooms map.
+   *
+   * @param roomId - The room ID to destroy.
+   */
   destroyRoom(roomId: string) {
     const actor = this.rooms.get(roomId);
 
     if (actor) {
+      this.subscriptions.get(roomId)?.unsubscribe();
+      this.subscriptions.delete(roomId);
       actor.stop();
       this.rooms.delete(roomId);
     }

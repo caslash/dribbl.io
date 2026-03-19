@@ -1,6 +1,7 @@
 import { Accolade, Player, SavedPool, Season, Team } from '@dribblio/types';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { HealthModule } from './health/health.module';
 import { NbaModule } from './nba/nba.module';
 
 @Module({
@@ -19,6 +20,7 @@ import { NbaModule } from './nba/nba.module';
       }),
     }),
     NbaModule,
+    HealthModule,
   ],
 })
 export class AppModule {}

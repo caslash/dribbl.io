@@ -6,11 +6,13 @@ import {
   StartDraftDto,
   SubmitPickEvent,
 } from '@dribblio/types';
+import { createRateLimiter } from '@/nba/shared/rate-limiter';
 import {
   ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -23,7 +25,9 @@ import { Server, Socket } from 'socket.io';
     origin: process.env.CORS_ORIGIN?.split(',') ?? 'http://localhost:3000',
   },
 })
-export class DraftGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class DraftGateway
+  implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
+{
   @WebSocketServer()
   io: Server;
 
@@ -38,6 +42,10 @@ export class DraftGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.draftService.onRoomDestroyed = (roomId) => {
       this.roomSocketCounts.delete(roomId);
     };
+  }
+
+  afterInit(server: Server): void {
+    server.use(createRateLimiter());
   }
 
   handleConnection(socket: Socket) {

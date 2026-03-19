@@ -75,6 +75,42 @@ describe('DraftService', () => {
       });
       expect(mockActor.subscribe).toHaveBeenCalledTimes(1);
     });
+
+    it('should throw when MAX_ROOMS rooms already exist', () => {
+      const MAX_ROOMS = 50;
+      for (let i = 0; i < MAX_ROOMS; i++) {
+        service.createRoom(mockServer);
+      }
+
+      expect(() => service.createRoom(mockServer)).toThrow(
+        'Room limit reached. Try again later.',
+      );
+    });
+  });
+
+  describe('destroyRoom', () => {
+    it('should call unsubscribe on the stored subscription', () => {
+      const mockUnsubscribe = vi.fn();
+      mockActor.subscribe.mockReturnValue({ unsubscribe: mockUnsubscribe });
+
+      const roomId = service.createRoom(mockServer);
+      service.destroyRoom(roomId);
+
+      expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
+    });
+
+    it('should stop the actor and remove the room', () => {
+      const roomId = service.createRoom(mockServer);
+      service.destroyRoom(roomId);
+
+      expect(mockActor.stop).toHaveBeenCalled();
+      expect(service.getRoom(roomId)).toBeUndefined();
+    });
+
+    it('should do nothing when the room does not exist', () => {
+      expect(() => service.destroyRoom('NOPE1')).not.toThrow();
+      expect(mockActor.stop).not.toHaveBeenCalled();
+    });
   });
 
   describe('getRoom', () => {

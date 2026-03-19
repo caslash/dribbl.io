@@ -175,6 +175,17 @@ describe('CareerPath', () => {
   });
 
   describe('createRoom', () => {
+    it('should throw when MAX_ROOMS rooms already exist', () => {
+      const MAX_ROOMS = 200;
+      for (let i = 0; i < MAX_ROOMS; i++) {
+        service.createRoom(mockServer, mockSocket);
+      }
+
+      expect(() => service.createRoom(mockServer, mockSocket)).toThrow(
+        'Room limit reached. Try again later.',
+      );
+    });
+
     it('should call createCareerPathMachine, subscribe to the actor, and return a room id', () => {
       const roomId = service.createRoom(mockServer, mockSocket);
 
@@ -205,6 +216,31 @@ describe('CareerPath', () => {
 
       expect(mockActor.stop).not.toHaveBeenCalled();
       expect(service.getRoom(roomId)).toBe(mockActor);
+    });
+  });
+
+  describe('destroyRoom', () => {
+    it('should call unsubscribe on the stored subscription', () => {
+      const mockUnsubscribe = vi.fn();
+      mockActor.subscribe.mockReturnValue({ unsubscribe: mockUnsubscribe });
+
+      const roomId = service.createRoom(mockServer, mockSocket);
+      service.destroyRoom(roomId);
+
+      expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
+    });
+
+    it('should stop the actor and remove the room', () => {
+      const roomId = service.createRoom(mockServer, mockSocket);
+      service.destroyRoom(roomId);
+
+      expect(mockActor.stop).toHaveBeenCalled();
+      expect(service.getRoom(roomId)).toBeUndefined();
+    });
+
+    it('should do nothing when the room does not exist', () => {
+      expect(() => service.destroyRoom('NOPE1')).not.toThrow();
+      expect(mockActor.stop).not.toHaveBeenCalled();
     });
   });
 

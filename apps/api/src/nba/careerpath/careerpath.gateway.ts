@@ -1,10 +1,12 @@
 import { CareerPathService } from '@/nba/careerpath/careerpath.service';
 import { CareerPathEvent } from '@dribblio/types';
+import { createRateLimiter } from '@/nba/shared/rate-limiter';
 import {
   ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -18,12 +20,16 @@ import { Server, Socket } from 'socket.io';
   },
 })
 export class CareerPathGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
+  implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
 {
   @WebSocketServer()
   io: Server;
 
   constructor(private readonly careerPathService: CareerPathService) {}
+
+  afterInit(server: Server): void {
+    server.use(createRateLimiter());
+  }
 
   handleConnection(socket: Socket) {
     const roomId = socket.handshake.query.roomId as string | undefined;

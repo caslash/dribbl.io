@@ -60,6 +60,17 @@ describe('DraftGateway', () => {
     expect(gateway).toBeDefined();
   });
 
+  describe('afterInit', () => {
+    it('should register a middleware function on the server via server.use', () => {
+      const server = { use: vi.fn() };
+
+      gateway.afterInit(server as any);
+
+      expect(server.use).toHaveBeenCalledTimes(1);
+      expect(server.use).toHaveBeenCalledWith(expect.any(Function));
+    });
+  });
+
   describe('handleConnection', () => {
     it('should join the existing room when roomId is in the query and room exists', () => {
       const room = makeRoom([], {

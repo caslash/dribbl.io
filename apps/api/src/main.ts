@@ -6,7 +6,38 @@ import { AppModule } from './app.module';
 
 dotenv.config();
 
+const REQUIRED_ENV_VARS = [
+  'PG_HOST',
+  'PG_PORT',
+  'PG_NBA_USERNAME',
+  'PG_NBA_PASSWORD',
+  'PG_NBA_DATABASE',
+] as const;
+
+/**
+ * Validates that all required environment variables are present.
+ * Logs each missing variable name and exits the process if any are absent.
+ */
+function validateEnv(): void {
+  const missing = REQUIRED_ENV_VARS.filter((key) => !process.env[key]);
+
+  if (missing.length > 0) {
+    for (const key of missing) {
+      console.error(`Missing required environment variable: ${key}`);
+    }
+    process.exit(1);
+  }
+}
+
 async function bootstrap() {
+  validateEnv();
+
+  if (!process.env.CORS_ORIGIN && process.env.NODE_ENV === 'production') {
+    console.warn(
+      'CORS_ORIGIN is not set in production — requests may be blocked',
+    );
+  }
+
   const app = await NestFactory.create(AppModule);
 
   app.use(express.json());
@@ -16,10 +47,24 @@ async function bootstrap() {
   app.setGlobalPrefix('/api');
 
   app.enableCors({
-    origin: process.env.CORS_ORIGIN?.split(',') ?? 'http://localhost:3000',
+    origin: process.env.CORS_ORIGIN
+      ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
+      : 'http://localhost:3000',
   });
 
+  app.enableShutdownHooks();
+
   await app.listen(process.env.PORT ?? 3001);
+
+  process.on('SIGTERM', async () => {
+    await app.close();
+    process.exit(0);
+  });
+
+  process.on('SIGINT', async () => {
+    await app.close();
+    process.exit(0);
+  });
 }
 
 bootstrap();
