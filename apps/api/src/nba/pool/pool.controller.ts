@@ -7,6 +7,7 @@ import {
   UpdatePoolDto,
 } from '@dribblio/types';
 import {
+  BadRequestException,
   Body,
   Controller,
   DefaultValuePipe,
@@ -20,6 +21,8 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+
+const MAX_POOL_LIST_LIMIT = 100;
 
 @Controller('pools')
 export class PoolController {
@@ -45,6 +48,9 @@ export class PoolController {
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
     @Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number,
   ): Promise<SavedPool[]> {
+    if (limit > MAX_POOL_LIST_LIMIT) {
+      throw new BadRequestException(`limit may not exceed ${MAX_POOL_LIST_LIMIT}`);
+    }
     return this.poolService.listPublicPools(limit, offset);
   }
 

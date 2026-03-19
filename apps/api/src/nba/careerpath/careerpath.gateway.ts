@@ -58,7 +58,16 @@ export class CareerPathGateway
       return;
     }
 
-    const newRoomId = this.careerPathService.createRoom(this.io, socket);
+    let newRoomId: string;
+    try {
+      newRoomId = this.careerPathService.createRoom(this.io, socket);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to create room';
+      this.logger.warn(`Socket ${socket.id} room creation failed: ${message}`);
+      socket.emit('ERROR', { message });
+      socket.disconnect();
+      return;
+    }
     socket.join(newRoomId);
     this.logger.log(`Socket ${socket.id} created room ${newRoomId}`);
   }

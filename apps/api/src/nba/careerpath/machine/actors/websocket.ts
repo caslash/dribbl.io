@@ -43,7 +43,6 @@ export const socketActor = fromCallback<
     });
     socket.on('USER_GUESS', (data) => {
       if (!data || typeof data !== 'object') return;
-      if (!Number.isFinite(data.guessId)) return;
       sendBack({ type: 'USER_GUESS', guess: data });
     });
     socket.on('SKIP', () => sendBack({ type: 'SKIP' }));

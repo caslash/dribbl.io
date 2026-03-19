@@ -1,5 +1,5 @@
 import { PoolService } from '@/nba/pool/pool.service';
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PoolController } from './pool.controller';
 
@@ -90,6 +90,21 @@ describe('PoolController', () => {
       const result = await controller.listPublic(20, 0);
 
       expect(service.listPublicPools).toHaveBeenCalledWith(20, 0);
+      expect(result).toBe(pools);
+    });
+
+    it('should throw BadRequestException when limit exceeds 100', async () => {
+      await expect(controller.listPublic(101, 0)).rejects.toThrow(BadRequestException);
+      expect(service.listPublicPools).not.toHaveBeenCalled();
+    });
+
+    it('should allow limit exactly at the maximum', async () => {
+      const pools = [{ id: 'p1' }];
+      mockPoolService.listPublicPools.mockResolvedValue(pools);
+
+      const result = await controller.listPublic(100, 0);
+
+      expect(service.listPublicPools).toHaveBeenCalledWith(100, 0);
       expect(result).toBe(pools);
     });
   });

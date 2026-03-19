@@ -76,7 +76,16 @@ export class DraftGateway
 
     // Temp socket used only to obtain a generated roomId.
     // Store it so handleDisconnect can clean up if no participant ever joins.
-    const newRoomId = this.draftService.createRoom(this.io);
+    let newRoomId: string;
+    try {
+      newRoomId = this.draftService.createRoom(this.io);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to create room';
+      this.logger.warn(`Socket ${socket.id} room creation failed: ${message}`);
+      socket.emit('ERROR', { message });
+      socket.disconnect();
+      return;
+    }
     socket.data.createdRoomId = newRoomId;
     socket.join(newRoomId);
     socket.emit('ROOM_CREATED', { roomId: newRoomId });

@@ -10,6 +10,7 @@ export default defineConfig({
   ],
   test: {
     globals: true,
+    setupFiles: ['reflect-metadata'],
     root: './',
     environment: 'node',
     include: ['src/**/*.spec.ts'],

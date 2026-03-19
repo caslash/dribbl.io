@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import * as dotenv from 'dotenv';
 import * as express from 'express';
 import { AppModule } from './app.module';
+import { WsExceptionFilter } from './filters/ws-exception.filter';
 
 dotenv.config();
 
@@ -39,6 +40,7 @@ async function bootstrap() {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
+  app.useGlobalFilters(new WsExceptionFilter());
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   app.setGlobalPrefix('/api');
 

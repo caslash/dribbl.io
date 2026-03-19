@@ -6,13 +6,16 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import ShortUniqueId from 'short-unique-id';
 import { Server, Socket } from 'socket.io';
-import { In, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { Subscription } from 'xstate';
 
 const uid = new ShortUniqueId({ length: 5, dictionary: 'alphanum_upper' });
 
 /** Maximum number of concurrent career path rooms allowed. */
 const MAX_ROOMS = 200;
+
+/** Maximum time in milliseconds the career-signature CTE query may run. */
+const SIGNATURE_QUERY_TIMEOUT_MS = 30_000;
 
 /**
  * Derives a player's canonical career signature as an ordered list of team IDs,
@@ -63,6 +66,8 @@ export class CareerPathService {
     private readonly playerRepository: Repository<Player>,
 
     private readonly playerService: PlayerService,
+
+    private readonly dataSource: DataSource,
   ) {}
 
   /**
@@ -146,36 +151,42 @@ export class CareerPathService {
     const signature = computeCareerSignature(playerWithSeasons.seasons);
     if (signature.length === 0) return { validAnswers: [playerWithSeasons] };
 
-    const rows: { player_id: number }[] = await this.playerRepository.query(
-      `
-      WITH player_sigs AS (
-        SELECT
-          player_id,
-          array_agg(team_id ORDER BY first_season) AS sig
-        FROM (
+    // SET LOCAL scopes the timeout to this transaction only, preventing it from
+    // leaking back into the shared connection pool. dataSource.transaction()
+    // manages the full connection lifecycle (acquire → BEGIN → commit/rollback → release).
+    const rows = await this.dataSource.transaction(async (manager) => {
+      await manager.query(`SET LOCAL statement_timeout = ${SIGNATURE_QUERY_TIMEOUT_MS}`);
+      return manager.query<{ player_id: number }[]>(
+        `
+        WITH player_sigs AS (
           SELECT
             player_id,
-            team_id,
-            MIN(season_id) AS first_season
+            array_agg(team_id ORDER BY first_season) AS sig
           FROM (
             SELECT
               player_id,
               team_id,
-              season_id,
-              ROW_NUMBER() OVER (PARTITION BY player_id ORDER BY season_id)
-                - ROW_NUMBER() OVER (PARTITION BY player_id, team_id ORDER BY season_id) AS grp
-            FROM seasons
-            WHERE team_id IS NOT NULL
-              AND season_type = 'Regular Season'
-          ) ranked
-          GROUP BY player_id, team_id, grp
-        ) t
-        GROUP BY player_id
-      )
-      SELECT player_id FROM player_sigs WHERE sig = $1::bigint[]
-`,
-      [signature],
-    );
+              MIN(season_id) AS first_season
+            FROM (
+              SELECT
+                player_id,
+                team_id,
+                season_id,
+                ROW_NUMBER() OVER (PARTITION BY player_id ORDER BY season_id)
+                  - ROW_NUMBER() OVER (PARTITION BY player_id, team_id ORDER BY season_id) AS grp
+              FROM seasons
+              WHERE team_id IS NOT NULL
+                AND season_type = 'Regular Season'
+            ) ranked
+            GROUP BY player_id, team_id, grp
+          ) t
+          GROUP BY player_id
+        )
+        SELECT player_id FROM player_sigs WHERE sig = $1::bigint[]
+        `,
+        [signature],
+      );
+    });
 
     const matchingIds = rows.map((r) => r.player_id);
     if (matchingIds.length === 0) {

@@ -4,6 +4,15 @@ import { PlayerService } from '@/nba/player/player.service';
 import { GameDifficulty, Player, Season } from '@dribblio/types';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+
+const mockManager = {
+  query: vi.fn(),
+};
+
+const mockDataSource = {
+  transaction: vi.fn(),
+};
 
 vi.mock('@/nba/careerpath/machine/statemachine');
 
@@ -63,6 +72,10 @@ describe('CareerPath', () => {
           provide: PlayerService,
           useValue: mockPlayerService,
         },
+        {
+          provide: DataSource,
+          useValue: mockDataSource,
+        },
       ],
     }).compile();
 
@@ -119,12 +132,12 @@ describe('CareerPath', () => {
       const player = makePlayer({ seasons: [makeSeason()] });
       mockPlayerService.findRandomPlayer.mockResolvedValue(player);
       mockPlayerRepository.findOne.mockResolvedValue(player);
-      mockPlayerRepository.query.mockResolvedValue([]);
+      mockDataSource.transaction.mockResolvedValue([]);
 
       const result = await service['generateRound'](mockDifficulty);
 
       expect(result).toEqual({ validAnswers: [player] });
-      expect(mockPlayerRepository.findBy).not.toHaveBeenCalled();
+      expect(mockPlayerRepository.find).not.toHaveBeenCalled();
     });
 
     it('should return all players whose IDs are returned by the signature query', async () => {
@@ -134,7 +147,7 @@ describe('CareerPath', () => {
 
       mockPlayerService.findRandomPlayer.mockResolvedValue(player);
       mockPlayerRepository.findOne.mockResolvedValue(player);
-      mockPlayerRepository.query.mockResolvedValue([
+      mockDataSource.transaction.mockResolvedValue([
         { player_id: 1 },
         { player_id: 2 },
       ]);
@@ -161,13 +174,16 @@ describe('CareerPath', () => {
 
       mockPlayerService.findRandomPlayer.mockResolvedValue(player);
       mockPlayerRepository.findOne.mockResolvedValue(player);
-      mockPlayerRepository.query.mockResolvedValue([{ player_id: 1 }]);
-      mockPlayerRepository.findBy.mockResolvedValue([player]);
+      mockDataSource.transaction.mockImplementation(async (cb) => cb(mockManager));
+      mockManager.query
+        .mockResolvedValueOnce(undefined) // SET LOCAL statement_timeout
+        .mockResolvedValueOnce([{ player_id: 1 }]); // CTE query
+      mockPlayerRepository.find.mockResolvedValue([player]);
 
       await service['generateRound'](mockDifficulty);
 
       // Consecutive LAL seasons are collapsed to one entry: [LAL, BOS]
-      expect(mockPlayerRepository.query).toHaveBeenCalledWith(
+      expect(mockManager.query).toHaveBeenCalledWith(
         expect.any(String),
         [[LAL, BOS]],
       );

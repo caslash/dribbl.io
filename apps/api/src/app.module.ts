@@ -1,8 +1,8 @@
 import { Accolade, Player, SavedPool, Season, Team } from '@dribblio/types';
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
 import { HealthModule } from './health/health.module';
 import { NbaModule } from './nba/nba.module';
@@ -17,7 +17,7 @@ import { NbaModule } from './nba/nba.module';
         entities: [Player, Season, Accolade, Team, SavedPool],
         migrations: [join(__dirname, 'migrations/*.js')],
         synchronize: false,
-        migrationsRun: false,
+        migrationsRun: true,
         ssl:
           process.env.NODE_ENV === 'production'
             ? { rejectUnauthorized: false }
