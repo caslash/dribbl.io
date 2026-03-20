@@ -82,6 +82,9 @@ export const createCareerPathMachine = (
                 target: 'waitingForGuess',
                 actions: ['assignRoundGenerated', 'notifyNextRound'],
               },
+              onError: {
+                target: 'generatingRound',
+              },
             },
           },
           waitingForGuess: {

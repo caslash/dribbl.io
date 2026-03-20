@@ -1,36 +1,14 @@
-import { useState } from 'react';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { useCareerPath } from '@/hooks/useCareerPath';
+import { useState } from 'react';
 
-interface DifficultyOption {
-  key: string;
-  label: string;
-  description: string;
-}
-
-const DIFFICULTY_OPTIONS: DifficultyOption[] = [
-  {
-    key: 'firstAllNBA',
-    label: 'First Team All-NBA',
-    description: 'Players who earned a First Team All-NBA selection',
-  },
-  {
-    key: 'allNBA',
-    label: 'All-NBA',
-    description: 'Every player to appear on any All-NBA team',
-  },
-  {
-    key: 'greatest75',
-    label: 'Top 75',
-    description: "NBA's official Greatest 75 players",
-  },
-  {
-    key: 'allPlayers',
-    label: 'All Players',
-    description: 'Every. Single. Player. Ever.',
-  },
-];
+const DIFFICULTY_OPTIONS = [
+  { name: 'firstallnba', display_name: 'First Team All-NBA Players', description: 'Every player that has appeared in the All-NBA First Team' },
+  { name: 'allnba', display_name: 'All-NBA Players', description: 'Every player that has appeared in any All-NBA team' },
+  { name: 'greatest75', display_name: 'Greatest 75', description: "Players named to the NBA's Greatest 75 list" },
+  { name: 'allplayers', display_name: 'All Players', description: 'Every. Single. Player. Ever.' },
+] as const;
 
 const LIVES_OPTIONS = [
   { label: 'Infinite', value: undefined },
@@ -49,9 +27,7 @@ const LIVES_OPTIONS = [
 export function CareerPathConfig() {
   const { saveConfig } = useCareerPath();
   const [selectedDifficulty, setSelectedDifficulty] = useState('greatest75');
-  const [selectedLives, setSelectedLives] = useState<number | undefined>(
-    undefined,
-  );
+  const [selectedLives, setSelectedLives] = useState<number | undefined>(undefined);
 
   const handleStart = () => {
     saveConfig({
@@ -63,12 +39,8 @@ export function CareerPathConfig() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
       <div className="mb-8 text-center">
-        <h1 className="font-serif text-4xl font-bold text-primary-text">
-          Career Path
-        </h1>
-        <p className="mt-2 text-text-muted">
-          Guess the player from their NBA career team history.
-        </p>
+        <h1 className="font-serif text-4xl font-bold text-primary-text">Career Path</h1>
+        <p className="mt-2 text-text-muted">Guess the player from their NBA career team history.</p>
       </div>
 
       <div className="space-y-6">
@@ -79,20 +51,16 @@ export function CareerPathConfig() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {DIFFICULTY_OPTIONS.map((opt) => (
               <button
-                key={opt.key}
-                onClick={() => setSelectedDifficulty(opt.key)}
+                key={opt.name}
+                onClick={() => setSelectedDifficulty(opt.name)}
                 className={`rounded-lg border p-4 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600 ${
-                  selectedDifficulty === opt.key
+                  selectedDifficulty === opt.name
                     ? 'border-red-600 bg-red-600/10'
                     : 'border-border bg-surface-raised hover:border-text-secondary'
                 }`}
               >
-                <div className="font-semibold text-text-primary">
-                  {opt.label}
-                </div>
-                <div className="mt-0.5 text-sm text-text-muted">
-                  {opt.description}
-                </div>
+                <div className="font-semibold text-text-primary">{opt.display_name}</div>
+                <div className="mt-0.5 text-sm text-text-muted">{opt.description}</div>
               </button>
             ))}
           </div>
@@ -121,9 +89,7 @@ export function CareerPathConfig() {
 
         <Card className="bg-surface-warm">
           <div className="text-sm text-text-muted">
-            <p className="font-medium text-text-secondary">
-              How to play
-            </p>
+            <p className="font-medium text-text-secondary">How to play</p>
             <ul className="mt-2 list-inside list-disc space-y-1">
               <li>A sequence of team abbreviations will appear on screen.</li>
               <li>Type a player's name in the search box to make your guess.</li>
@@ -136,12 +102,7 @@ export function CareerPathConfig() {
           </div>
         </Card>
 
-        <Button
-          variant="primary"
-          size="lg"
-          className="w-full"
-          onClick={handleStart}
-        >
+        <Button variant="primary" size="lg" className="w-full" onClick={handleStart}>
           Start Game
         </Button>
       </div>

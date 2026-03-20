@@ -16,7 +16,7 @@ Both modes are backed by a shared NestJS API, a PostgreSQL database of NBA playe
 ```
 dribbl.io/
 ├── apps/
-│   ├── api/      # NestJS REST + WebSocket API (port 3002)
+│   ├── api/      # NestJS REST + WebSocket API (port 3001)
 │   ├── web/      # Vite + React frontend
 │   ├── db/       # Python data pipeline (scrapes stats.nba.com → PostgreSQL)
 │   └── cli/      # TypeScript CLI client for testing/dev

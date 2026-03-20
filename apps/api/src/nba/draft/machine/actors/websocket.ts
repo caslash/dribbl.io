@@ -14,30 +14,30 @@ export const socketActor = fromCallback<
   const { io, roomId } = input;
 
   io.on('connection', (socket: Socket) => {
-    socket.on('PARTICIPANT_JOINED', (data) =>
-      sendBack({ type: 'PARTICIPANT_JOINED', ...data }),
-    );
-    socket.on('PARTICIPANT_LEFT', (data) =>
-      sendBack({ type: 'PARTICIPANT_LEFT', ...data }),
-    );
+    if (!socket.rooms.has(roomId)) return;
+
+    socket.on('PARTICIPANT_JOINED', (data) => {
+      if (!data || typeof data !== 'object') return;
+      sendBack({ type: 'PARTICIPANT_JOINED', ...data });
+    });
+    socket.on('PARTICIPANT_LEFT', (data) => {
+      if (!data || typeof data !== 'object') return;
+      sendBack({ type: 'PARTICIPANT_LEFT', ...data });
+    });
     socket.on('ORGANIZER_CONFIGURE', () =>
       sendBack({ type: 'ORGANIZER_CONFIGURE' }),
     );
     socket.on('ORGANIZER_CANCEL_DRAFT', () =>
       sendBack({ type: 'ORGANIZER_CANCEL_DRAFT' }),
     );
-    socket.on('SUBMIT_PICK', (data) =>
-      sendBack({ type: 'SUBMIT_PICK', ...data }),
-    );
-    socket.on('PARTICIPANT_RECONNECTED', (data) =>
-      sendBack({ type: 'PARTICIPANT_RECONNECTED', ...data }),
-    );
-    socket.on('AUTO_PICK_RESOLVED', (data) =>
-      sendBack({ type: 'AUTO_PICK_RESOLVED', ...data }),
-    );
-    socket.on('POOL_UPDATED', (data) =>
-      sendBack({ type: 'POOL_UPDATED', ...data }),
-    );
+    socket.on('PARTICIPANT_RECONNECTED', (data) => {
+      if (!data || typeof data !== 'object') return;
+      sendBack({ type: 'PARTICIPANT_RECONNECTED', ...data });
+    });
+    socket.on('AUTO_PICK_RESOLVED', (data) => {
+      if (!data || typeof data !== 'object') return;
+      sendBack({ type: 'AUTO_PICK_RESOLVED', ...data });
+    });
 
     socket.on('disconnect', () =>
       sendBack({

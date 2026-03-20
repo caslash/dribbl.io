@@ -1,8 +1,6 @@
-import type { PickRecord, Participant } from '@dribblio/types';
+import type { Participant } from '@dribblio/types';
 
 interface DraftPickCardProps {
-  /** The completed pick record. */
-  pick: PickRecord;
   /** The NBA player ID used to construct the headshot URL. */
   playerId: number;
   /** The player's display name. */
@@ -28,12 +26,7 @@ interface DraftPickCardProps {
  * @example
  * <DraftPickCard pick={pick} playerId={2544} playerName="LeBron James" participant={p} label="R1 P1" />
  */
-export function DraftPickCard({
-  playerId,
-  playerName,
-  participant,
-  label,
-}: DraftPickCardProps) {
+export function DraftPickCard({ playerId, playerName, participant, label }: DraftPickCardProps) {
   return (
     <div className="flex flex-col items-center w-28 shrink-0 rounded-lg border border-primary-border bg-surface-raised p-2 gap-1">
       <span className="text-xs text-text-muted font-mono">{label}</span>

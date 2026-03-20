@@ -1,3 +1,4 @@
+import { computeInvalidatedIds } from '@/nba/draft/machine/actions/helpers';
 import { socketActor } from '@/nba/draft/machine/actors/websocket';
 import {
   NbaDraftContext,
@@ -6,7 +7,6 @@ import {
   ParticipantJoinedEvent,
   ParticipantLeftEvent,
   ParticipantReconnectedEvent,
-  PoolUpdatedEvent,
 } from '@dribblio/types';
 import { ActorRefFrom, sendTo } from 'xstate';
 
@@ -56,10 +56,13 @@ const notifyPickConfirmed = sendToSocket('socket', ({ context }) => ({
   pickRecord: context.pickHistory[context.pickHistory.length - 1],
 }));
 
-const notifyPoolUpdated = sendToSocket('socket', ({ event }) => ({
-  type: 'NOTIFY_POOL_UPDATED',
-  invalidatedIds: [...(event as PoolUpdatedEvent).invalidatedIds],
-}));
+const notifyPoolUpdated = sendToSocket('socket', ({ context }) => {
+  const lastPick = context.pickHistory[context.pickHistory.length - 1];
+  const invalidatedIds = lastPick
+    ? computeInvalidatedIds(context.pool, context.config, lastPick.entryId)
+    : [];
+  return { type: 'NOTIFY_POOL_UPDATED', invalidatedIds };
+});
 
 const notifyTurnAdvanced = sendToSocket('socket', ({ context }) => ({
   type: 'NOTIFY_TURN_ADVANCED',

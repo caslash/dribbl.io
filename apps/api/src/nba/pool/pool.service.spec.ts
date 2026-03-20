@@ -1,5 +1,10 @@
+import { FranchisePoolGenerator } from '@/nba/pool/generators/franchise.generator';
 import { MvpPoolGenerator } from '@/nba/pool/generators/mvp.generator';
 import { SavedPool } from '@dribblio/types';
+import {
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { PoolService } from './pool.service';
@@ -12,10 +17,15 @@ describe('PoolService', () => {
     generate: vi.fn(),
   };
 
+  const mockFranchiseGenerator = {
+    generate: vi.fn(),
+  };
+
   const mockSavedPoolRepository = {
     save: vi.fn(),
     findOneBy: vi.fn(),
     findBy: vi.fn(),
+    find: vi.fn(),
     delete: vi.fn(),
   };
 
@@ -24,6 +34,7 @@ describe('PoolService', () => {
       providers: [
         PoolService,
         { provide: MvpPoolGenerator, useValue: mockMvpGenerator },
+        { provide: FranchisePoolGenerator, useValue: mockFranchiseGenerator },
         {
           provide: getRepositoryToken(SavedPool),
           useValue: mockSavedPoolRepository,
@@ -44,6 +55,12 @@ describe('PoolService', () => {
   });
 
   describe('generatePreview', () => {
+    it('should throw InternalServerErrorException for unsupported draftMode', async () => {
+      await expect(
+        service.generatePreview({ draftMode: 'manual' } as any),
+      ).rejects.toThrow(InternalServerErrorException);
+    });
+
     it('should call the mvp generator for mvp draftMode and return entries', async () => {
       const entries = [{ id: 'entry-1', available: true }];
       mockMvpGenerator.generate.mockResolvedValue(entries);
@@ -173,14 +190,32 @@ describe('PoolService', () => {
   });
 
   describe('listPublicPools', () => {
-    it('should call findBy with public visibility and return the list', async () => {
+    it('should return public pools with default pagination', async () => {
       const pools = [{ id: 'p1' }, { id: 'p2' }];
-      mockSavedPoolRepository.findBy.mockResolvedValue(pools);
+      mockSavedPoolRepository.find.mockResolvedValue(pools);
 
       const result = await service.listPublicPools();
 
-      expect(mockSavedPoolRepository.findBy).toHaveBeenCalledWith({
-        visibility: 'public',
+      expect(mockSavedPoolRepository.find).toHaveBeenCalledWith({
+        where: { visibility: 'public' },
+        take: 20,
+        skip: 0,
+        order: { createdAt: 'DESC' },
+      });
+      expect(result).toBe(pools);
+    });
+
+    it('should pass limit and offset to the repository', async () => {
+      const pools = [{ id: 'p3' }];
+      mockSavedPoolRepository.find.mockResolvedValue(pools);
+
+      const result = await service.listPublicPools(5, 10);
+
+      expect(mockSavedPoolRepository.find).toHaveBeenCalledWith({
+        where: { visibility: 'public' },
+        take: 5,
+        skip: 10,
+        order: { createdAt: 'DESC' },
       });
       expect(result).toBe(pools);
     });
@@ -245,12 +280,12 @@ describe('PoolService', () => {
       expect(result).toBe(false);
     });
 
-    it('should return true when affected is undefined (driver does not report count)', async () => {
+    it('should throw NotFoundException when affected is undefined', async () => {
       mockSavedPoolRepository.delete.mockResolvedValue({ affected: undefined });
 
-      const result = await service.deletePool('pool-1');
-
-      expect(result).toBe(true);
+      await expect(service.deletePool('pool-1')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

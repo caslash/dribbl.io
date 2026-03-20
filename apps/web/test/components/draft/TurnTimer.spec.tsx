@@ -34,10 +34,11 @@ describe('TurnTimer', () => {
       expect(screen.getByText('30')).toBeInTheDocument();
     });
 
-    it('renders the "seconds left" label', () => {
+    it('renders only the numeric countdown with no label', () => {
       render(<TurnTimer durationSeconds={60} onExpire={vi.fn()} />);
 
-      expect(screen.getByText('seconds left')).toBeInTheDocument();
+      expect(screen.getByText('60')).toBeInTheDocument();
+      expect(screen.queryByText('seconds left')).not.toBeInTheDocument();
     });
   });
 

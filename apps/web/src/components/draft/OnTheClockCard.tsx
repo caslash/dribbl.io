@@ -33,7 +33,7 @@ export function OnTheClockCard({
   onTimerExpire,
 }: OnTheClockCardProps) {
   return (
-    <div className="flex flex-col items-center w-32 shrink-0 rounded-lg border-2 border-red-600 bg-surface-raised p-3 gap-2 shadow-md">
+    <div className="flex flex-col items-center justify-center w-32 h-full shrink-0 rounded-lg border-2 border-red-600 bg-surface-raised p-3 gap-2 shadow-md overflow-hidden">
       <span className="text-xs font-bold text-red-600 uppercase tracking-wide">On the Clock</span>
       <p className="text-sm font-bold text-center leading-tight truncate w-full text-center">
         {isMyTurn ? 'You!' : participant.name}

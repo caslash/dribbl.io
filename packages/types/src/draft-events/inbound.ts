@@ -64,11 +64,6 @@ export type AutoPickResolvedEvent = {
   };
 };
 
-export type PoolUpdatedEvent = {
-  type: 'POOL_UPDATED';
-  invalidatedIds: Set<string>;
-};
-
 export type RoomClosedEvent = {
   type: 'ROOM_CLOSED';
 };
@@ -85,5 +80,4 @@ export type NbaDraftEvent =
   | ParticipantDisconnectedEvent
   | ParticipantReconnectedEvent
   | AutoPickResolvedEvent
-  | PoolUpdatedEvent
   | RoomClosedEvent;
