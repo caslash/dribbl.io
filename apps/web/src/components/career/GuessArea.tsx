@@ -18,7 +18,6 @@ interface GuessAreaProps {
 export function GuessArea({ disabled = false }: GuessAreaProps) {
   const { submitGuess, skip, state } = useCareerPath();
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [selectedName, setSelectedName] = useState('');
   const [key, setKey] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -28,9 +27,8 @@ export function GuessArea({ disabled = false }: GuessAreaProps) {
     }
   }, [disabled]);
 
-  const handleSelect = (playerId: number, fullName: string) => {
+  const handleSelect = (playerId: number) => {
     setSelectedId(playerId);
-    setSelectedName(fullName);
   };
 
   const handleSubmit = () => {
@@ -38,14 +36,12 @@ export function GuessArea({ disabled = false }: GuessAreaProps) {
     submitGuess(selectedId);
     // Reset the search after submitting
     setSelectedId(null);
-    setSelectedName('');
     setKey((k) => k + 1);
   };
 
   const handleSkip = () => {
     skip();
     setSelectedId(null);
-    setSelectedName('');
     setKey((k) => k + 1);
   };
 
