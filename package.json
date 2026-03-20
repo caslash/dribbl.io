@@ -1,6 +1,7 @@
 {
   "name": "dribbl.io",
   "private": true,
+  "packageManager": "npm@11.6.2",
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
@@ -17,7 +18,6 @@
   "engines": {
     "node": ">=18"
   },
-  "packageManager": "npm@11.6.2",
   "workspaces": [
     "apps/*",
     "packages/*"
