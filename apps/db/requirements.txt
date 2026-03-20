@@ -1,0 +1,7 @@
+curl-cffi
+asyncpg
+nba_api
+pandas
+pydantic-settings
+tenacity
+rich
