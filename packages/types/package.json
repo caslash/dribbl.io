@@ -1,0 +1,26 @@
+{
+  "name": "@dribblio/types",
+  "version": "0.0.1",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.4",
+    "reflect-metadata": "^0.2.0",
+    "typeorm": "^0.3.20",
+    "xstate": "^5.22.0"
+  },
+  "peerDependencies": {
+    "pg": "^8.0.0"
+  },
+  "devDependencies": {
+    "@dribblio/typescript-config": "*",
+    "typescript": "^5.0.0"
+  }
+}
