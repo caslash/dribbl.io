@@ -1,6 +1,7 @@
 import { createContext, useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { io, Socket } from 'socket.io-client';
+import { BACKEND_URL } from '@/config';
 
 // ---------------------------------------------------------------------------
 // Local types — mirrors @dribblio/types shapes without TypeORM decorators
@@ -88,6 +89,7 @@ interface NotifyCorrectGuess {
 
 interface NotifyIncorrectGuess {
   lives: number | undefined;
+  score: number;
 }
 
 interface NotifySkipRound {
@@ -131,7 +133,7 @@ export function CareerPathProvider({ children }: CareerPathProviderProps) {
 
   const connectSocket = useCallback((): Socket => {
     // Connect to the /careerpath namespace — no roomId means the server creates a new room
-    const socket = io('/careerpath', {
+    const socket = io(`${BACKEND_URL}/careerpath`, {
       transports: ['websocket'],
     });
 
@@ -175,6 +177,7 @@ export function CareerPathProvider({ children }: CareerPathProviderProps) {
         ...prev,
         lastResult: 'incorrect',
         lives: payload.lives ?? null,
+        score: payload.score,
       }));
     });
 
@@ -231,7 +234,13 @@ export function CareerPathProvider({ children }: CareerPathProviderProps) {
   const clearFeedback = useCallback(() => {
     setState((prev) => {
       if (prev.pendingGameOver) {
-        return { ...prev, lastResult: null, validAnswers: [], pendingGameOver: false, phase: 'game-over' };
+        return {
+          ...prev,
+          lastResult: null,
+          validAnswers: [],
+          pendingGameOver: false,
+          phase: 'game-over',
+        };
       }
       return {
         ...prev,

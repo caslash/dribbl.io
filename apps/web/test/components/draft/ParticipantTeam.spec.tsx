@@ -1,7 +1,7 @@
-import { render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ParticipantTeam } from '@/components/draft/ParticipantTeam';
 import type { Participant, PickRecord, PoolEntry } from '@dribblio/types';
+import { render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 afterEach(() => {
   vi.clearAllMocks();
@@ -17,6 +17,9 @@ const mvpEntry: PoolEntry = {
   playerId: 23,
   playerName: 'LeBron James',
   season: '2012-13',
+  ptsPg: 29.3,
+  astPg: 5.6,
+  rebPg: 8.5,
 };
 
 const franchiseEntry: PoolEntry = {
@@ -65,25 +68,19 @@ describe('ParticipantTeam', () => {
     });
 
     it('shows the season subtitle for MVP picks', () => {
-      render(
-        <ParticipantTeam participant={participant} picks={[pick1]} pool={[mvpEntry]} />,
-      );
+      render(<ParticipantTeam participant={participant} picks={[pick1]} pool={[mvpEntry]} />);
 
       expect(screen.getByText('2012-13')).toBeInTheDocument();
     });
 
     it('shows "FranchiseName (Abbr)" subtitle for franchise picks', () => {
-      render(
-        <ParticipantTeam participant={participant} picks={[pick2]} pool={[franchiseEntry]} />,
-      );
+      render(<ParticipantTeam participant={participant} picks={[pick2]} pool={[franchiseEntry]} />);
 
       expect(screen.getByText('Boston Celtics (BOS)')).toBeInTheDocument();
     });
 
     it('shows round and pick number', () => {
-      render(
-        <ParticipantTeam participant={participant} picks={[pick1]} pool={[mvpEntry]} />,
-      );
+      render(<ParticipantTeam participant={participant} picks={[pick1]} pool={[mvpEntry]} />);
 
       expect(screen.getByText('R1 · #1')).toBeInTheDocument();
     });

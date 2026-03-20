@@ -1,3 +1,4 @@
+import { computeInvalidatedIds } from '@/nba/draft/machine/actions/helpers';
 import { NbaDraftContext, NbaDraftEvent, PickRecord } from '@dribblio/types';
 import { assertEvent, assign } from 'xstate';
 
@@ -37,13 +38,17 @@ const assignPick = draftAssign(({ context, event }) => {
   return { pickHistory: [...context.pickHistory, pickRecord] };
 });
 
-const assignPool = draftAssign(({ context, event }) => {
-  assertEvent(event, 'POOL_UPDATED');
+const invalidatePool = draftAssign(({ context }) => {
+  const lastPick = context.pickHistory[context.pickHistory.length - 1];
+  if (!lastPick) return {};
+
+  const invalidatedIds = new Set(
+    computeInvalidatedIds(context.pool, context.config, lastPick.entryId),
+  );
+
   return {
     pool: context.pool.map((entry) =>
-      event.invalidatedIds.has(entry.entryId)
-        ? { ...entry, available: false }
-        : entry,
+      invalidatedIds.has(entry.entryId) ? { ...entry, available: false } : entry,
     ),
   };
 });
@@ -92,7 +97,7 @@ export const assignActions = {
   assignConfig,
   assignDraftStart,
   assignPick,
-  assignPool,
+  invalidatePool,
   advanceTurn,
   assignParticipant,
   removeParticipant,

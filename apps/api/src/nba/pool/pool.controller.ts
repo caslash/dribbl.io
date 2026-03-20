@@ -7,18 +7,27 @@ import {
   UpdatePoolDto,
 } from '@dribblio/types';
 import {
+  BadRequestException,
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
+  Logger,
   NotFoundException,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
+
+const MAX_POOL_LIST_LIMIT = 100;
 
 @Controller('pools')
 export class PoolController {
+  private readonly logger = new Logger(PoolController.name);
+
   constructor(
     private readonly mvpGenerator: MvpPoolGenerator,
     private readonly poolService: PoolService,
@@ -35,14 +44,23 @@ export class PoolController {
   }
 
   @Get('public')
-  async listPublic(): Promise<SavedPool[]> {
-    return this.poolService.listPublicPools();
+  async listPublic(
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+    @Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number,
+  ): Promise<SavedPool[]> {
+    if (limit > MAX_POOL_LIST_LIMIT) {
+      throw new BadRequestException(`limit may not exceed ${MAX_POOL_LIST_LIMIT}`);
+    }
+    return this.poolService.listPublicPools(limit, offset);
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<SavedPool> {
     const pool = await this.poolService.loadPool(id);
-    if (!pool) throw new NotFoundException(`Pool ${id} not found`);
+    if (!pool) {
+      this.logger.warn(`Pool ${id} not found`);
+      throw new NotFoundException(`Pool ${id} not found`);
+    }
     return pool;
   }
 
@@ -52,13 +70,19 @@ export class PoolController {
     @Body() dto: UpdatePoolDto,
   ): Promise<SavedPool> {
     const pool = await this.poolService.updatePool(id, dto);
-    if (!pool) throw new NotFoundException(`Pool ${id} not found`);
+    if (!pool) {
+      this.logger.warn(`Pool ${id} not found for update`);
+      throw new NotFoundException(`Pool ${id} not found`);
+    }
     return pool;
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<void> {
     const deleted = await this.poolService.deletePool(id);
-    if (!deleted) throw new NotFoundException(`Pool ${id} not found`);
+    if (!deleted) {
+      this.logger.warn(`Pool ${id} not found for deletion`);
+      throw new NotFoundException(`Pool ${id} not found`);
+    }
   }
 }

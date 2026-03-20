@@ -1,11 +1,11 @@
-import React, { useId, useRef, useState, useCallback, KeyboardEvent } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { User } from 'lucide-react';
-import { useNavigate } from 'react-router';
-import type { PickRecord, PoolEntry, Participant, DraftRoomConfig } from '@dribblio/types';
 import { Button } from '@/components';
-import { useDraft } from '@/hooks/useDraft';
 import { MyPickCard } from '@/components/draft/MyPickCard';
+import { useDraft } from '@/hooks/useDraft';
+import type { DraftRoomConfig, Participant, PickRecord, PoolEntry } from '@dribblio/types';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { User } from 'lucide-react';
+import React, { useCallback, useId, useRef, useState, type KeyboardEvent } from 'react';
+import { useNavigate } from 'react-router';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -30,7 +30,12 @@ interface DraftOrderTableProps {
   myParticipantId: string | null;
 }
 
-function DraftOrderTable({ pickHistory, pool, participants, myParticipantId }: DraftOrderTableProps) {
+function DraftOrderTable({
+  pickHistory,
+  pool,
+  participants,
+  myParticipantId,
+}: DraftOrderTableProps) {
   const rounds = Array.from(new Set(pickHistory.map((p) => p.round))).sort((a, b) => a - b);
 
   return (
@@ -40,17 +45,33 @@ function DraftOrderTable({ pickHistory, pool, participants, myParticipantId }: D
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="border-b border-primary-border">
-              <th scope="col" className="text-left py-2 px-3 text-xs text-muted-foreground font-medium w-16">
+              <th
+                scope="col"
+                className="text-left py-2 px-3 text-xs text-muted-foreground font-medium w-16"
+              >
                 Pick
               </th>
-              <th scope="col" className="text-left py-2 px-3 text-xs text-muted-foreground font-medium w-10" aria-label="Headshot" />
-              <th scope="col" className="text-left py-2 px-3 text-xs text-muted-foreground font-medium">
+              <th
+                scope="col"
+                className="text-left py-2 px-3 text-xs text-muted-foreground font-medium w-10"
+                aria-label="Headshot"
+              />
+              <th
+                scope="col"
+                className="text-left py-2 px-3 text-xs text-muted-foreground font-medium"
+              >
                 Participant
               </th>
-              <th scope="col" className="text-left py-2 px-3 text-xs text-muted-foreground font-medium">
+              <th
+                scope="col"
+                className="text-left py-2 px-3 text-xs text-muted-foreground font-medium"
+              >
                 Player
               </th>
-              <th scope="col" className="text-left py-2 px-3 text-xs text-muted-foreground font-medium hidden sm:table-cell">
+              <th
+                scope="col"
+                className="text-left py-2 px-3 text-xs text-muted-foreground font-medium hidden sm:table-cell"
+              >
                 Detail
               </th>
             </tr>
@@ -70,7 +91,9 @@ function DraftOrderTable({ pickHistory, pool, participants, myParticipantId }: D
                   </tr>
                   {roundPicks.map((pick) => {
                     const entry = resolvePickEntry(pick, pool);
-                    const participant = participants.find((p) => p.participantId === pick.participantId);
+                    const participant = participants.find(
+                      (p) => p.participantId === pick.participantId,
+                    );
                     const isMe = pick.participantId === myParticipantId;
                     const subtitle =
                       entry?.draftMode === 'mvp'
@@ -145,13 +168,20 @@ function DraftOrderTable({ pickHistory, pool, participants, myParticipantId }: D
           </h3>
           <ul className="flex flex-col gap-2">
             {participants.map((p) => {
-              const count = pickHistory.filter((pick) => pick.participantId === p.participantId).length;
+              const count = pickHistory.filter(
+                (pick) => pick.participantId === p.participantId,
+              ).length;
               const isMe = p.participantId === myParticipantId;
               return (
-                <li key={p.participantId} className="flex items-center justify-between gap-2 text-sm">
+                <li
+                  key={p.participantId}
+                  className="flex items-center justify-between gap-2 text-sm"
+                >
                   <span className={`truncate ${isMe ? 'font-semibold' : ''}`}>
                     {p.name}
-                    {isMe && <span className="ml-1 text-xs text-muted-foreground font-normal">(You)</span>}
+                    {isMe && (
+                      <span className="ml-1 text-xs text-muted-foreground font-normal">(You)</span>
+                    )}
                   </span>
                   <span className="shrink-0 text-muted-foreground tabular-nums">{count}</span>
                 </li>
@@ -197,13 +227,9 @@ function AllTeamsPanel({ participants, pickHistory, pool, myParticipantId }: All
 
         return (
           <section key={participant.participantId}>
-            <h3
-              className={`text-base font-bold mb-3 ${isMe ? 'flex items-center gap-2' : ''}`}
-            >
+            <h3 className={`text-base font-bold mb-3 ${isMe ? 'flex items-center gap-2' : ''}`}>
               {participant.name}
-              {isMe && (
-                <span className="text-sm font-normal text-muted-foreground">(You)</span>
-              )}
+              {isMe && <span className="text-sm font-normal text-muted-foreground">(You)</span>}
             </h3>
             <div
               className={`rounded-lg p-4 border ${
@@ -218,9 +244,7 @@ function AllTeamsPanel({ participants, pickHistory, pool, myParticipantId }: All
                 <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3">
                   {myPicks.map((pick) => {
                     const entry = resolvePickEntry(pick, pool);
-                    return (
-                      <MyPickCard key={pick.entryId} pick={pick} entry={entry} compact />
-                    );
+                    return <MyPickCard key={pick.entryId} pick={pick} entry={entry} compact />;
                   })}
                 </div>
               )}
@@ -358,12 +382,7 @@ export function DraftResults() {
         </div>
 
         {/* Tab bar */}
-        <div
-          role="tablist"
-          aria-label="Results view"
-          id={tabListId}
-          className="flex gap-1 mt-4"
-        >
+        <div role="tablist" aria-label="Results view" id={tabListId} className="flex gap-1 mt-4">
           {tabs.map((tab) => (
             <button
               key={tab.id}

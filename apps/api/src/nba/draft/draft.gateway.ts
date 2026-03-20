@@ -2,26 +2,39 @@ import { DraftService } from '@/nba/draft/draft.service';
 import { PoolService } from '@/nba/pool/pool.service';
 import {
   DraftRoomConfig,
-  FranchisePoolEntry,
   NbaDraftEvent,
   StartDraftDto,
   SubmitPickEvent,
 } from '@dribblio/types';
+import { createRateLimiter } from '@/nba/shared/rate-limiter';
+import { Logger } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import {
   ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-@WebSocketGateway({ namespace: '/draft' })
-export class DraftGateway implements OnGatewayConnection, OnGatewayDisconnect {
+@SkipThrottle()
+@WebSocketGateway({
+  namespace: '/draft',
+  cors: {
+    origin: process.env.CORS_ORIGIN?.split(',').map((o) => o.trim()) ?? ['http://localhost:3000'],
+  },
+})
+export class DraftGateway
+  implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
+{
   @WebSocketServer()
   io: Server;
+
+  private readonly logger = new Logger(DraftGateway.name);
 
   /** Tracks the number of active sockets per room for cleanup purposes. */
   private readonly roomSocketCounts = new Map<string, number>();
@@ -29,7 +42,17 @@ export class DraftGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly draftService: DraftService,
     private readonly poolService: PoolService,
-  ) {}
+  ) {
+    // Clean up socket tracking when a room is destroyed internally (e.g. machine reaches final state)
+    this.draftService.onRoomDestroyed = (roomId) => {
+      this.roomSocketCounts.delete(roomId);
+    };
+  }
+
+  afterInit(server: Server): void {
+    server.use(createRateLimiter());
+    this.logger.log('Draft gateway initialized');
+  }
 
   handleConnection(socket: Socket) {
     const roomId = socket.handshake.query.roomId as string | undefined;
@@ -38,6 +61,7 @@ export class DraftGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const room = this.draftService.getRoom(roomId);
 
       if (!room) {
+        this.logger.warn(`Socket ${socket.id} attempted to join non-existent room ${roomId}`);
         socket.emit('ERROR', { message: `Room ${roomId} not found` });
         socket.disconnect();
         return;
@@ -46,26 +70,51 @@ export class DraftGateway implements OnGatewayConnection, OnGatewayDisconnect {
       socket.data.roomId = roomId;
       socket.join(roomId);
       this.roomSocketCounts.set(roomId, (this.roomSocketCounts.get(roomId) ?? 0) + 1);
+      this.logger.log(`Socket ${socket.id} joined room ${roomId}`);
       return;
     }
 
-    // Temp socket used only to obtain a generated roomId — not tracked for cleanup.
-    const newRoomId = this.draftService.createRoom(this.io);
+    // Temp socket used only to obtain a generated roomId.
+    // Store it so handleDisconnect can clean up if no participant ever joins.
+    let newRoomId: string;
+    try {
+      newRoomId = this.draftService.createRoom(this.io);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to create room';
+      this.logger.warn(`Socket ${socket.id} room creation failed: ${message}`);
+      socket.emit('ERROR', { message });
+      socket.disconnect();
+      return;
+    }
+    socket.data.createdRoomId = newRoomId;
     socket.join(newRoomId);
     socket.emit('ROOM_CREATED', { roomId: newRoomId });
+    this.logger.log(`Socket ${socket.id} created room ${newRoomId}`);
   }
 
   handleDisconnect(socket: Socket) {
     const roomId = socket.data.roomId as string | undefined;
-    // Temp room-creation sockets have no roomId stored — nothing to clean up.
-    if (!roomId) return;
+
+    if (!roomId) {
+      // Temp room-creation socket — destroy the room if no participant joined.
+      const createdRoomId = socket.data.createdRoomId as string | undefined;
+      if (createdRoomId && !this.roomSocketCounts.has(createdRoomId)) {
+        this.logger.log(`Destroying orphaned room ${createdRoomId} — no participants joined`);
+        this.draftService.destroyRoom(createdRoomId);
+      } else {
+        this.logger.debug(`Temp socket ${socket.id} disconnected`);
+      }
+      return;
+    }
 
     const remaining = (this.roomSocketCounts.get(roomId) ?? 1) - 1;
     if (remaining <= 0) {
       this.roomSocketCounts.delete(roomId);
+      this.logger.log(`Last participant left room ${roomId} — destroying room`);
       this.draftService.destroyRoom(roomId);
     } else {
       this.roomSocketCounts.set(roomId, remaining);
+      this.logger.debug(`Socket ${socket.id} left room ${roomId} (${remaining} remaining)`);
     }
   }
 
@@ -94,9 +143,13 @@ export class DraftGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const room = this.draftService.getRoom(roomId);
     if (!room) return;
 
-    const pool = await this.poolService.generatePreview(data.config);
-
-    room.send({ type: 'SAVE_CONFIG', config: data.config, pool });
+    try {
+      const pool = await this.poolService.generatePreview(data.config);
+      room.send({ type: 'SAVE_CONFIG', config: data.config, pool });
+    } catch (error) {
+      this.logger.error(`Failed to generate pool preview for room ${roomId}`, error instanceof Error ? error.stack : String(error));
+      socket.emit('ERROR', { message: 'Failed to generate pool preview' });
+    }
   }
 
   @SubscribeMessage('ORGANIZER_START_DRAFT')
@@ -110,31 +163,37 @@ export class DraftGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const room = this.draftService.getRoom(roomId);
     if (!room) return;
 
-    const { participants, config } = room.getSnapshot().context;
+    try {
+      const { participants, config } = room.getSnapshot().context;
 
-    let pool;
-    if (data?.savedPoolId) {
-      const savedPool = await this.poolService.loadPool(data.savedPoolId);
-      if (!savedPool) {
-        socket.emit('ERROR', { message: `Pool ${data.savedPoolId} not found` });
-        return;
+      let pool;
+      if (data?.savedPoolId) {
+        const savedPool = await this.poolService.loadPool(data.savedPoolId);
+        if (!savedPool) {
+          this.logger.warn(`Saved pool ${data.savedPoolId} not found for room ${roomId}`);
+          socket.emit('ERROR', { message: `Pool ${data.savedPoolId} not found` });
+          return;
+        }
+        pool = savedPool.entries.map((entry) => ({ ...entry, available: true }));
+      } else {
+        pool = await this.poolService.finalize(config);
       }
-      pool = savedPool.entries.map((entry) => ({ ...entry, available: true }));
-    } else {
-      pool = await this.poolService.finalize(config);
+
+      const turnOrder = this.draftService.computeTurnOrder(
+        participants,
+        config.draftOrder,
+        config.maxRounds,
+      );
+
+      room.send({
+        type: 'ORGANIZER_START_DRAFT',
+        pool,
+        turnOrder,
+      });
+    } catch (error) {
+      this.logger.error(`Failed to start draft for room ${roomId}`, error instanceof Error ? error.stack : String(error));
+      socket.emit('ERROR', { message: 'Failed to start draft' });
     }
-
-    const turnOrder = this.draftService.computeTurnOrder(
-      participants,
-      config.draftOrder,
-      config.maxRounds,
-    );
-
-    room.send({
-      type: 'ORGANIZER_START_DRAFT',
-      pool,
-      turnOrder,
-    });
   }
 
   @SubscribeMessage('SUBMIT_PICK')
@@ -149,33 +208,6 @@ export class DraftGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!room) return;
 
     room.send({ type: 'SUBMIT_PICK', pickRecord: data.pickRecord });
-
-    // Compute which pool entries are invalidated by this pick and advance the machine.
-    const { pool, config } = room.getSnapshot().context;
-    const pickedEntry = pool.find((e) => e.entryId === data.pickRecord.entryId);
-    if (!pickedEntry) return;
-
-    const invalidatedIds = new Set<string>();
-    for (const entry of pool) {
-      if (config.draftMode === 'mvp') {
-        if (entry.playerId === pickedEntry.playerId) {
-          invalidatedIds.add(entry.entryId);
-        }
-      } else if (config.draftMode === 'franchise') {
-        if (entry.playerId === pickedEntry.playerId) {
-          invalidatedIds.add(entry.entryId);
-        } else if (
-          entry.draftMode === 'franchise' &&
-          pickedEntry.draftMode === 'franchise' &&
-          (entry as FranchisePoolEntry).franchiseAbbr ===
-            (pickedEntry as FranchisePoolEntry).franchiseAbbr
-        ) {
-          invalidatedIds.add(entry.entryId);
-        }
-      }
-    }
-
-    room.send({ type: 'POOL_UPDATED', invalidatedIds });
   }
 
   private getRoomId(socket: Socket): string | undefined {

@@ -11,6 +11,7 @@ describe('DraftGateway', () => {
     createRoom: vi.fn(),
     getRoom: vi.fn(),
     computeTurnOrder: vi.fn(),
+    destroyRoom: vi.fn(),
   };
 
   const mockPoolService = {
@@ -28,6 +29,7 @@ describe('DraftGateway', () => {
     join: vi.fn(),
     disconnect: vi.fn(),
     handshake: { query: { roomId } },
+    data: {} as Record<string, unknown>,
   });
 
   const makeRoom = (
@@ -57,6 +59,17 @@ describe('DraftGateway', () => {
 
   it('should be defined', () => {
     expect(gateway).toBeDefined();
+  });
+
+  describe('afterInit', () => {
+    it('should register a middleware function on the server via server.use', () => {
+      const server = { use: vi.fn() };
+
+      gateway.afterInit(server as any);
+
+      expect(server.use).toHaveBeenCalledTimes(1);
+      expect(server.use).toHaveBeenCalledWith(expect.any(Function));
+    });
   });
 
   describe('handleConnection', () => {
@@ -90,7 +103,7 @@ describe('DraftGateway', () => {
       expect(socket.join).not.toHaveBeenCalled();
     });
 
-    it('should create a new room, join it, and emit ROOM_CREATED when no roomId is provided', () => {
+    it('should create a new room, join it, emit ROOM_CREATED, and store createdRoomId when no roomId is provided', () => {
       mockDraftService.createRoom.mockReturnValue('NEW01');
       const socket = makeSocket('socket-1');
 
@@ -101,6 +114,34 @@ describe('DraftGateway', () => {
       expect(socket.emit).toHaveBeenCalledWith('ROOM_CREATED', {
         roomId: 'NEW01',
       });
+      expect(socket.data.createdRoomId).toBe('NEW01');
+    });
+  });
+
+  describe('handleDisconnect', () => {
+    it('should destroy the room when the temp socket disconnects and no participant joined', () => {
+      mockDraftService.createRoom.mockReturnValue('NEW01');
+      const socket = makeSocket('socket-1');
+      gateway.handleConnection(socket as any);
+
+      gateway.handleDisconnect(socket as any);
+
+      expect(mockDraftService.destroyRoom).toHaveBeenCalledWith('NEW01');
+    });
+
+    it('should not destroy the room when the temp socket disconnects but a participant already joined', () => {
+      mockDraftService.createRoom.mockReturnValue('NEW01');
+      const tempSocket = makeSocket('socket-1');
+      gateway.handleConnection(tempSocket as any);
+
+      // Simulate a participant joining, which increments roomSocketCounts
+      const participantSocket = makeSocket('socket-2', 'NEW01');
+      mockDraftService.getRoom.mockReturnValue(makeRoom([], { draftOrder: 'snake', maxRounds: 3, draftMode: 'mvp' }));
+      gateway.handleConnection(participantSocket as any);
+
+      gateway.handleDisconnect(tempSocket as any);
+
+      expect(mockDraftService.destroyRoom).not.toHaveBeenCalled();
     });
   });
 

@@ -16,6 +16,7 @@ describe('CareerPathGateway', () => {
   const makeSocket = (socketId: string, roomId?: string) => ({
     id: socketId,
     rooms: new Set(roomId ? [socketId, roomId] : [socketId]),
+    data: {} as Record<string, unknown>,
     emit: vi.fn(),
     join: vi.fn(),
     disconnect: vi.fn(),
@@ -44,6 +45,17 @@ describe('CareerPathGateway', () => {
 
   it('should be defined', () => {
     expect(gateway).toBeDefined();
+  });
+
+  describe('afterInit', () => {
+    it('should register a middleware function on the server via server.use', () => {
+      const server = { use: vi.fn() };
+
+      gateway.afterInit(server as any);
+
+      expect(server.use).toHaveBeenCalledTimes(1);
+      expect(server.use).toHaveBeenCalledWith(expect.any(Function));
+    });
   });
 
   describe('handleConnection', () => {
@@ -108,6 +120,7 @@ describe('CareerPathGateway', () => {
     });
 
     it('should return early and not send when room does not exist', () => {
+      const room = makeRoom();
       mockCareerPathService.getRoom.mockReturnValue(undefined);
       const socket = makeSocket('socket-1', 'ROOM1');
       const event = { type: 'PLAYER_GUESS' } as any;
@@ -115,6 +128,7 @@ describe('CareerPathGateway', () => {
       gateway.handleMessage(socket as any, event);
 
       expect(mockCareerPathService.getRoom).toHaveBeenCalledWith('ROOM1');
+      expect(room.send).not.toHaveBeenCalled();
     });
   });
 });

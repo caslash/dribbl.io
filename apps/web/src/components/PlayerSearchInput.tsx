@@ -2,6 +2,7 @@ import { Command } from 'cmdk';
 import { Loader2 } from 'lucide-react';
 import { forwardRef, useCallback, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
+import { BACKEND_URL } from '@/config';
 
 /** Lightweight player shape returned by the search API. */
 interface PlayerSearchResult {
@@ -54,7 +55,7 @@ export const PlayerSearchInput = forwardRef<HTMLInputElement, PlayerSearchInputP
     setIsLoading(true);
     try {
       const res = await fetch(
-        `/api/players?search=${encodeURIComponent(search)}`,
+        `${BACKEND_URL}/api/players?search=${encodeURIComponent(search)}`,
       );
       if (!res.ok) throw new Error('Search failed');
       const data = (await res.json()) as PlayerSearchResult[];

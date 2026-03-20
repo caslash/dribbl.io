@@ -23,7 +23,8 @@ const notifyNextRound = sendToSocket('socket', ({ context }) => ({
       if (acc.at(-1) !== id) acc.push(id);
       return acc;
     }, []),
-  lives: context.gameState.lives ? context.gameState.lives : undefined,
+  lives:
+    context.gameState.lives !== undefined ? context.gameState.lives : undefined,
 }));
 
 const notifyConfigSaved = sendToSocket('socket', () => ({
@@ -38,12 +39,15 @@ const notifyCorrectGuess = sendToSocket('socket', ({ context }) => ({
 const notifyIncorrectGuess = sendToSocket('socket', ({ context }) => ({
   type: 'NOTIFY_INCORRECT_GUESS',
   // Use !== undefined so that 0 (last life used) is sent, not treated as infinite
-  lives: context.gameState.lives !== undefined ? context.gameState.lives : undefined,
+  lives:
+    context.gameState.lives !== undefined ? context.gameState.lives : undefined,
+  score: context.gameState.score,
 }));
 
 const notifySkipRound = sendToSocket('socket', ({ context }) => ({
   type: 'NOTIFY_SKIP_ROUND',
-  lives: context.gameState.lives !== undefined ? context.gameState.lives : undefined,
+  lives:
+    context.gameState.lives !== undefined ? context.gameState.lives : undefined,
 }));
 
 const notifyGameOver = sendToSocket('socket', () => ({

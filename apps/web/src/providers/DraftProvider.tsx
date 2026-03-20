@@ -32,6 +32,7 @@ import {
 } from 'react';
 import { toast } from 'react-toastify';
 import { io, Socket } from 'socket.io-client';
+import { BACKEND_URL } from '@/config';
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
@@ -213,7 +214,7 @@ export function DraftProvider({ children, roomId: initialRoomId }: DraftProvider
       socketRef.current.disconnect();
     }
 
-    const socket = io('/draft', {
+    const socket = io(`${BACKEND_URL}/draft`, {
       query: { roomId },
       transports: ['websocket'],
     });
@@ -261,6 +262,10 @@ export function DraftProvider({ children, roomId: initialRoomId }: DraftProvider
       toast.success('Draft complete!');
     });
 
+    socket.on('ERROR', (payload: { message: string }) => {
+      toast.error(payload.message);
+    });
+
     socketRef.current = socket;
   }, []);
 
@@ -282,7 +287,7 @@ export function DraftProvider({ children, roomId: initialRoomId }: DraftProvider
     async (name: string) => {
       // Connecting without a roomId causes the gateway to create a new room
       // and emit ROOM_CREATED back with the generated roomId.
-      const tempSocket = io('/draft', { transports: ['websocket'] });
+      const tempSocket = io(`${BACKEND_URL}/draft`, { transports: ['websocket'] });
 
       const roomId = await new Promise<string>((resolve, reject) => {
         tempSocket.once('ROOM_CREATED', ({ roomId: id }: { roomId: string }) => resolve(id));

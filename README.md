@@ -17,7 +17,7 @@ Multiplayer room-based drafting game. Participants take turns selecting all-time
 ```
 dribbl.io/
 ├── apps/
-│   ├── api/      # NestJS REST + WebSocket API (port 3002)
+│   ├── api/      # NestJS REST + WebSocket API (port 3001)
 │   ├── web/      # Vite + React frontend (port 3000)
 │   ├── db/       # Python data pipeline (stats.nba.com → PostgreSQL)
 │   └── cli/      # TypeScript terminal client for dev/testing
@@ -32,15 +32,15 @@ Each app has its own `README.md` with setup and usage details.
 
 ## Tech Stack
 
-| Layer          | Technology                          |
-| -------------- | ----------------------------------- |
-| Backend        | NestJS 11, TypeORM, PostgreSQL       |
-| Real-time      | Socket.io                           |
-| State machines | XState v5                           |
-| Frontend       | React 19, Vite, Tailwind CSS         |
-| Routing        | React Router 7                      |
-| Data pipeline  | Python 3.10+, nba_api, asyncpg      |
-| Monorepo       | Turborepo, npm workspaces           |
+| Layer          | Technology                     |
+| -------------- | ------------------------------ |
+| Backend        | NestJS 11, TypeORM, PostgreSQL |
+| Real-time      | Socket.io                      |
+| State machines | XState v5                      |
+| Frontend       | React 19, Vite, Tailwind CSS   |
+| Routing        | React Router 7                 |
+| Data pipeline  | Python 3.10+, nba_api, asyncpg |
+| Monorepo       | Turborepo, npm workspaces      |
 
 ## Getting Started
 
@@ -56,7 +56,7 @@ npm install
 npm run dev
 ```
 
-This starts the API (port 3002) and web app (port 3000) concurrently via Turborepo.
+This starts the API (port 3001) and web app (port 3000) concurrently via Turborepo.
 
 ### Build
 
@@ -86,26 +86,34 @@ npm test
 
 PostgreSQL. The `api_user` role has read access to all tables and write access only to `pools`.
 
-| Table       | Description                                             |
-| ----------- | ------------------------------------------------------- |
-| `players`   | NBA player records                                      |
-| `teams`     | NBA team records, including historical franchises       |
-| `seasons`   | Per-player, per-season, per-team regular season stats   |
-| `accolades` | Awards — MVP seasons, All-Star selections, etc.         |
-| `pools`     | Saved draft pools created by users                      |
+| Table       | Description                                           |
+| ----------- | ----------------------------------------------------- |
+| `players`   | NBA player records                                    |
+| `teams`     | NBA team records, including historical franchises     |
+| `seasons`   | Per-player, per-season, per-team regular season stats |
+| `accolades` | Awards — MVP seasons, All-Star selections, etc.       |
+| `pools`     | Saved draft pools created by users                    |
 
 The database is populated by the Python pipeline in `apps/db`. See its README for setup and usage.
 
 ## Environment Variables
 
-Each app reads its own environment variables. See the app-level READMEs for the full list. At minimum:
+Each app has a `.env.example` file with all required variables. Copy it to `.env` and fill in your values:
 
-| Variable          | App | Description                           |
-| ----------------- | --- | ------------------------------------- |
-| `PG_HOST`         | api | PostgreSQL host                       |
-| `PG_PORT`         | api | PostgreSQL port                       |
-| `PG_NBA_USERNAME` | api | DB username                           |
-| `PG_NBA_PASSWORD` | api | DB password                           |
-| `PG_NBA_DATABASE` | api | DB name                               |
-| `DATABASE_URL`    | db  | PostgreSQL connection string          |
-| `DRIBBL_API_URL`  | cli | API base URL (default: localhost:3002)|
+```bash
+cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env
+cp apps/db/.env.example apps/db/.env
+```
+
+| Variable           | App | Description                                              |
+| ------------------ | --- | -------------------------------------------------------- |
+| `DATABASE_URL`     | api | PostgreSQL connection string                             |
+| `PORT`             | api | Server port (default: `3001`)                            |
+| `CORS_ORIGIN`      | api | Comma-separated allowed origins (default: `localhost:3000`) |
+| `BACKEND_URL`      | web | API base URL for Vite dev proxy                          |
+| `VITE_BACKEND_URL` | web | API base URL for production client (Socket.io + fetch)   |
+| `DATABASE_URL`     | db  | PostgreSQL connection string (read/write for pipeline)   |
+| `CONCURRENCY`      | db  | Scraper concurrency limit                                |
+| `REQUEST_TIMEOUT`  | db  | Scraper request timeout in seconds                       |
+| `DRIBBL_API_URL`   | cli | API base URL (default: `localhost:3001`)                 |

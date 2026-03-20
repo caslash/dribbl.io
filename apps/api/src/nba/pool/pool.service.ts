@@ -8,12 +8,19 @@ import {
   SavedPool,
   UpdatePoolDto,
 } from '@dribblio/types';
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 @Injectable()
 export class PoolService {
+  private readonly logger = new Logger(PoolService.name);
+
   private get generators(): Record<string, PoolGenerator> {
     return { mvp: this.mvpGenerator, franchise: this.franchiseGenerator };
   }
@@ -27,6 +34,15 @@ export class PoolService {
 
   async generatePreview(config: DraftRoomConfig): Promise<PoolEntry[]> {
     const generator = this.generators[config.draftMode];
+    if (!generator) {
+      this.logger.error(
+        `No generator registered for draftMode "${config.draftMode}"`,
+      );
+      throw new InternalServerErrorException(
+        `Generator for ${config.draftMode} does not exist.`,
+      );
+    }
+    this.logger.log(`Generating preview pool for draftMode "${config.draftMode}"`);
     return generator.generate();
   }
 
@@ -39,13 +55,15 @@ export class PoolService {
   }
 
   async createPool(dto: CreatePoolDto): Promise<SavedPool> {
-    return this.savedPoolRepository.save({
+    const pool = await this.savedPoolRepository.save({
       name: dto.name,
       visibility: dto.visibility,
       draftMode: dto.draftMode,
       entries: dto.entries,
       createdBy: null,
     });
+    this.logger.log(`Pool "${pool.name}" created (id: ${pool.id})`);
+    return pool;
   }
 
   async savePool(
@@ -54,21 +72,30 @@ export class PoolService {
     config: DraftRoomConfig,
     entries: PoolEntry[],
   ): Promise<SavedPool> {
-    return this.savedPoolRepository.save({
+    const pool = await this.savedPoolRepository.save({
       name,
       draftMode: config.draftMode,
       visibility,
       entries,
       createdBy: null,
     });
+    this.logger.log(`Pool "${pool.name}" saved (id: ${pool.id})`);
+    return pool;
   }
 
   async loadPool(poolId: string): Promise<SavedPool | null> {
-    return this.savedPoolRepository.findOneBy({ id: poolId });
+    const pool = await this.savedPoolRepository.findOneBy({ id: poolId });
+    if (!pool) this.logger.warn(`Pool ${poolId} not found`);
+    return pool;
   }
 
-  async listPublicPools(): Promise<SavedPool[]> {
-    return this.savedPoolRepository.findBy({ visibility: 'public' });
+  async listPublicPools(limit = 20, offset = 0): Promise<SavedPool[]> {
+    return this.savedPoolRepository.find({
+      where: { visibility: 'public' },
+      take: limit,
+      skip: offset,
+      order: { createdAt: 'DESC' },
+    });
   }
 
   async updatePool(
@@ -83,8 +110,9 @@ export class PoolService {
 
   async deletePool(poolId: string): Promise<boolean> {
     const result = await this.savedPoolRepository.delete(poolId);
-    return result.affected === undefined || result.affected === null
-      ? true
-      : result.affected > 0;
+    if (result.affected === undefined || result.affected === null)
+      throw new NotFoundException();
+
+    return result.affected > 0;
   }
 }

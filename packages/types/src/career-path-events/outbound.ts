@@ -19,6 +19,7 @@ export type NotifyCorrectGuess = {
 export type NotifyIncorrectGuess = {
   type: 'NOTIFY_INCORRECT_GUESS';
   lives: number | undefined;
+  score: number;
 };
 
 export type NotifySkipRound = {
