@@ -52,8 +52,11 @@ async function bootstrap() {
 
   app.enableShutdownHooks();
 
-  await app.listen(process.env.PORT ?? 3001);
-  logger.log(`Application listening on port ${process.env.PORT ?? 3001}`);
+  await app.listen(process.env.PORT ?? 3001, '0.0.0.0', () => {
+    logger.log(
+      `Application listening on port ${process.env.PORT ?? 3001} on all interfaces`,
+    );
+  });
 
   process.on('SIGTERM', async () => {
     await app.close();
