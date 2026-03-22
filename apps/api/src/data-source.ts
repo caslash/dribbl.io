@@ -1,14 +1,14 @@
 import 'reflect-metadata';
 import * as dotenv from 'dotenv';
 import { DataSource } from 'typeorm';
-import { SavedPool } from '@dribblio/types';
+import { DailyChallenge, SavedPool } from '@dribblio/types';
 
 dotenv.config();
 
 /**
  * Standalone TypeORM DataSource for the CLI migration tooling.
  *
- * Only includes `SavedPool` — the single entity the API owns.
+ * Only includes entities the API owns (`SavedPool`, `DailyChallenge`).
  * Including pipeline-managed entities (Player, Team, Season, Accolade)
  * would cause TypeORM to generate migrations for tables it does not own.
  *
@@ -19,7 +19,7 @@ dotenv.config();
 export const AppDataSource = new DataSource({
   type: 'postgres',
   url: process.env.DATABASE_URL,
-  entities: [SavedPool],
+  entities: [SavedPool, DailyChallenge],
   migrations: ['src/migrations/*.ts'],
   ssl:
     process.env.NODE_ENV === 'production'
