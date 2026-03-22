@@ -1,9 +1,17 @@
-import { Accolade, Player, SavedPool, Season, Team } from '@dribblio/types';
+import {
+  Accolade,
+  DailyChallenge,
+  Player,
+  SavedPool,
+  Season,
+  Team,
+} from '@dribblio/types';
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
+import { DailyModule } from './daily/daily.module';
 import { HealthModule } from './health/health.module';
 import { NbaModule } from './nba/nba.module';
 
@@ -14,7 +22,7 @@ import { NbaModule } from './nba/nba.module';
       useFactory: () => ({
         type: 'postgres',
         url: process.env.DATABASE_URL,
-        entities: [Player, Season, Accolade, Team, SavedPool],
+        entities: [Player, Season, Accolade, Team, SavedPool, DailyChallenge],
         migrations: [join(__dirname, 'migrations/*.js')],
         synchronize: false,
         migrationsRun: true,
@@ -30,6 +38,7 @@ import { NbaModule } from './nba/nba.module';
       }),
     }),
     NbaModule,
+    DailyModule,
     HealthModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

@@ -1,4 +1,5 @@
 export * from './create-pool.dto';
+export * from './daily-challenge.dto';
 export * from './draft-room-config.dto';
 export * from './preview-pool.dto';
 export * from './start-draft.dto';

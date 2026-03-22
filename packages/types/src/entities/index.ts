@@ -1,5 +1,6 @@
 export * from './accolade.entity';
 export * from './career-path-context';
+export * from './daily-challenge.entity';
 export * from './draft-context';
 export * from './game-difficulty';
 export * from './player.entity';
