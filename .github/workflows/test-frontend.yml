@@ -27,5 +27,8 @@ jobs:
       - name: Build shared packages
         run: npm run build -w packages/types
 
+      - name: Build web
+        run: npm run build -w apps/web
+
       - name: Run tests
         run: npm test -w apps/web
