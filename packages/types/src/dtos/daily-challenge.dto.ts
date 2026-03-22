@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import { IsArray, IsInt, Min } from 'class-validator';
 
 /**
@@ -30,11 +31,13 @@ export interface DailyChallengeDto {
  */
 export class RosterGuessDto {
   /** The player ID the user is guessing. */
+  @Transform(({ value }) => Number(value))
   @IsInt()
   @Min(1)
   guessId: number;
 
   /** All player IDs the user has already named correctly this session. */
+  @Transform(({ value }) => (Array.isArray(value) ? value.map(Number) : value))
   @IsArray()
   @IsInt({ each: true })
   namedIds: number[];

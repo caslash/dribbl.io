@@ -1,20 +1,15 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { toast } from 'react-toastify';
-import { AlertCircle, Calendar, CheckCircle2, XCircle } from 'lucide-react';
-import { DailyRosterProvider } from '@/providers/DailyRosterProvider';
-import { useDailyRoster } from '@/hooks/useDailyRoster';
-import {
-  RosterGrid,
-  DailyLivesDisplay,
-  DailyResultPanel,
-} from '@/components';
-import { PlayerSearchInput } from '@/components/PlayerSearchInput';
+import { DailyLivesDisplay, DailyResultPanel, RosterGrid } from '@/components';
+import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
-import { Badge } from '@/components/Badge';
-import { BACKEND_URL } from '@/config';
+import { PlayerSearchInput } from '@/components/PlayerSearchInput';
+import { useDailyRoster } from '@/hooks/useDailyRoster';
 import type { NamedPlayer } from '@/providers/DailyRosterProvider';
+import { DailyRosterProvider } from '@/providers/DailyRosterProvider';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { AlertCircle, Calendar, CheckCircle2, XCircle } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'react-toastify';
 
 // ---------------------------------------------------------------------------
 // Sub-components
@@ -22,9 +17,7 @@ import type { NamedPlayer } from '@/providers/DailyRosterProvider';
 
 /** Skeleton placeholder block shown while data loads. */
 function SkeletonBlock({ className }: { className?: string }) {
-  return (
-    <div className={`animate-pulse bg-surface-warm rounded ${className ?? ''}`} />
-  );
+  return <div className={`animate-pulse bg-surface-warm rounded ${className ?? ''}`} />;
 }
 
 /** Full-page loading skeleton matching the page layout. */
@@ -69,7 +62,7 @@ function TeamLogoDisplay({
 
   return (
     <img
-      src={`${BACKEND_URL}/api/teams/${teamId}/logo`}
+      src={`${import.meta.env.VITE_LOGO_SVG_PATH}/${teamId}.svg`}
       width={64}
       height={64}
       alt={teamAbbreviation}
@@ -99,9 +92,7 @@ function AlreadyPlayedBanner({ won }: { won: boolean }) {
       ) : (
         <XCircle className="h-4 w-4 text-text-muted flex-shrink-0" />
       )}
-      <span className="text-sm text-text-secondary">
-        You played this challenge earlier today.
-      </span>
+      <span className="text-sm text-text-secondary">You played this challenge earlier today.</span>
     </div>
   );
 }
@@ -168,11 +159,7 @@ function GuessInputArea({ namedCount, isShaking, isDisabled, onGuess }: GuessInp
       </AnimatePresence>
 
       <motion.div
-        animate={
-          isShaking && !prefersReducedMotion
-            ? { x: [0, -8, 8, -6, 6, -3, 3, 0] }
-            : { x: 0 }
-        }
+        animate={isShaking && !prefersReducedMotion ? { x: [0, -8, 8, -6, 6, -3, 3, 0] } : { x: 0 }}
         transition={{ duration: 0.4 }}
         className={borderFlash ? 'ring-2 ring-accent rounded-md' : ''}
       >
@@ -225,10 +212,10 @@ function DailyRosterContent() {
       } else if (result === 'wrong') {
         // state.lives is the pre-decrement value; subtract 1 for the post-decrement count
         const livesAfter = Math.max(0, state.lives - 1);
-        toast.error(
-          `Wrong — ${livesAfter} ${livesAfter === 1 ? 'life' : 'lives'} remaining`,
-          { autoClose: 2000, position: 'bottom-center' },
-        );
+        toast.error(`Wrong — ${livesAfter} ${livesAfter === 1 ? 'life' : 'lives'} remaining`, {
+          autoClose: 2000,
+          position: 'bottom-center',
+        });
         setIsShaking(true);
         setTimeout(() => setIsShaking(false), 400);
       } else {
@@ -264,9 +251,7 @@ function DailyRosterContent() {
     return (
       <div className="mx-auto max-w-2xl px-4 py-8 flex flex-col items-center gap-4 text-center">
         <AlertCircle className="h-10 w-10 text-text-muted" />
-        <p className="text-xl font-bold text-text-primary">
-          Couldn't load today's challenge
-        </p>
+        <p className="text-xl font-bold text-text-primary">Couldn't load today's challenge</p>
         <Button variant="primary" size="md" onClick={() => window.location.reload()}>
           Try Again
         </Button>

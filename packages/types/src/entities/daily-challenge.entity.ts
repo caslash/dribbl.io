@@ -2,11 +2,8 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
-  ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Team } from './team.entity';
 
 /**
  * One scheduled daily challenge row.
@@ -53,11 +50,4 @@ export class DailyChallenge {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  /**
-   * The team associated with this challenge.
-   * Not loaded by default — join explicitly when needed.
-   */
-  @ManyToOne(() => Team)
-  @JoinColumn({ name: 'team_id' })
-  team: Team;
 }

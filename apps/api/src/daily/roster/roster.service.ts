@@ -142,7 +142,7 @@ export class RosterService {
     }
 
     const isOnRoster = this.cache!.roster.some(
-      (p) => p.playerId === dto.guessId,
+      (p) => Number(p.playerId) === dto.guessId,
     );
 
     if (isOnRoster) {
