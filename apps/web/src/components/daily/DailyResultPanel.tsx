@@ -1,7 +1,7 @@
-import { Trophy } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
+import { Card } from '@/components/Card';
+import { motion } from 'framer-motion';
+import { Trophy } from 'lucide-react';
 
 interface DailyResultPanelProps {
   /** Whether the user won (named the full roster). */
@@ -54,7 +54,7 @@ export function DailyResultPanel({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="p-6">
+      <Card className="p-6 bg-surface-warm">
         {won ? (
           <>
             <div className="flex justify-center">
@@ -78,12 +78,7 @@ export function DailyResultPanel({
           </>
         )}
 
-        <Button
-          variant="secondary"
-          size="md"
-          className="w-full mt-4"
-          onClick={handleShare}
-        >
+        <Button variant="secondary" size="md" className="w-full mt-4" onClick={handleShare}>
           Share Result
         </Button>
 

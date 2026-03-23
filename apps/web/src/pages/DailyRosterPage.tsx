@@ -7,7 +7,7 @@ import { useDailyRoster } from '@/hooks/useDailyRoster';
 import type { NamedPlayer } from '@/providers/DailyRosterProvider';
 import { DailyRosterProvider } from '@/providers/DailyRosterProvider';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { AlertCircle, Calendar, CheckCircle2, ChevronLeft, ChevronRight, XCircle } from 'lucide-react';
+import { AlertCircle, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 
@@ -49,7 +49,10 @@ function SkeletonBlock({ className }: { className?: string }) {
 /** Full-page loading skeleton matching the page layout. */
 function LoadingSkeleton() {
   return (
-    <div aria-busy="true" className="flex flex-col flex-1 overflow-hidden max-w-2xl mx-auto w-full px-4">
+    <div
+      aria-busy="true"
+      className="flex flex-col flex-1 overflow-hidden max-w-2xl mx-auto w-full px-4"
+    >
       <div className="pt-4 space-y-3 shrink-0">
         <div className="rounded-lg border border-border bg-surface-raised p-4 flex flex-col items-center gap-3">
           <SkeletonBlock className="h-16 w-16 rounded-full" />
@@ -139,9 +142,7 @@ function DateNav({ date, isToday, earliestDate, onPrev, onNext }: DateNavProps) 
         <span className="text-sm font-medium text-text-primary tabular-nums">
           {formatChallengeDate(date)}
         </span>
-        {isToday && (
-          <span className="text-xs text-text-muted">(today)</span>
-        )}
+        {isToday && <span className="text-xs text-text-muted">(today)</span>}
       </div>
 
       <button
@@ -152,23 +153,6 @@ function DateNav({ date, isToday, earliestDate, onPrev, onNext }: DateNavProps) 
       >
         <ChevronRight className="h-5 w-5" />
       </button>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Already-played banner
-// ---------------------------------------------------------------------------
-
-function AlreadyPlayedBanner({ won }: { won: boolean }) {
-  return (
-    <div className="rounded-md bg-surface-warm border border-border px-4 py-2 flex items-center gap-2">
-      {won ? (
-        <CheckCircle2 className="h-4 w-4 text-text-muted flex-shrink-0" />
-      ) : (
-        <XCircle className="h-4 w-4 text-text-muted flex-shrink-0" />
-      )}
-      <span className="text-sm text-text-secondary">You played this challenge earlier today.</span>
     </div>
   );
 }
@@ -299,7 +283,7 @@ function DailyRosterContent() {
     }
 
     void fetchReveal();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isComplete]);
 
   const handleGuess = useCallback(
@@ -372,8 +356,6 @@ function DailyRosterContent() {
     <div className="flex flex-col flex-1 overflow-hidden max-w-2xl mx-auto w-full px-4">
       {/* Static top section */}
       <div className="pt-4 space-y-3 shrink-0">
-        {isComplete && <AlreadyPlayedBanner won={state.won} />}
-
         {/* Challenge header */}
         <Card className="p-3">
           <div className="flex justify-center">
@@ -384,9 +366,6 @@ function DailyRosterContent() {
           </p>
           <div className="flex items-center justify-center gap-3 mt-1.5">
             <Badge label={state.seasonId} />
-            <span className="text-sm text-text-muted">
-              {formatChallengeDate(state.challengeDate)}
-            </span>
           </div>
         </Card>
 
@@ -407,7 +386,7 @@ function DailyRosterContent() {
       </div>
 
       {/* Scrollable roster list */}
-      <div className="flex-1 overflow-y-auto py-3">
+      <div className="flex-1 overflow-y-auto">
         <RosterPlayerList
           namedPlayers={state.namedPlayers}
           rosterSize={state.rosterSize}
@@ -461,7 +440,9 @@ export function DailyRosterPage() {
     fetch('/api/daily/roster/earliest-date')
       .then((res) => res.json())
       .then((data: { date: string | null }) => setEarliestDate(data.date))
-      .catch(() => { /* fail silently — prev arrow stays enabled */ });
+      .catch(() => {
+        /* fail silently — prev arrow stays enabled */
+      });
   }, []);
 
   return (

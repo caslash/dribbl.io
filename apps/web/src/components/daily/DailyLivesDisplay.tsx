@@ -1,5 +1,5 @@
-import { Heart } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
+import { Heart } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 interface DailyLivesDisplayProps {
@@ -46,11 +46,7 @@ export function DailyLivesDisplay({
   };
 
   return (
-    <div
-      role="status"
-      aria-live="polite"
-      className="flex items-center justify-between px-1"
-    >
+    <div role="status" aria-live="polite" className="flex items-center justify-between px-1 pb-3">
       <div className="flex items-center gap-2">
         <span className="text-xs font-semibold uppercase tracking-widest text-text-muted">
           Lives
@@ -63,20 +59,14 @@ export function DailyLivesDisplay({
             return (
               <motion.span
                 key={i}
-                animate={
-                  isAnimating
-                    ? { scale: [1, 1.4, 0.85, 1] }
-                    : { scale: 1 }
-                }
+                animate={isAnimating ? { scale: [1, 1.4, 0.85, 1] } : { scale: 1 }}
                 transition={isAnimating ? { duration: 0.35 } : undefined}
                 onAnimationComplete={() => handleAnimationComplete(i)}
                 aria-hidden="true"
               >
                 <Heart
                   className={`h-5 w-5 ${
-                    isFilled
-                      ? 'fill-accent text-accent'
-                      : 'fill-transparent text-border'
+                    isFilled ? 'fill-accent text-accent' : 'fill-transparent text-border'
                   }`}
                 />
               </motion.span>
