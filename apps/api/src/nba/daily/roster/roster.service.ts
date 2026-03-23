@@ -11,7 +11,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DailyScheduleService } from '@/nba/daily/daily-schedule.service';
 
-/** In-memory cache for the current day's challenge and resolved roster. */
+/** In-memory cache for the most recently loaded daily challenge. */
 interface RosterCache {
   /** The ISO date string this cache entry is valid for. */
   date: string;
@@ -24,12 +24,13 @@ interface RosterCache {
 /**
  * Service for the Daily Roster Challenge game mode.
  *
- * Maintains a single in-process cache entry for today's challenge so that
- * repeated `GET /today` and guess requests don't re-query the database on
- * every call. The cache is invalidated automatically when the date changes.
+ * Maintains a single in-process cache for the most recently requested date's
+ * challenge. Past-date challenges are static, so the cache entry is valid
+ * indefinitely for that date. The cache is replaced whenever a different date
+ * is requested.
  *
  * @example
- * const result = await service.getTodayChallenge();
+ * const result = await service.getChallenge('2026-03-22');
  * if (!result) throw new NotFoundException();
  */
 @Injectable()
@@ -44,57 +45,91 @@ export class RosterService {
     private readonly teamRepo: Repository<Team>,
   ) {}
 
+  private getLocalDate(): string {
+    return new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
+  }
+
   /**
-   * Returns today's challenge metadata together with the resolved team and
-   * roster size, or `null` when no challenge has been scheduled for today.
+   * Ensures the cache is populated for the given date. Returns the cached
+   * entry, or `null` if no challenge or team record exists for that date.
+   */
+  private async ensureCached(date: string): Promise<RosterCache | null> {
+    if (this.cache?.date === date) return this.cache;
+
+    const challenge = await this.dailyScheduleService.lookupByDate('roster', date);
+    if (!challenge) return null;
+
+    const team = await this.teamRepo.findOne({
+      where: { teamId: challenge.teamId },
+    });
+    if (!team) return null;
+
+    const roster = await this.loadRoster(challenge.teamId, challenge.seasonId);
+    this.cache = { date, challenge, team, roster };
+    return this.cache;
+  }
+
+  /**
+   * Returns the challenge metadata for the given ISO date, or `null` when no
+   * challenge has been scheduled.
    *
-   * Results are cached for the lifetime of the current calendar day.
+   * @param date - Calendar date as `"YYYY-MM-DD"`.
+   *
+   * @example
+   * const result = await service.getChallenge('2026-03-22');
+   */
+  async getChallenge(date: string): Promise<{
+    challenge: DailyChallenge;
+    team: Team;
+    rosterSize: number;
+  } | null> {
+    const cached = await this.ensureCached(date);
+    if (!cached) return null;
+    return { challenge: cached.challenge, team: cached.team, rosterSize: cached.roster.length };
+  }
+
+  /**
+   * Convenience wrapper that returns today's challenge metadata.
+   * Delegates to `getChallenge` with the current local date.
+   *
+   * @example
+   * const result = await service.getTodayChallenge();
+   * if (!result) throw new NotFoundException();
    */
   async getTodayChallenge(): Promise<{
     challenge: DailyChallenge;
     team: Team;
     rosterSize: number;
   } | null> {
-    const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
-
-    if (this.cache?.date !== today) {
-      const challenge = await this.dailyScheduleService.lookupByDate(
-        'roster',
-        today,
-      );
-      if (!challenge) return null;
-
-      const team = await this.teamRepo.findOne({
-        where: { teamId: challenge.teamId },
-      });
-      if (!team) return null;
-
-      const roster = await this.loadRoster(challenge.teamId, challenge.seasonId);
-
-      this.cache = { date: today, challenge, team, roster };
-    }
-
-    const { challenge, team, roster } = this.cache!;
-    return { challenge, team, rosterSize: roster.length };
+    return this.getChallenge(this.getLocalDate());
   }
 
   /**
-   * Returns the full roster for today's challenge, drawing from the in-process
-   * cache. Intended to be called at game-over so the client can display missed
-   * players in the stagger animation.
-   *
-   * Returns `null` when no challenge is scheduled for today.
+   * Returns the earliest scheduled roster challenge date, or `null` if none exist.
    *
    * @example
-   * const reveal = await service.getReveal();
+   * const earliest = await service.getEarliestDate(); // e.g. "2026-03-22"
+   */
+  async getEarliestDate(): Promise<string | null> {
+    return this.dailyScheduleService.getEarliestDate('roster');
+  }
+
+  /**
+   * Returns the full roster for the given date's challenge, or `null` when no
+   * challenge is scheduled for that date.
+   *
+   * @param date - Calendar date as `"YYYY-MM-DD"`.
+   *
+   * @example
+   * const reveal = await service.getReveal('2026-03-22');
    * if (!reveal) throw new NotFoundException({ error: 'NO_CHALLENGE' });
    */
-  async getReveal(): Promise<RosterRevealDto | null> {
-    const todayResult = await this.getTodayChallenge();
-    if (!todayResult) return null;
+  async getReveal(date: string): Promise<RosterRevealDto | null> {
+    const cached = await this.ensureCached(date);
+    if (!cached) return null;
 
     return {
-      players: this.cache!.roster.map((p) => ({
+      players: cached.roster.map((p) => ({
         playerId: p.playerId,
         fullName: p.fullName,
         position: p.position,
@@ -104,22 +139,24 @@ export class RosterService {
   }
 
   /**
-   * Validates a single guess against today's roster.
+   * Validates a single guess against the roster for the given date.
    *
    * The caller is responsible for supplying `namedIds` — the server never
    * stores per-user session state. A `duplicate` result means the player was
    * already named; no life should be deducted in that case.
    *
    * @param dto - The guess payload including all previously named IDs.
+   * @param date - Calendar date as `"YYYY-MM-DD"`.
    *
    * @example
-   * const result = await service.guess({ guessId: 2544, namedIds: [] });
+   * const result = await service.guess({ guessId: 2544, namedIds: [] }, '2026-03-22');
    */
-  async guess(dto: RosterGuessDto): Promise<RosterGuessResponseDto> {
-    const todayResult = await this.getTodayChallenge();
-    if (!todayResult) throw new NotFoundException({ error: 'NO_CHALLENGE' });
+  async guess(dto: RosterGuessDto, date: string): Promise<RosterGuessResponseDto> {
+    const cached = await this.ensureCached(date);
+    if (!cached) throw new NotFoundException({ error: 'NO_CHALLENGE' });
 
-    const { rosterSize } = todayResult;
+    const { roster } = cached;
+    const rosterSize = roster.length;
 
     const player = await this.playerRepo.findOne({
       where: { playerId: dto.guessId },
@@ -141,7 +178,7 @@ export class RosterService {
       return { correct: true, duplicate: true, player: playerShape, rosterSize };
     }
 
-    const isOnRoster = this.cache!.roster.some(
+    const isOnRoster = roster.some(
       (p) => Number(p.playerId) === dto.guessId,
     );
 

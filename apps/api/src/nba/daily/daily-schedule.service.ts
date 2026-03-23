@@ -32,4 +32,23 @@ export class DailyScheduleService {
   ): Promise<DailyChallenge | null> {
     return this.repo.findOne({ where: { gameType, challengeDate: date } });
   }
+
+  /**
+   * Returns the earliest scheduled challenge date for the given game type,
+   * or `null` if no challenges exist.
+   *
+   * @param gameType - Discriminator identifying the game mode, e.g. `'roster'`.
+   *
+   * @example
+   * const earliest = await service.getEarliestDate('roster'); // e.g. "2026-03-22"
+   */
+  async getEarliestDate(gameType: string): Promise<string | null> {
+    const result = await this.repo
+      .createQueryBuilder('dc')
+      .select('MIN(dc.challenge_date)', 'earliest')
+      .where('dc.game_type = :gameType', { gameType })
+      .getRawOne<{ earliest: string | null }>();
+
+    return result?.earliest ?? null;
+  }
 }

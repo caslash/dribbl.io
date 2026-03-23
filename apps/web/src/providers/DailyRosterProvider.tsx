@@ -80,14 +80,6 @@ interface PersistedDailyRoster {
   won: boolean;
 }
 
-function getTodayKey(): string {
-  const now = new Date();
-  const yyyy = now.getFullYear();
-  const mm = String(now.getMonth() + 1).padStart(2, '0');
-  const dd = String(now.getDate()).padStart(2, '0');
-  return `daily_roster_${yyyy}-${mm}-${dd}`;
-}
-
 function loadPersistedSession(key: string): PersistedDailyRoster | null {
   try {
     const raw = localStorage.getItem(key);
@@ -128,30 +120,33 @@ const initialState: DailyRosterState = {
 };
 
 interface DailyRosterProviderProps {
+  /** ISO date string (`YYYY-MM-DD`) for the challenge to load. */
+  date: string;
   children: React.ReactNode;
 }
 
 /**
- * Manages the Daily Roster Challenge session: fetches today's challenge,
- * restores or initializes localStorage state, and exposes `submitGuess`.
+ * Manages a Daily Roster Challenge session for the given date: fetches the
+ * challenge, restores or initializes localStorage state, and exposes
+ * `submitGuess`.
  *
- * Mount this provider at the route level. Access state and actions via
- * `useDailyRoster()`.
+ * Mount this provider at the route level. The parent is responsible for
+ * supplying the `date` prop and re-keying the provider when the date changes
+ * so that state resets cleanly.
  *
  * @example
- * <DailyRosterProvider>
+ * <DailyRosterProvider date="2026-03-22" key="2026-03-22">
  *   <DailyRosterContent />
  * </DailyRosterProvider>
  */
-export function DailyRosterProvider({ children }: DailyRosterProviderProps) {
+export function DailyRosterProvider({ date, children }: DailyRosterProviderProps) {
   const [state, setState] = useState<DailyRosterState>(initialState);
-  // Key is computed once on mount so all reads/writes use the same date
-  const [storageKey] = useState(() => getTodayKey());
+  const storageKey = `daily_roster_${date}`;
 
   useEffect(() => {
     async function fetchChallenge() {
       try {
-        const res = await fetch(`${BACKEND_URL}/api/daily/roster/today`);
+        const res = await fetch(`${BACKEND_URL}/api/daily/roster/${date}`);
 
         if (res.status === 404) {
           setState((prev) => ({ ...prev, phase: 'playing', error: 'NO_CHALLENGE' }));
@@ -201,7 +196,7 @@ export function DailyRosterProvider({ children }: DailyRosterProviderProps) {
     }
 
     void fetchChallenge();
-  }, [storageKey]);
+  }, [date, storageKey]);
 
   const submitGuess = useCallback(
     async (playerId: number): Promise<'correct' | 'wrong' | 'duplicate'> => {
@@ -209,7 +204,7 @@ export function DailyRosterProvider({ children }: DailyRosterProviderProps) {
 
       let res: Response;
       try {
-        res = await fetch(`${BACKEND_URL}/api/daily/roster/guess`, {
+        res = await fetch(`${BACKEND_URL}/api/daily/roster/${date}/guess`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ guessId: playerId, namedIds }),
@@ -267,8 +262,6 @@ export function DailyRosterProvider({ children }: DailyRosterProviderProps) {
           lives: newLives,
           complete: lost,
           won: false,
-          // Phase stays 'playing' — the page component drives the reveal animation
-          // before transitioning to 'complete' via the timer it owns.
           phase: lost ? 'complete' : prev.phase,
         };
         persistSession(storageKey, {
@@ -282,7 +275,7 @@ export function DailyRosterProvider({ children }: DailyRosterProviderProps) {
       });
       return 'wrong';
     },
-    [state.namedPlayers, storageKey],
+    [date, state.namedPlayers, storageKey],
   );
 
   return (

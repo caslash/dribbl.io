@@ -52,9 +52,11 @@ function parseArgs(): { start: string; end: string; gameType: string } {
 /**
  * Returns a deterministic pseudo-random number generator seeded from `seed`.
  *
- * Uses a djb2 hash to derive the initial state, then a standard LCG to
- * advance it. The same seed always produces the same sequence, so the
- * schedule is reproducible and can be re-generated safely.
+ * Uses a djb2 hash to derive the initial state, followed by a MurmurHash3
+ * finalizer to ensure good avalanche (so that nearby seeds like consecutive
+ * dates produce well-spread outputs), then a standard LCG to advance it.
+ * The same seed always produces the same sequence, so the schedule is
+ * reproducible and can be re-generated safely.
  *
  * @param seed - An arbitrary string (typically a date like `"2026-03-22"`).
  * @returns A `() => number` function returning values in `[0, 1)`.
@@ -64,7 +66,14 @@ function seededRandom(seed: string): () => number {
   for (let i = 0; i < seed.length; i++) {
     h = (h * 33) ^ seed.charCodeAt(i);
   }
+  // MurmurHash3 finalizer — ensures nearby seeds (e.g. consecutive dates)
+  // avalanche into distant outputs rather than staying clustered.
   h = h >>> 0;
+  h ^= h >>> 16;
+  h = Math.imul(0x85ebca6b, h) >>> 0;
+  h ^= h >>> 13;
+  h = Math.imul(0xc2b2ae35, h) >>> 0;
+  h ^= h >>> 16;
   return () => {
     h = Math.imul(1664525, h) + 1013904223;
     h = h >>> 0;

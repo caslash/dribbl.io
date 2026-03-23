@@ -7,9 +7,35 @@ import { useDailyRoster } from '@/hooks/useDailyRoster';
 import type { NamedPlayer } from '@/providers/DailyRosterProvider';
 import { DailyRosterProvider } from '@/providers/DailyRosterProvider';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { AlertCircle, Calendar, CheckCircle2, XCircle } from 'lucide-react';
+import { AlertCircle, Calendar, CheckCircle2, ChevronLeft, ChevronRight, XCircle } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
+
+// ---------------------------------------------------------------------------
+// Date helpers
+// ---------------------------------------------------------------------------
+
+/** Returns today's date as "YYYY-MM-DD" in local time. */
+function getLocalDateString(): string {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+/**
+ * Returns a new date string shifted by `days` from the given `YYYY-MM-DD` string.
+ * Uses explicit year/month/day construction to avoid timezone offset issues.
+ */
+function shiftDate(dateStr: string, days: number): string {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const d = new Date(year, month - 1, day + days);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
 
 // ---------------------------------------------------------------------------
 // Sub-components
@@ -78,6 +104,54 @@ function formatChallengeDate(dateStr: string): string {
   // Construct with explicit parts to avoid timezone offset shifting the date
   const date = new Date(year, month - 1, day);
   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+// ---------------------------------------------------------------------------
+// Date navigation
+// ---------------------------------------------------------------------------
+
+interface DateNavProps {
+  date: string;
+  isToday: boolean;
+  earliestDate: string | null;
+  onPrev: () => void;
+  onNext: () => void;
+}
+
+/** Prev/next arrow navigation for flipping through daily challenges. */
+function DateNav({ date, isToday, earliestDate, onPrev, onNext }: DateNavProps) {
+  const atEarliest = earliestDate !== null && date <= earliestDate;
+
+  return (
+    <div className="flex items-center justify-center gap-3 px-4 py-3">
+      <button
+        onClick={onPrev}
+        disabled={atEarliest}
+        aria-label="Previous day"
+        className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-surface-warm transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-text-muted"
+      >
+        <ChevronLeft className="h-5 w-5" />
+      </button>
+
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-medium text-text-primary tabular-nums">
+          {formatChallengeDate(date)}
+        </span>
+        {isToday && (
+          <span className="text-xs text-text-muted">(today)</span>
+        )}
+      </div>
+
+      <button
+        onClick={onNext}
+        disabled={isToday}
+        aria-label="Next day"
+        className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-surface-warm transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-text-muted"
+      >
+        <ChevronRight className="h-5 w-5" />
+      </button>
+    </div>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -340,13 +414,34 @@ function DailyRosterContent() {
 }
 
 /**
- * Daily Roster Challenge route. Wraps content in the provider which manages
- * API calls and localStorage session persistence.
+ * Daily Roster Challenge route. Manages the selected date and renders the
+ * date navigation header above the provider. Re-keying the provider on date
+ * change causes a clean remount, resetting all game state.
  */
 export function DailyRosterPage() {
+  const [selectedDate, setSelectedDate] = useState(getLocalDateString);
+  const [earliestDate, setEarliestDate] = useState<string | null>(null);
+  const today = getLocalDateString();
+
+  useEffect(() => {
+    fetch('/api/daily/roster/earliest-date')
+      .then((res) => res.json())
+      .then((data: { date: string | null }) => setEarliestDate(data.date))
+      .catch(() => { /* fail silently — prev arrow stays enabled */ });
+  }, []);
+
   return (
-    <DailyRosterProvider>
-      <DailyRosterContent />
-    </DailyRosterProvider>
+    <div>
+      <DateNav
+        date={selectedDate}
+        isToday={selectedDate === today}
+        earliestDate={earliestDate}
+        onPrev={() => setSelectedDate((d) => shiftDate(d, -1))}
+        onNext={() => setSelectedDate((d) => shiftDate(d, 1))}
+      />
+      <DailyRosterProvider date={selectedDate} key={selectedDate}>
+        <DailyRosterContent />
+      </DailyRosterProvider>
+    </div>
   );
 }
