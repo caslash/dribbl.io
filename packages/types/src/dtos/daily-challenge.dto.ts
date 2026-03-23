@@ -81,6 +81,12 @@ export interface RosterGuessResponseDto {
     astPg: number | null;
     rebPg: number | null;
   };
+  /**
+   * The player's 0-based position in the roster sorted by ptsPg descending.
+   * Returned on correct non-duplicate guesses so the client can insert the
+   * revealed player at the right slot in the list.
+   */
+  index?: number;
   /** Updated named-IDs list, returned only on a correct non-duplicate guess. */
   namedIds?: number[];
   rosterSize: number;

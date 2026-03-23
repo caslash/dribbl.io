@@ -19,6 +19,7 @@ export { DailyLivesDisplay } from './daily/DailyLivesDisplay';
 export { DailyResultPanel } from './daily/DailyResultPanel';
 export { RosterPlayerList } from './daily/RosterGrid';
 export { RosterPlayerRow } from './daily/RosterPlayerRow';
+export { RosterTutorialModal, useRosterTutorial } from './daily/RosterTutorialModal';
 
 // Draft game components
 export { DraftPickCard } from './draft/DraftPickCard';

@@ -173,12 +173,13 @@ export class RosterService {
     const { roster } = cached;
     const rosterSize = roster.length;
 
-    const rosterPlayer = roster.find((p) => p.playerId === dto.guessId);
+    const rosterIndex = roster.findIndex((p) => p.playerId === dto.guessId);
 
-    if (!rosterPlayer) {
+    if (rosterIndex === -1) {
       return { correct: false, rosterSize };
     }
 
+    const rosterPlayer = roster[rosterIndex];
     const playerShape = {
       playerId: rosterPlayer.playerId,
       fullName: rosterPlayer.fullName,
@@ -196,6 +197,7 @@ export class RosterService {
     return {
       correct: true,
       player: playerShape,
+      index: rosterIndex,
       namedIds: [...dto.namedIds, dto.guessId],
       rosterSize,
     };

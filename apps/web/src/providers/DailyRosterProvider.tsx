@@ -14,6 +14,8 @@ export interface NamedPlayer {
   ptsPg: number | null;
   astPg: number | null;
   rebPg: number | null;
+  /** 0-based position in the roster sorted by ptsPg descending. */
+  index: number;
 }
 
 export type DailyPhase = 'loading' | 'playing' | 'complete';
@@ -70,7 +72,7 @@ interface RosterGuessPlayerDto {
 
 type RosterGuessResponseDto =
   | { correct: true; duplicate: true; player: RosterGuessPlayerDto; rosterSize: number }
-  | { correct: true; duplicate?: false; player: RosterGuessPlayerDto; namedIds: number[]; rosterSize: number }
+  | { correct: true; duplicate?: false; player: RosterGuessPlayerDto; index: number; namedIds: number[]; rosterSize: number }
   | { correct: false; rosterSize: number }
   | { error: 'NO_CHALLENGE' };
 
@@ -147,7 +149,7 @@ interface DailyRosterProviderProps {
  */
 export function DailyRosterProvider({ date, children }: DailyRosterProviderProps) {
   const [state, setState] = useState<DailyRosterState>(initialState);
-  const storageKey = `daily_roster_${date}`;
+  const storageKey = `daily_roster_v2_${date}`;
 
   useEffect(() => {
     async function fetchChallenge() {
@@ -238,7 +240,10 @@ export function DailyRosterProvider({ date, children }: DailyRosterProviderProps
 
       if (data.correct) {
         setState((prev) => {
-          const updatedPlayers = [...prev.namedPlayers, data.player];
+          const incoming: NamedPlayer = { ...data.player, index: data.index };
+          const updatedPlayers = [...prev.namedPlayers, incoming].sort(
+            (a, b) => a.index - b.index,
+          );
           const won = updatedPlayers.length === prev.rosterSize;
           const next: DailyRosterState = {
             ...prev,

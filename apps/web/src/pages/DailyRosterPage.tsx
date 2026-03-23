@@ -1,4 +1,4 @@
-import { DailyLivesDisplay, DailyResultPanel, RosterPlayerList } from '@/components';
+import { DailyLivesDisplay, DailyResultPanel, RosterPlayerList, RosterTutorialModal, useRosterTutorial } from '@/components';
 import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
@@ -279,7 +279,11 @@ function DailyRosterContent() {
         }>;
       };
       const namedIds = new Set(state.namedPlayers.map((p) => p.playerId));
-      setMissedPlayers(data.players.filter((p) => !namedIds.has(p.playerId)));
+      setMissedPlayers(
+        data.players
+          .map((p, i) => ({ ...p, index: i }))
+          .filter((p) => !namedIds.has(p.playerId)),
+      );
     }
 
     void fetchReveal();
@@ -435,6 +439,7 @@ export function DailyRosterPage() {
   const [selectedDate, setSelectedDate] = useState(getLocalDateString);
   const [earliestDate, setEarliestDate] = useState<string | null>(null);
   const today = getLocalDateString();
+  const { showTutorial, dismissTutorial } = useRosterTutorial();
 
   useEffect(() => {
     fetch('/api/daily/roster/earliest-date')
@@ -447,6 +452,7 @@ export function DailyRosterPage() {
 
   return (
     <div className="flex flex-col h-full">
+      <RosterTutorialModal show={showTutorial} onDismiss={dismissTutorial} />
       <DateNav
         date={selectedDate}
         isToday={selectedDate === today}
