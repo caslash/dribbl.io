@@ -11,13 +11,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DailyScheduleService } from '@/nba/daily/daily-schedule.service';
 
-/** A roster player entry with jersey number resolved from the season row. */
+/** A roster player entry with jersey number and per-game stats resolved from the season row. */
 interface RosterPlayer {
   playerId: number;
   fullName: string;
   position: string | null;
   /** Jersey number worn during the challenge season, from the seasons table. */
   jerseyNumber: string | null;
+  ptsPg: number | null;
+  astPg: number | null;
+  rebPg: number | null;
 }
 
 /** In-memory cache for the most recently loaded daily challenge. */
@@ -143,6 +146,9 @@ export class RosterService {
         fullName: p.fullName,
         position: p.position,
         jerseyNumber: p.jerseyNumber,
+        ptsPg: p.ptsPg,
+        astPg: p.astPg,
+        rebPg: p.rebPg,
       })),
     };
   }
@@ -178,6 +184,9 @@ export class RosterService {
       fullName: rosterPlayer.fullName,
       position: rosterPlayer.position,
       jerseyNumber: rosterPlayer.jerseyNumber,
+      ptsPg: rosterPlayer.ptsPg,
+      astPg: rosterPlayer.astPg,
+      rebPg: rosterPlayer.rebPg,
     };
 
     if (dto.namedIds.includes(dto.guessId)) {
@@ -217,6 +226,9 @@ export class RosterService {
         playerId: true,
         jerseyNumber: true,
         gp: true,
+        ptsPg: true,
+        astPg: true,
+        rebPg: true,
         player: {
           playerId: true,
           fullName: true,
@@ -232,6 +244,10 @@ export class RosterService {
         fullName: s.player.fullName,
         position: s.player.position,
         jerseyNumber: s.jerseyNumber,
-      }));
+        ptsPg: s.ptsPg,
+        astPg: s.astPg,
+        rebPg: s.rebPg,
+      }))
+      .sort((a, b) => (b.ptsPg ?? -1) - (a.ptsPg ?? -1));
   }
 }

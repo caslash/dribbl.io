@@ -55,6 +55,9 @@ export interface RosterRevealDto {
     fullName: string;
     position: string | null;
     jerseyNumber: string | null;
+    ptsPg: number | null;
+    astPg: number | null;
+    rebPg: number | null;
   }>;
 }
 
@@ -74,6 +77,9 @@ export interface RosterGuessResponseDto {
     fullName: string;
     position: string | null;
     jerseyNumber: string | null;
+    ptsPg: number | null;
+    astPg: number | null;
+    rebPg: number | null;
   };
   /** Updated named-IDs list, returned only on a correct non-duplicate guess. */
   namedIds?: number[];

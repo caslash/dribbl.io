@@ -1,3 +1,4 @@
+import { StatPill } from '@/components';
 import { motion } from 'framer-motion';
 import { HelpCircle } from 'lucide-react';
 import { useState } from 'react';
@@ -79,6 +80,12 @@ export function RosterPlayerRow({ player, missed = false }: RosterPlayerRowProps
           {player.fullName}
         </p>
         <p className="text-xs text-text-muted">{player.position ?? '—'}</p>
+      </div>
+
+      <div className="flex gap-1 shrink-0">
+        <StatPill label="PTS" value={player.ptsPg} />
+        <StatPill label="AST" value={player.astPg} />
+        <StatPill label="REB" value={player.rebPg} />
       </div>
     </motion.div>
   );

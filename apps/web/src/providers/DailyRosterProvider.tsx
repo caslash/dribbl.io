@@ -11,6 +11,9 @@ export interface NamedPlayer {
   fullName: string;
   position: string | null;
   jerseyNumber: string | null;
+  ptsPg: number | null;
+  astPg: number | null;
+  rebPg: number | null;
 }
 
 export type DailyPhase = 'loading' | 'playing' | 'complete';
@@ -60,6 +63,9 @@ interface RosterGuessPlayerDto {
   fullName: string;
   position: string | null;
   jerseyNumber: string | null;
+  ptsPg: number | null;
+  astPg: number | null;
+  rebPg: number | null;
 }
 
 type RosterGuessResponseDto =
