@@ -273,8 +273,34 @@ function GuessInputArea({ namedCount, isShaking, isDisabled, onGuess }: GuessInp
 function DailyRosterContent() {
   const { state, submitGuess } = useDailyRoster();
   const [isShaking, setIsShaking] = useState(false);
-  // missedPlayers would be populated if/when a reveal endpoint exists
-  const [missedPlayers] = useState<NamedPlayer[]>([]);
+  const [missedPlayers, setMissedPlayers] = useState<NamedPlayer[]>([]);
+
+  const isComplete = state.phase === 'complete';
+
+  useEffect(() => {
+    if (!isComplete || !state.challengeDate) return;
+
+    async function fetchReveal() {
+      const res = await fetch(`/api/daily/roster/${state.challengeDate}/reveal`);
+      if (!res.ok) return;
+      const data = (await res.json()) as {
+        players: Array<{
+          playerId: number;
+          fullName: string;
+          position: string | null;
+          jerseyNumber: string | null;
+          ptsPg: number | null;
+          astPg: number | null;
+          rebPg: number | null;
+        }>;
+      };
+      const namedIds = new Set(state.namedPlayers.map((p) => p.playerId));
+      setMissedPlayers(data.players.filter((p) => !namedIds.has(p.playerId)));
+    }
+
+    void fetchReveal();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isComplete]);
 
   const handleGuess = useCallback(
     async (playerId: number, fullName: string) => {
@@ -341,7 +367,6 @@ function DailyRosterContent() {
 
   const namedCount = state.namedPlayers.length;
   const progressPct = state.rosterSize > 0 ? (namedCount / state.rosterSize) * 100 : 0;
-  const isComplete = state.phase === 'complete';
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden max-w-2xl mx-auto w-full px-4">
