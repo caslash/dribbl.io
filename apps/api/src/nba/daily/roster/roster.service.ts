@@ -9,7 +9,7 @@ import {
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { DailyScheduleService } from '@/daily/daily-schedule.service';
+import { DailyScheduleService } from '@/nba/daily/daily-schedule.service';
 
 /** In-memory cache for the current day's challenge and resolved roster. */
 interface RosterCache {
@@ -55,7 +55,7 @@ export class RosterService {
     team: Team;
     rosterSize: number;
   } | null> {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
 
     if (this.cache?.date !== today) {
       const challenge = await this.dailyScheduleService.lookupByDate(

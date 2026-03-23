@@ -2,7 +2,7 @@ import { DailyChallenge, Player, Team } from '@dribblio/types';
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { DailyScheduleService } from '@/daily/daily-schedule.service';
+import { DailyScheduleService } from '@/nba/daily/daily-schedule.service';
 import { RosterService } from './roster.service';
 
 // ---------------------------------------------------------------------------

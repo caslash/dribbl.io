@@ -6,7 +6,7 @@ import {
 } from '@dribblio/types';
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { RosterService } from '@/daily/roster/roster.service';
+import { RosterService } from '@/nba/daily/roster/roster.service';
 import { RosterController } from './roster.controller';
 
 // ---------------------------------------------------------------------------

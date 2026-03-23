@@ -1,9 +1,9 @@
 import { DailyChallenge, Player, Season, Team } from '@dribblio/types';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DailyScheduleService } from '@/daily/daily-schedule.service';
-import { RosterController } from '@/daily/roster/roster.controller';
-import { RosterService } from '@/daily/roster/roster.service';
+import { DailyScheduleService } from '@/nba/daily/daily-schedule.service';
+import { RosterController } from '@/nba/daily/roster/roster.controller';
+import { RosterService } from '@/nba/daily/roster/roster.service';
 
 /**
  * Feature module for the Daily Roster Challenge REST API.

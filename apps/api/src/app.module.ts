@@ -11,7 +11,6 @@ import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
-import { DailyModule } from './daily/daily.module';
 import { HealthModule } from './health/health.module';
 import { NbaModule } from './nba/nba.module';
 
@@ -38,7 +37,6 @@ import { NbaModule } from './nba/nba.module';
       }),
     }),
     NbaModule,
-    DailyModule,
     HealthModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

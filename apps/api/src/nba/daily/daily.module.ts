@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { RosterModule } from '@/daily/roster/roster.module';
+import { RosterModule } from '@/nba/daily/roster/roster.module';
 
 /**
  * Root module for all daily challenge game types.

@@ -11,7 +11,7 @@ import {
   NotFoundException,
   Post,
 } from '@nestjs/common';
-import { RosterService } from '@/daily/roster/roster.service';
+import { RosterService } from '@/nba/daily/roster/roster.service';
 
 /**
  * REST endpoints for the Daily Roster Challenge game mode.
