@@ -80,7 +80,7 @@ function TeamLogoDisplay({
 
   if (failed) {
     return (
-      <div className="h-16 w-16 rounded-full bg-surface-warm flex items-center justify-center">
+      <div className="h-12 w-12 rounded-full bg-surface-warm flex items-center justify-center">
         <span className="font-mono font-semibold text-sm text-text-primary">
           {teamAbbreviation}
         </span>
@@ -91,8 +91,8 @@ function TeamLogoDisplay({
   return (
     <img
       src={`${import.meta.env.VITE_LOGO_SVG_PATH}/${teamId}.svg`}
-      width={64}
-      height={64}
+      width={48}
+      height={48}
       alt={teamAbbreviation}
       onError={() => setFailed(true)}
     />
@@ -350,14 +350,14 @@ function DailyRosterContent() {
         {isComplete && <AlreadyPlayedBanner won={state.won} />}
 
         {/* Challenge header */}
-        <Card className="p-4">
+        <Card className="p-3">
           <div className="flex justify-center">
             <TeamLogoDisplay teamId={state.teamId} teamAbbreviation={state.teamAbbreviation} />
           </div>
-          <p className="text-2xl font-bold text-text-primary text-center mt-3">
+          <p className="text-xl font-bold text-text-primary text-center mt-2">
             {state.teamFullName}
           </p>
-          <div className="flex items-center justify-center gap-3 mt-2">
+          <div className="flex items-center justify-center gap-3 mt-1.5">
             <Badge label={state.seasonId} />
             <span className="text-sm text-text-muted">
               {formatChallengeDate(state.challengeDate)}
@@ -440,7 +440,7 @@ export function DailyRosterPage() {
   }, []);
 
   return (
-    <div className="flex flex-col h-dvh">
+    <div className="flex flex-col h-full">
       <DateNav
         date={selectedDate}
         isToday={selectedDate === today}

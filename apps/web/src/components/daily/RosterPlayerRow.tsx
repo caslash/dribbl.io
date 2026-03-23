@@ -61,7 +61,7 @@ export function RosterPlayerRow({ player, missed = false }: RosterPlayerRowProps
       initial={{ opacity: 0, scale: 0.88 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.2, ease: [0.34, 1.56, 0.64, 1] }}
-      className={`flex items-center gap-3 rounded-lg border border-border bg-surface-raised px-3 py-2 border-l-2 ${
+      className={`flex items-center gap-2.5 rounded-lg border border-border bg-surface-raised px-3 py-1.5 border-l-2 ${
         missed ? 'border-l-accent' : 'border-l-primary'
       }`}
     >
@@ -95,7 +95,7 @@ export function RosterPlayerRowPlaceholder() {
     <div
       role="listitem"
       aria-label="Unknown player"
-      className="flex items-center gap-3 rounded-lg border border-dashed border-border bg-surface px-3 py-2"
+      className="flex items-center gap-2.5 rounded-lg border border-dashed border-border bg-surface px-3 py-1.5"
     >
       <div className="w-10 h-[30px] rounded bg-surface-warm shrink-0" />
       <HelpCircle className="h-5 w-5 text-text-placeholder" />

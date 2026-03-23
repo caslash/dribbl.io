@@ -54,7 +54,7 @@ export function RosterPlayerList({
     <div
       role="list"
       aria-label={`${seasonId} ${teamFullName} roster`}
-      className="flex flex-col gap-1.5"
+      className="flex flex-col gap-1"
     >
       {/* Named players — animate in as they're guessed */}
       <AnimatePresence>
