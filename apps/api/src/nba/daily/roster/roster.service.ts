@@ -1,15 +1,24 @@
 import {
   DailyChallenge,
-  Player,
   RosterGuessDto,
   RosterGuessResponseDto,
   RosterRevealDto,
+  Season,
   Team,
 } from '@dribblio/types';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DailyScheduleService } from '@/nba/daily/daily-schedule.service';
+
+/** A roster player entry with jersey number resolved from the season row. */
+interface RosterPlayer {
+  playerId: number;
+  fullName: string;
+  position: string | null;
+  /** Jersey number worn during the challenge season, from the seasons table. */
+  jerseyNumber: string | null;
+}
 
 /** In-memory cache for the most recently loaded daily challenge. */
 interface RosterCache {
@@ -18,7 +27,7 @@ interface RosterCache {
   challenge: DailyChallenge;
   team: Team;
   /** All players qualifying for this team/season — used for guess validation. */
-  roster: Player[];
+  roster: RosterPlayer[];
 }
 
 /**
@@ -39,8 +48,8 @@ export class RosterService {
 
   constructor(
     private readonly dailyScheduleService: DailyScheduleService,
-    @InjectRepository(Player)
-    private readonly playerRepo: Repository<Player>,
+    @InjectRepository(Season)
+    private readonly seasonRepo: Repository<Season>,
     @InjectRepository(Team)
     private readonly teamRepo: Repository<Team>,
   ) {}
@@ -158,40 +167,29 @@ export class RosterService {
     const { roster } = cached;
     const rosterSize = roster.length;
 
-    const player = await this.playerRepo.findOne({
-      where: { playerId: dto.guessId },
-      select: ['playerId', 'fullName', 'position', 'jerseyNumber'],
-    });
+    const rosterPlayer = roster.find((p) => p.playerId === dto.guessId);
 
-    if (!player) {
+    if (!rosterPlayer) {
       return { correct: false, rosterSize };
     }
 
     const playerShape = {
-      playerId: player.playerId,
-      fullName: player.fullName,
-      position: player.position,
-      jerseyNumber: player.jerseyNumber,
+      playerId: rosterPlayer.playerId,
+      fullName: rosterPlayer.fullName,
+      position: rosterPlayer.position,
+      jerseyNumber: rosterPlayer.jerseyNumber,
     };
 
     if (dto.namedIds.includes(dto.guessId)) {
       return { correct: true, duplicate: true, player: playerShape, rosterSize };
     }
 
-    const isOnRoster = roster.some(
-      (p) => Number(p.playerId) === dto.guessId,
-    );
-
-    if (isOnRoster) {
-      return {
-        correct: true,
-        player: playerShape,
-        namedIds: [...dto.namedIds, dto.guessId],
-        rosterSize,
-      };
-    }
-
-    return { correct: false, rosterSize };
+    return {
+      correct: true,
+      player: playerShape,
+      namedIds: [...dto.namedIds, dto.guessId],
+      rosterSize,
+    };
   }
 
   /**
@@ -207,22 +205,33 @@ export class RosterService {
   private async loadRoster(
     teamId: number,
     seasonId: string,
-  ): Promise<Player[]> {
-    return this.playerRepo
-      .createQueryBuilder('player')
-      .innerJoin(
-        'player.seasons',
-        'season',
-        'season.seasonType = :seasonType AND season.teamId = :teamId AND season.seasonId = :seasonId AND season.gp >= 1',
-        { seasonType: 'Regular Season', teamId, seasonId },
-      )
-      .select([
-        'player.playerId',
-        'player.fullName',
-        'player.position',
-        'player.jerseyNumber',
-      ])
-      .distinct(true)
-      .getMany();
+  ): Promise<RosterPlayer[]> {
+    const seasons = await this.seasonRepo.find({
+      where: {
+        teamId,
+        seasonId,
+        seasonType: 'Regular Season',
+      },
+      relations: { player: true },
+      select: {
+        playerId: true,
+        jerseyNumber: true,
+        gp: true,
+        player: {
+          playerId: true,
+          fullName: true,
+          position: true,
+        },
+      },
+    });
+
+    return seasons
+      .filter((s) => (s.gp ?? 0) >= 1)
+      .map((s) => ({
+        playerId: Number(s.playerId),
+        fullName: s.player.fullName,
+        position: s.player.position,
+        jerseyNumber: s.jerseyNumber,
+      }));
   }
 }

@@ -1,9 +1,20 @@
-import { DailyChallenge, Player, Team } from '@dribblio/types';
+import { DailyChallenge, Season, Team } from '@dribblio/types';
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DailyScheduleService } from '@/nba/daily/daily-schedule.service';
 import { RosterService } from './roster.service';
+
+// ---------------------------------------------------------------------------
+// Local type alias matching the private RosterPlayer interface in the service
+// ---------------------------------------------------------------------------
+
+type RosterPlayer = {
+  playerId: number;
+  fullName: string;
+  position: string | null;
+  jerseyNumber: string | null;
+};
 
 // ---------------------------------------------------------------------------
 // Factories
@@ -37,50 +48,76 @@ function makeTeam(overrides: Partial<Team> = {}): Team {
   };
 }
 
-function makePlayer(
+/**
+ * Builds a minimal Season object suitable for `seasonRepo.find` mock returns.
+ * Fills all four primary key columns required by the entity.
+ *
+ * @param playerId - The player's numeric ID.
+ * @param fullName - The player's full name (populates the nested relation).
+ * @param overrides - Optional field overrides applied to the season row.
+ */
+function makeSeason(
   playerId: number,
   fullName: string,
-  overrides: Partial<Player> = {},
-): Player {
+  overrides: Partial<Season> = {},
+): Season {
   return {
     playerId,
-    firstName: fullName.split(' ')[0],
-    lastName: fullName.split(' ')[1] ?? '',
-    fullName,
-    isActive: true,
-    position: 'F',
+    seasonId: '2023-24',
+    teamAbbreviation: 'LAL',
+    seasonType: 'Regular Season',
+    teamId: 1610612747,
+    playerAge: null,
+    gp: 5,
+    gs: null,
+    minPg: null,
+    fgmPg: null,
+    fgaPg: null,
+    fg3mPg: null,
+    fg3aPg: null,
+    ftmPg: null,
+    ftaPg: null,
+    orebPg: null,
+    drebPg: null,
+    rebPg: null,
+    astPg: null,
+    stlPg: null,
+    blkPg: null,
+    tovPg: null,
+    pfPg: null,
+    ptsPg: null,
+    fgPct: null,
+    fg3Pct: null,
+    ftPct: null,
     jerseyNumber: '23',
-    birthdate: null,
-    school: null,
-    country: null,
-    height: null,
-    weightLbs: null,
-    teamId: null,
-    draftYear: null,
-    draftRound: null,
-    draftNumber: null,
-    fromYear: null,
-    toYear: null,
-    greatest75Flag: false,
-    updatedAt: new Date(),
-    seasons: [],
-    accolades: [],
+    player: {
+      playerId,
+      firstName: fullName.split(' ')[0],
+      lastName: fullName.split(' ')[1] ?? '',
+      fullName,
+      isActive: true,
+      position: 'F',
+      jerseyNumber: '23',
+      birthdate: null,
+      school: null,
+      country: null,
+      height: null,
+      weightLbs: null,
+      teamId: null,
+      draftYear: null,
+      draftRound: null,
+      draftNumber: null,
+      fromYear: null,
+      toYear: null,
+      greatest75Flag: false,
+      updatedAt: new Date(),
+      seasons: [],
+      accolades: [],
+      team: null,
+    },
     team: null,
     ...overrides,
-  };
-}
-
-/**
- * Builds a mock query builder matching the exact chain used by `loadRoster`:
- * innerJoin → select → distinct → getMany.
- */
-function makeQueryBuilder(players: Player[]) {
-  return {
-    innerJoin: vi.fn().mockReturnThis(),
-    select: vi.fn().mockReturnThis(),
-    distinct: vi.fn().mockReturnThis(),
-    getMany: vi.fn().mockResolvedValue(players),
-  };
+  } as Season;
 }
 
 // ---------------------------------------------------------------------------
@@ -89,11 +126,11 @@ function makeQueryBuilder(players: Player[]) {
 
 const mockDailyScheduleService = {
   lookupByDate: vi.fn(),
+  getEarliestDate: vi.fn(),
 };
 
-const mockPlayerRepo = {
-  findOne: vi.fn(),
-  createQueryBuilder: vi.fn(),
+const mockSeasonRepo = {
+  find: vi.fn(),
 };
 
 const mockTeamRepo = {
@@ -105,12 +142,19 @@ const mockTeamRepo = {
 // ---------------------------------------------------------------------------
 
 type ServiceWithCache = RosterService & {
-  cache: { date: string; challenge: DailyChallenge; team: Team; roster: Player[] } | null;
+  cache: {
+    date: string;
+    challenge: DailyChallenge;
+    team: Team;
+    roster: RosterPlayer[];
+  } | null;
 };
 
 // ---------------------------------------------------------------------------
 // Suite
 // ---------------------------------------------------------------------------
+
+const TODAY = new Date().toLocaleDateString('en-CA');
 
 describe('RosterService', () => {
   let service: RosterService;
@@ -120,7 +164,7 @@ describe('RosterService', () => {
       providers: [
         RosterService,
         { provide: DailyScheduleService, useValue: mockDailyScheduleService },
-        { provide: getRepositoryToken(Player), useValue: mockPlayerRepo },
+        { provide: getRepositoryToken(Season), useValue: mockSeasonRepo },
         { provide: getRepositoryToken(Team), useValue: mockTeamRepo },
       ],
     }).compile();
@@ -134,9 +178,7 @@ describe('RosterService', () => {
     // Default: a valid challenge exists for today with one roster player.
     mockDailyScheduleService.lookupByDate.mockResolvedValue(makeChallenge());
     mockTeamRepo.findOne.mockResolvedValue(makeTeam());
-    mockPlayerRepo.createQueryBuilder.mockReturnValue(
-      makeQueryBuilder([makePlayer(2544, 'LeBron James')]),
-    );
+    mockSeasonRepo.find.mockResolvedValue([makeSeason(2544, 'LeBron James')]);
   });
 
   it('should be defined', () => {
@@ -155,7 +197,7 @@ describe('RosterService', () => {
 
       expect(result).toBeNull();
       expect(mockTeamRepo.findOne).not.toHaveBeenCalled();
-      expect(mockPlayerRepo.createQueryBuilder).not.toHaveBeenCalled();
+      expect(mockSeasonRepo.find).not.toHaveBeenCalled();
     });
 
     it('returns null when the challenge exists but the team record is missing', async () => {
@@ -169,15 +211,12 @@ describe('RosterService', () => {
     it('returns { challenge, team, rosterSize } for a scheduled challenge', async () => {
       const challenge = makeChallenge();
       const team = makeTeam();
-      const players = [
-        makePlayer(2544, 'LeBron James'),
-        makePlayer(977, 'Anthony Davis'),
-      ];
       mockDailyScheduleService.lookupByDate.mockResolvedValue(challenge);
       mockTeamRepo.findOne.mockResolvedValue(team);
-      mockPlayerRepo.createQueryBuilder.mockReturnValue(
-        makeQueryBuilder(players),
-      );
+      mockSeasonRepo.find.mockResolvedValue([
+        makeSeason(2544, 'LeBron James'),
+        makeSeason(977, 'Anthony Davis'),
+      ]);
 
       const result = await service.getTodayChallenge();
 
@@ -187,14 +226,12 @@ describe('RosterService', () => {
       expect(result!.rosterSize).toBe(2);
     });
 
-    it('calls lookupByDate with gameType "roster" and today\'s ISO date', async () => {
-      const today = new Date().toISOString().slice(0, 10);
-
+    it('calls lookupByDate with gameType "roster" and today\'s date', async () => {
       await service.getTodayChallenge();
 
       expect(mockDailyScheduleService.lookupByDate).toHaveBeenCalledWith(
         'roster',
-        today,
+        TODAY,
       );
     });
 
@@ -216,7 +253,7 @@ describe('RosterService', () => {
 
       expect(mockDailyScheduleService.lookupByDate).toHaveBeenCalledTimes(1);
       expect(mockTeamRepo.findOne).toHaveBeenCalledTimes(1);
-      expect(mockPlayerRepo.createQueryBuilder).toHaveBeenCalledTimes(1);
+      expect(mockSeasonRepo.find).toHaveBeenCalledTimes(1);
     });
 
     it('re-queries when the cached date no longer matches today', async () => {
@@ -227,7 +264,29 @@ describe('RosterService', () => {
 
       expect(mockDailyScheduleService.lookupByDate).toHaveBeenCalledTimes(2);
       expect(mockTeamRepo.findOne).toHaveBeenCalledTimes(2);
-      expect(mockPlayerRepo.createQueryBuilder).toHaveBeenCalledTimes(2);
+      expect(mockSeasonRepo.find).toHaveBeenCalledTimes(2);
+    });
+
+    it('excludes season rows with 0 games played from the roster count', async () => {
+      mockSeasonRepo.find.mockResolvedValue([
+        makeSeason(2544, 'LeBron James', { gp: 0 }),
+        makeSeason(977, 'Anthony Davis', { gp: 5 }),
+      ]);
+
+      const result = await service.getTodayChallenge();
+
+      expect(result!.rosterSize).toBe(1);
+    });
+
+    it('excludes season rows with null gp from the roster count', async () => {
+      mockSeasonRepo.find.mockResolvedValue([
+        makeSeason(2544, 'LeBron James', { gp: null }),
+        makeSeason(977, 'Anthony Davis', { gp: 3 }),
+      ]);
+
+      const result = await service.getTodayChallenge();
+
+      expect(result!.rosterSize).toBe(1);
     });
   });
 
@@ -240,35 +299,27 @@ describe('RosterService', () => {
       mockDailyScheduleService.lookupByDate.mockResolvedValue(null);
 
       await expect(
-        service.guess({ guessId: 2544, namedIds: [] }),
+        service.guess({ guessId: 2544, namedIds: [] }, TODAY),
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('returns { correct: false, rosterSize } when the player does not exist in the DB', async () => {
-      mockPlayerRepo.findOne.mockResolvedValue(null);
-
-      const result = await service.guess({ guessId: 99999, namedIds: [] });
-
-      expect(result).toEqual({ correct: false, rosterSize: 1 });
-    });
-
     it('returns { correct: false, rosterSize } when the player is not on the roster', async () => {
-      // Player exists in the DB but is not part of the loaded roster.
-      mockPlayerRepo.findOne.mockResolvedValue(makePlayer(1, 'Some Player'));
+      // Cache is primed with LeBron only; guessing an unknown player ID returns false.
+      await service.getTodayChallenge();
 
-      const result = await service.guess({ guessId: 1, namedIds: [] });
+      const result = await service.guess({ guessId: 99999, namedIds: [] }, TODAY);
 
       expect(result).toEqual({ correct: false, rosterSize: 1 });
     });
 
     it('returns correct result with updated namedIds on a correct non-duplicate guess', async () => {
-      const lebron = makePlayer(2544, 'LeBron James', {
-        position: 'F',
-        jerseyNumber: '23',
-      });
-      mockPlayerRepo.findOne.mockResolvedValue(lebron);
+      await service.getTodayChallenge();
+      // Override the cached roster to control the exact shape returned.
+      (service as ServiceWithCache).cache!.roster = [
+        { playerId: 2544, fullName: 'LeBron James', position: 'F', jerseyNumber: '23' },
+      ];
 
-      const result = await service.guess({ guessId: 2544, namedIds: [] });
+      const result = await service.guess({ guessId: 2544, namedIds: [] }, TODAY);
 
       expect(result).toEqual({
         correct: true,
@@ -284,33 +335,25 @@ describe('RosterService', () => {
     });
 
     it('appends guessId to the existing namedIds list on a correct non-duplicate guess', async () => {
-      const players = [
-        makePlayer(2544, 'LeBron James'),
-        makePlayer(977, 'Anthony Davis'),
+      await service.getTodayChallenge();
+      (service as ServiceWithCache).cache!.roster = [
+        { playerId: 2544, fullName: 'LeBron James', position: 'F', jerseyNumber: '23' },
+        { playerId: 977, fullName: 'Anthony Davis', position: 'C', jerseyNumber: '3' },
       ];
-      mockPlayerRepo.createQueryBuilder.mockReturnValue(
-        makeQueryBuilder(players),
-      );
-      const ad = makePlayer(977, 'Anthony Davis', {
-        position: 'C',
-        jerseyNumber: '3',
-      });
-      mockPlayerRepo.findOne.mockResolvedValue(ad);
 
-      const result = await service.guess({ guessId: 977, namedIds: [2544] });
+      const result = await service.guess({ guessId: 977, namedIds: [2544] }, TODAY);
 
       expect(result.correct).toBe(true);
       expect((result as { namedIds: number[] }).namedIds).toEqual([2544, 977]);
     });
 
     it('returns { correct: true, duplicate: true, player, rosterSize } when guessId is already in namedIds', async () => {
-      const lebron = makePlayer(2544, 'LeBron James', {
-        position: 'F',
-        jerseyNumber: '23',
-      });
-      mockPlayerRepo.findOne.mockResolvedValue(lebron);
+      await service.getTodayChallenge();
+      (service as ServiceWithCache).cache!.roster = [
+        { playerId: 2544, fullName: 'LeBron James', position: 'F', jerseyNumber: '23' },
+      ];
 
-      const result = await service.guess({ guessId: 2544, namedIds: [2544] });
+      const result = await service.guess({ guessId: 2544, namedIds: [2544] }, TODAY);
 
       expect(result).toEqual({
         correct: true,
@@ -327,25 +370,25 @@ describe('RosterService', () => {
     });
 
     it('does not re-load the roster from the DB on each guess call', async () => {
-      mockPlayerRepo.findOne.mockResolvedValue(makePlayer(2544, 'LeBron James'));
+      await service.getTodayChallenge();
 
-      await service.guess({ guessId: 2544, namedIds: [] });
-      await service.guess({ guessId: 2544, namedIds: [2544] });
+      await service.guess({ guessId: 2544, namedIds: [] }, TODAY);
+      await service.guess({ guessId: 2544, namedIds: [2544] }, TODAY);
 
-      // createQueryBuilder is called once during cache prime — never again.
-      expect(mockPlayerRepo.createQueryBuilder).toHaveBeenCalledTimes(1);
+      // seasonRepo.find is called once during cache prime — never again.
+      expect(mockSeasonRepo.find).toHaveBeenCalledTimes(1);
     });
 
-    it('only selects the player fields required by the response shape', async () => {
-      mockPlayerRepo.findOne.mockResolvedValue(makePlayer(2544, 'LeBron James'));
+    it('uses the jersey number from the season row, not a separate player record', async () => {
+      mockSeasonRepo.find.mockResolvedValue([
+        makeSeason(2544, 'LeBron James', { jerseyNumber: '6' }),
+      ]);
+      await service.getTodayChallenge();
 
-      await service.guess({ guessId: 2544, namedIds: [] });
+      const result = await service.guess({ guessId: 2544, namedIds: [] }, TODAY);
 
-      expect(mockPlayerRepo.findOne).toHaveBeenCalledWith(
-        expect.objectContaining({
-          select: ['playerId', 'fullName', 'position', 'jerseyNumber'],
-        }),
-      );
+      expect(result.correct).toBe(true);
+      expect((result as { player: RosterPlayer }).player.jerseyNumber).toBe('6');
     });
   });
 

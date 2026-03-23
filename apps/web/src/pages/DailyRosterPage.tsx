@@ -1,4 +1,4 @@
-import { DailyLivesDisplay, DailyResultPanel, RosterGrid } from '@/components';
+import { DailyLivesDisplay, DailyResultPanel, RosterPlayerList } from '@/components';
 import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
@@ -49,17 +49,19 @@ function SkeletonBlock({ className }: { className?: string }) {
 /** Full-page loading skeleton matching the page layout. */
 function LoadingSkeleton() {
   return (
-    <div aria-busy="true" className="mx-auto max-w-2xl px-4 py-8 space-y-6">
-      <div className="rounded-lg border border-border bg-surface-raised p-6 flex flex-col items-center gap-3">
-        <SkeletonBlock className="h-16 w-16 rounded-full" />
-        <SkeletonBlock className="h-6 w-48" />
-        <SkeletonBlock className="h-4 w-32" />
+    <div aria-busy="true" className="flex flex-col flex-1 overflow-hidden max-w-2xl mx-auto w-full px-4">
+      <div className="pt-4 space-y-3 shrink-0">
+        <div className="rounded-lg border border-border bg-surface-raised p-4 flex flex-col items-center gap-3">
+          <SkeletonBlock className="h-16 w-16 rounded-full" />
+          <SkeletonBlock className="h-6 w-48" />
+          <SkeletonBlock className="h-4 w-32" />
+        </div>
+        <SkeletonBlock className="h-1.5 w-full" />
+        <SkeletonBlock className="h-6 w-full" />
       </div>
-      <SkeletonBlock className="h-1.5 w-full" />
-      <SkeletonBlock className="h-6 w-full" />
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {Array.from({ length: 14 }).map((_, i) => (
-          <SkeletonBlock key={i} className="h-20" />
+      <div className="flex-1 overflow-y-auto py-3 flex flex-col gap-1.5">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <SkeletonBlock key={i} className="h-12 rounded-lg" />
         ))}
       </div>
     </div>
@@ -123,7 +125,7 @@ function DateNav({ date, isToday, earliestDate, onPrev, onNext }: DateNavProps) 
   const atEarliest = earliestDate !== null && date <= earliestDate;
 
   return (
-    <div className="flex items-center justify-center gap-3 px-4 py-3">
+    <div className="flex items-center justify-center gap-3 px-4 py-3 shrink-0">
       <button
         onClick={onPrev}
         disabled={atEarliest}
@@ -342,73 +344,80 @@ function DailyRosterContent() {
   const isComplete = state.phase === 'complete';
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 space-y-6">
-      {isComplete && <AlreadyPlayedBanner won={state.won} />}
+    <div className="flex flex-col flex-1 overflow-hidden max-w-2xl mx-auto w-full px-4">
+      {/* Static top section */}
+      <div className="pt-4 space-y-3 shrink-0">
+        {isComplete && <AlreadyPlayedBanner won={state.won} />}
 
-      {/* Challenge header */}
-      <Card className="p-6">
-        <div className="flex justify-center">
-          <TeamLogoDisplay teamId={state.teamId} teamAbbreviation={state.teamAbbreviation} />
-        </div>
-        <p className="text-2xl font-bold text-text-primary text-center mt-3">
-          {state.teamFullName}
-        </p>
-        <div className="flex items-center justify-center gap-3 mt-2">
-          <Badge label={state.seasonId} />
-          <span className="text-sm text-text-muted">
-            {formatChallengeDate(state.challengeDate)}
-          </span>
-        </div>
-      </Card>
+        {/* Challenge header */}
+        <Card className="p-4">
+          <div className="flex justify-center">
+            <TeamLogoDisplay teamId={state.teamId} teamAbbreviation={state.teamAbbreviation} />
+          </div>
+          <p className="text-2xl font-bold text-text-primary text-center mt-3">
+            {state.teamFullName}
+          </p>
+          <div className="flex items-center justify-center gap-3 mt-2">
+            <Badge label={state.seasonId} />
+            <span className="text-sm text-text-muted">
+              {formatChallengeDate(state.challengeDate)}
+            </span>
+          </div>
+        </Card>
 
-      {/* Progress bar */}
-      <div className="h-1.5 rounded-full bg-border overflow-hidden">
-        <div
-          className="h-full bg-primary rounded-full"
-          style={{ width: `${progressPct}%`, transition: 'width 300ms ease' }}
+        {/* Progress bar */}
+        <div className="h-1.5 rounded-full bg-border overflow-hidden">
+          <div
+            className="h-full bg-primary rounded-full"
+            style={{ width: `${progressPct}%`, transition: 'width 300ms ease' }}
+          />
+        </div>
+
+        {/* Lives + progress count */}
+        <DailyLivesDisplay
+          lives={state.lives}
+          namedCount={namedCount}
+          rosterSize={state.rosterSize}
         />
       </div>
 
-      {/* Lives + progress count */}
-      <DailyLivesDisplay
-        lives={state.lives}
-        namedCount={namedCount}
-        rosterSize={state.rosterSize}
-      />
+      {/* Scrollable roster list */}
+      <div className="flex-1 overflow-y-auto py-3">
+        <RosterPlayerList
+          namedPlayers={state.namedPlayers}
+          rosterSize={state.rosterSize}
+          complete={isComplete}
+          missedPlayers={missedPlayers}
+          seasonId={state.seasonId}
+          teamFullName={state.teamFullName}
+        />
+      </div>
 
-      {/* Roster grid */}
-      <RosterGrid
-        namedPlayers={state.namedPlayers}
-        rosterSize={state.rosterSize}
-        complete={isComplete}
-        missedPlayers={missedPlayers}
-        seasonId={state.seasonId}
-        teamFullName={state.teamFullName}
-      />
-
-      {/* Guess input or result panel */}
-      <AnimatePresence mode="wait">
-        {isComplete ? (
-          <DailyResultPanel
-            key="result"
-            won={state.won}
-            namedCount={namedCount}
-            rosterSize={state.rosterSize}
-            teamFullName={state.teamFullName}
-            seasonId={state.seasonId}
-            lives={state.lives}
-          />
-        ) : (
-          <motion.div key="input" initial={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <GuessInputArea
+      {/* Pinned bottom: search input or result panel */}
+      <div className="shrink-0 py-4 border-t border-border">
+        <AnimatePresence mode="wait">
+          {isComplete ? (
+            <DailyResultPanel
+              key="result"
+              won={state.won}
               namedCount={namedCount}
-              isShaking={isShaking}
-              isDisabled={isShaking}
-              onGuess={handleGuess}
+              rosterSize={state.rosterSize}
+              teamFullName={state.teamFullName}
+              seasonId={state.seasonId}
+              lives={state.lives}
             />
-          </motion.div>
-        )}
-      </AnimatePresence>
+          ) : (
+            <motion.div key="input" initial={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <GuessInputArea
+                namedCount={namedCount}
+                isShaking={isShaking}
+                isDisabled={isShaking}
+                onGuess={handleGuess}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
@@ -431,7 +440,7 @@ export function DailyRosterPage() {
   }, []);
 
   return (
-    <div>
+    <div className="flex flex-col h-dvh">
       <DateNav
         date={selectedDate}
         isToday={selectedDate === today}

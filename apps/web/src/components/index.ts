@@ -17,8 +17,8 @@ export { TeamHistoryDisplay } from './career/TeamHistoryDisplay';
 // Daily Roster Challenge components
 export { DailyLivesDisplay } from './daily/DailyLivesDisplay';
 export { DailyResultPanel } from './daily/DailyResultPanel';
-export { RosterGrid } from './daily/RosterGrid';
-export { RosterPlayerCard } from './daily/RosterPlayerCard';
+export { RosterPlayerList } from './daily/RosterGrid';
+export { RosterPlayerRow } from './daily/RosterPlayerRow';
 
 // Draft game components
 export { DraftPickCard } from './draft/DraftPickCard';

@@ -1,9 +1,8 @@
-import { HelpCircle } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { RosterPlayerCard } from './RosterPlayerCard';
+import { RosterPlayerRow, RosterPlayerRowPlaceholder } from './RosterPlayerRow';
 import type { NamedPlayer } from '@/providers/DailyRosterProvider';
 
-interface RosterGridProps {
+interface RosterPlayerListProps {
   /** Players successfully named by the user so far. */
   namedPlayers: NamedPlayer[];
   /** Total number of players on the roster. */
@@ -12,9 +11,9 @@ interface RosterGridProps {
   complete: boolean;
   /** Players not named by the user, revealed at game-over. */
   missedPlayers?: NamedPlayer[];
-  /** Season label used for the grid aria-label. */
+  /** Season label used for the list aria-label. */
   seasonId: string;
-  /** Team name used for the grid aria-label. */
+  /** Team name used for the list aria-label. */
   teamFullName: string;
 }
 
@@ -26,11 +25,12 @@ const itemVariants = {
 const PLACEHOLDER_COUNT = 14;
 
 /**
- * Renders the roster grid with named player cards and unrevealed placeholders.
- * At game-over, missed players are stagger-animated into the remaining slots.
+ * Renders the roster as a vertical scrollable list with named player rows and
+ * unrevealed placeholder rows. At game-over, missed players are stagger-animated
+ * into the remaining slots.
  *
  * @example
- * <RosterGrid
+ * <RosterPlayerList
  *   namedPlayers={named}
  *   rosterSize={14}
  *   complete={false}
@@ -38,14 +38,14 @@ const PLACEHOLDER_COUNT = 14;
  *   teamFullName="Golden State Warriors"
  * />
  */
-export function RosterGrid({
+export function RosterPlayerList({
   namedPlayers,
   rosterSize,
   complete,
   missedPlayers = [],
   seasonId,
   teamFullName,
-}: RosterGridProps) {
+}: RosterPlayerListProps) {
   const prefersReducedMotion = useReducedMotion();
   const totalSlots = rosterSize > 0 ? rosterSize : PLACEHOLDER_COUNT;
   const unrevealedCount = Math.max(0, totalSlots - namedPlayers.length - missedPlayers.length);
@@ -54,12 +54,12 @@ export function RosterGrid({
     <div
       role="list"
       aria-label={`${seasonId} ${teamFullName} roster`}
-      className="grid grid-cols-2 gap-3 sm:grid-cols-3"
+      className="flex flex-col gap-1.5"
     >
       {/* Named players — animate in as they're guessed */}
       <AnimatePresence>
         {namedPlayers.map((player) => (
-          <RosterPlayerCard key={player.playerId} player={player} />
+          <RosterPlayerRow key={player.playerId} player={player} />
         ))}
       </AnimatePresence>
 
@@ -68,7 +68,7 @@ export function RosterGrid({
         missedPlayers.map((player, i) =>
           prefersReducedMotion ? (
             <div key={player.playerId}>
-              <RosterPlayerCard player={player} missed />
+              <RosterPlayerRow player={player} missed />
             </div>
           ) : (
             <motion.div
@@ -76,10 +76,10 @@ export function RosterGrid({
               variants={itemVariants}
               initial="hidden"
               animate="reveal"
-              // Stagger via explicit delay — CSS grid prevents parent-variant staggering
+              // Stagger via explicit delay — flex list prevents parent-variant staggering
               transition={{ duration: 0.25, delay: 0.1 + i * 0.06 }}
             >
-              <RosterPlayerCard player={player} missed />
+              <RosterPlayerRow player={player} missed />
             </motion.div>
           ),
         )}
@@ -87,15 +87,11 @@ export function RosterGrid({
       {/* Unrevealed placeholder slots */}
       {!complete &&
         Array.from({ length: unrevealedCount }).map((_, i) => (
-          <div
-            key={`placeholder-${i}`}
-            role="listitem"
-            aria-label="Unknown player"
-            className="rounded-lg border border-dashed border-border bg-surface p-4 h-20 flex items-center justify-center"
-          >
-            <HelpCircle className="h-6 w-6 text-text-placeholder" />
-          </div>
+          <RosterPlayerRowPlaceholder key={`placeholder-${i}`} />
         ))}
     </div>
   );
 }
+
+// Re-export the old name so any direct (non-barrel) imports don't break during migration.
+export { RosterPlayerList as RosterGrid };
