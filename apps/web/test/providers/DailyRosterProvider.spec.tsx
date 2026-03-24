@@ -1,8 +1,8 @@
+import { useDailyRoster } from '@/hooks/useDailyRoster';
+import { DailyRosterProvider } from '@/providers/DailyRosterProvider';
 import { act, render, renderHook, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { DailyRosterProvider } from '@/providers/DailyRosterProvider';
-import { useDailyRoster } from '@/hooks/useDailyRoster';
 
 vi.mock('@/config', () => ({
   BACKEND_URL: 'http://test-api',
@@ -30,17 +30,6 @@ const mockPlayer = {
   astPg: 6.7,
   rebPg: 5.2,
   index: 0,
-};
-
-const mockPlayer2 = {
-  playerId: 35,
-  fullName: 'Kevin Durant',
-  position: 'SF',
-  jerseyNumber: '35',
-  ptsPg: 27.4,
-  astPg: 4.1,
-  rebPg: 7.0,
-  index: 1,
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -72,7 +61,7 @@ function makeFetchNetworkError(): Promise<Response> {
 function seedLocalStorage(
   date: string,
   data: {
-    namedPlayers?: typeof mockPlayer[];
+    namedPlayers?: (typeof mockPlayer)[];
     lives?: number;
     complete?: boolean;
     won?: boolean;
@@ -470,9 +459,15 @@ describe('DailyRosterProvider', () => {
       const { result } = setupHook();
       await waitFor(() => expect(result.current.state.phase).toBe('playing'));
 
-      await act(async () => { await result.current.submitGuess(999); });
-      await act(async () => { await result.current.submitGuess(999); });
-      await act(async () => { await result.current.submitGuess(999); });
+      await act(async () => {
+        await result.current.submitGuess(999);
+      });
+      await act(async () => {
+        await result.current.submitGuess(999);
+      });
+      await act(async () => {
+        await result.current.submitGuess(999);
+      });
 
       expect(result.current.state.lives).toBe(0);
       expect(result.current.state.complete).toBe(true);
@@ -488,9 +483,15 @@ describe('DailyRosterProvider', () => {
       const { result } = setupHook();
       await waitFor(() => expect(result.current.state.phase).toBe('playing'));
 
-      await act(async () => { await result.current.submitGuess(999); });
-      await act(async () => { await result.current.submitGuess(999); });
-      await act(async () => { await result.current.submitGuess(999); });
+      await act(async () => {
+        await result.current.submitGuess(999);
+      });
+      await act(async () => {
+        await result.current.submitGuess(999);
+      });
+      await act(async () => {
+        await result.current.submitGuess(999);
+      });
 
       const stored = JSON.parse(localStorage.getItem(`daily_roster_v2_${CHALLENGE_DATE}`) ?? '{}');
       expect(stored.complete).toBe(true);
