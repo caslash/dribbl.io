@@ -1,7 +1,7 @@
 import { SelectQueryBuilder } from 'typeorm';
 import { Player } from './player.entity';
 
-type DifficultyFilter = (qb: SelectQueryBuilder<Player>) => SelectQueryBuilder<Player>;
+export type DifficultyFilter = (qb: SelectQueryBuilder<Player>) => SelectQueryBuilder<Player>;
 
 export class GameDifficulties {
   public static readonly firstAllNBA: GameDifficulty = {
