@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DailyResultPanel } from '@/components/daily/DailyResultPanel';
 
 vi.mock('framer-motion', () => ({
@@ -40,16 +40,8 @@ const lossProps = {
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('DailyResultPanel', () => {
-  beforeEach(() => {
-    Object.assign(navigator, {
-      clipboard: {
-        writeText: vi.fn().mockResolvedValue(undefined),
-      },
-    });
-  });
-
   afterEach(() => {
-    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   // ─── Win state ─────────────────────────────────────────────────────────────
@@ -106,34 +98,42 @@ describe('DailyResultPanel', () => {
     });
 
     it('copies win share text to clipboard on click', async () => {
+      // userEvent.setup() installs its own clipboard mock on window.navigator.
+      // We spy on writeText AFTER setup() so the spy wraps userEvent's mock.
       const user = userEvent.setup();
+      const writeTextSpy = vi.spyOn(window.navigator.clipboard, 'writeText').mockResolvedValue(undefined);
+
       render(<DailyResultPanel {...winProps} />);
 
       await user.click(screen.getByRole('button', { name: 'Share Result' }));
 
-      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+      expect(writeTextSpy).toHaveBeenCalledWith(
         'Daily Roster Challenge — 2015-16 Golden State Warriors\nNamed all 14 players! 2/3 lives remaining\ndribbl.io/daily',
       );
     });
 
     it('copies loss share text to clipboard on click', async () => {
       const user = userEvent.setup();
+      const writeTextSpy = vi.spyOn(window.navigator.clipboard, 'writeText').mockResolvedValue(undefined);
+
       render(<DailyResultPanel {...lossProps} />);
 
       await user.click(screen.getByRole('button', { name: 'Share Result' }));
 
-      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+      expect(writeTextSpy).toHaveBeenCalledWith(
         'Daily Roster Challenge — 2015-16 Golden State Warriors\nNamed 9 of 14 players ❌\ndribbl.io/daily',
       );
     });
 
     it('calls clipboard.writeText exactly once per click', async () => {
       const user = userEvent.setup();
+      const writeTextSpy = vi.spyOn(window.navigator.clipboard, 'writeText').mockResolvedValue(undefined);
+
       render(<DailyResultPanel {...winProps} />);
 
       await user.click(screen.getByRole('button', { name: 'Share Result' }));
 
-      expect(navigator.clipboard.writeText).toHaveBeenCalledTimes(1);
+      expect(writeTextSpy).toHaveBeenCalledTimes(1);
     });
   });
 

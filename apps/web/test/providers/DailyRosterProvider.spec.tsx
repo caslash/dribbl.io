@@ -26,6 +26,10 @@ const mockPlayer = {
   fullName: 'Stephen Curry',
   position: 'PG',
   jerseyNumber: '30',
+  ptsPg: 30.1,
+  astPg: 6.7,
+  rebPg: 5.2,
+  index: 0,
 };
 
 const mockPlayer2 = {
@@ -33,12 +37,16 @@ const mockPlayer2 = {
   fullName: 'Kevin Durant',
   position: 'SF',
   jerseyNumber: '35',
+  ptsPg: 27.4,
+  astPg: 4.1,
+  rebPg: 7.0,
+  index: 1,
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function wrapper({ children }: { children: ReactNode }) {
-  return <DailyRosterProvider>{children}</DailyRosterProvider>;
+  return <DailyRosterProvider date={CHALLENGE_DATE}>{children}</DailyRosterProvider>;
 }
 
 function setupHook() {
@@ -77,7 +85,7 @@ function seedLocalStorage(
     complete: data.complete ?? false,
     won: data.won ?? false,
   };
-  localStorage.setItem(`daily_roster_${date}`, JSON.stringify(persisted));
+  localStorage.setItem(`daily_roster_v2_${date}`, JSON.stringify(persisted));
 }
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
@@ -225,6 +233,7 @@ describe('DailyRosterProvider', () => {
           makeFetchSuccess({
             correct: true,
             player: mockPlayer,
+            index: mockPlayer.index,
             namedIds: [mockPlayer.playerId],
             rosterSize: 14,
           }),
@@ -248,6 +257,7 @@ describe('DailyRosterProvider', () => {
           makeFetchSuccess({
             correct: true,
             player: mockPlayer,
+            index: mockPlayer.index,
             namedIds: [mockPlayer.playerId],
             rosterSize: 14,
           }),
@@ -271,6 +281,7 @@ describe('DailyRosterProvider', () => {
           makeFetchSuccess({
             correct: true,
             player: mockPlayer,
+            index: mockPlayer.index,
             namedIds: [mockPlayer.playerId],
             rosterSize: 14,
           }),
@@ -283,7 +294,7 @@ describe('DailyRosterProvider', () => {
         await result.current.submitGuess(mockPlayer.playerId);
       });
 
-      const stored = JSON.parse(localStorage.getItem(`daily_roster_${CHALLENGE_DATE}`) ?? '{}');
+      const stored = JSON.parse(localStorage.getItem(`daily_roster_v2_${CHALLENGE_DATE}`) ?? '{}');
       expect(stored.namedPlayers).toHaveLength(1);
       expect(stored.namedPlayers[0].playerId).toBe(mockPlayer.playerId);
     });
@@ -296,6 +307,7 @@ describe('DailyRosterProvider', () => {
           makeFetchSuccess({
             correct: true,
             player: mockPlayer,
+            index: mockPlayer.index,
             namedIds: [mockPlayer.playerId],
             rosterSize: 1,
           }),
@@ -321,6 +333,7 @@ describe('DailyRosterProvider', () => {
           makeFetchSuccess({
             correct: true,
             player: mockPlayer,
+            index: mockPlayer.index,
             namedIds: [mockPlayer.playerId],
             rosterSize: 1,
           }),
@@ -333,7 +346,7 @@ describe('DailyRosterProvider', () => {
         await result.current.submitGuess(mockPlayer.playerId);
       });
 
-      const stored = JSON.parse(localStorage.getItem(`daily_roster_${CHALLENGE_DATE}`) ?? '{}');
+      const stored = JSON.parse(localStorage.getItem(`daily_roster_v2_${CHALLENGE_DATE}`) ?? '{}');
       expect(stored.complete).toBe(true);
       expect(stored.won).toBe(true);
     });
@@ -445,7 +458,7 @@ describe('DailyRosterProvider', () => {
         await result.current.submitGuess(999);
       });
 
-      const stored = JSON.parse(localStorage.getItem(`daily_roster_${CHALLENGE_DATE}`) ?? '{}');
+      const stored = JSON.parse(localStorage.getItem(`daily_roster_v2_${CHALLENGE_DATE}`) ?? '{}');
       expect(stored.lives).toBe(2);
     });
 
@@ -479,7 +492,7 @@ describe('DailyRosterProvider', () => {
       await act(async () => { await result.current.submitGuess(999); });
       await act(async () => { await result.current.submitGuess(999); });
 
-      const stored = JSON.parse(localStorage.getItem(`daily_roster_${CHALLENGE_DATE}`) ?? '{}');
+      const stored = JSON.parse(localStorage.getItem(`daily_roster_v2_${CHALLENGE_DATE}`) ?? '{}');
       expect(stored.complete).toBe(true);
       expect(stored.won).toBe(false);
     });
@@ -549,7 +562,7 @@ describe('DailyRosterProvider', () => {
       vi.spyOn(globalThis, 'fetch').mockReturnValue(new Promise(() => {}));
 
       render(
-        <DailyRosterProvider>
+        <DailyRosterProvider date={CHALLENGE_DATE}>
           <span>child content</span>
         </DailyRosterProvider>,
       );

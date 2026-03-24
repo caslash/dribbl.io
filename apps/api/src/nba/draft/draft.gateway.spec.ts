@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { DraftService } from '@/nba/draft/draft.service';
 import { PoolService } from '@/nba/pool/pool.service';
 import { DraftRoomConfig, Participant } from '@dribblio/types';

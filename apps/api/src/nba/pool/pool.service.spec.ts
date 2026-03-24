@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { FranchisePoolGenerator } from '@/nba/pool/generators/franchise.generator';
 import { MvpPoolGenerator } from '@/nba/pool/generators/mvp.generator';
 import { SavedPool } from '@dribblio/types';

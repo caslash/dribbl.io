@@ -49,7 +49,7 @@ function makeExpectedDto(): DailyChallengeDto {
 // ---------------------------------------------------------------------------
 
 const mockRosterService = {
-  getTodayChallenge: vi.fn(),
+  getChallenge: vi.fn(),
   getReveal: vi.fn(),
   guess: vi.fn(),
 };
@@ -88,7 +88,7 @@ describe('RosterController', () => {
 
   describe('getToday', () => {
     it('returns a DailyChallengeDto when a challenge exists for today', async () => {
-      mockRosterService.getTodayChallenge.mockResolvedValue(makeTodayResult());
+      mockRosterService.getChallenge.mockResolvedValue(makeTodayResult());
 
       const result = await controller.getToday();
 
@@ -96,7 +96,7 @@ describe('RosterController', () => {
     });
 
     it('throws NotFoundException with { error: "NO_CHALLENGE" } when no challenge is scheduled', async () => {
-      mockRosterService.getTodayChallenge.mockResolvedValue(null);
+      mockRosterService.getChallenge.mockResolvedValue(null);
 
       await expect(controller.getToday()).rejects.toThrow(NotFoundException);
       await expect(controller.getToday()).rejects.toMatchObject({
@@ -104,12 +104,12 @@ describe('RosterController', () => {
       });
     });
 
-    it('delegates to rosterService.getTodayChallenge', async () => {
-      mockRosterService.getTodayChallenge.mockResolvedValue(makeTodayResult());
+    it('delegates to rosterService.getChallenge', async () => {
+      mockRosterService.getChallenge.mockResolvedValue(makeTodayResult());
 
       await controller.getToday();
 
-      expect(service.getTodayChallenge).toHaveBeenCalledTimes(1);
+      expect(service.getChallenge).toHaveBeenCalledTimes(1);
     });
 
     it('maps all fields from challenge and team onto the DTO', async () => {
@@ -122,7 +122,7 @@ describe('RosterController', () => {
         team: { fullName: 'Boston Celtics', abbreviation: 'BOS' },
         rosterSize: 12,
       };
-      mockRosterService.getTodayChallenge.mockResolvedValue(todayResult);
+      mockRosterService.getChallenge.mockResolvedValue(todayResult);
 
       const result = await controller.getToday();
 
@@ -141,7 +141,7 @@ describe('RosterController', () => {
   // GET /daily/roster/today/reveal
   // -------------------------------------------------------------------------
 
-  describe('getReveal', () => {
+  describe('getTodayReveal', () => {
     it('returns a RosterRevealDto when the service returns players', async () => {
       const reveal: RosterRevealDto = {
         players: [
@@ -151,7 +151,7 @@ describe('RosterController', () => {
       };
       mockRosterService.getReveal.mockResolvedValue(reveal);
 
-      const result = await controller.getReveal();
+      const result = await controller.getTodayReveal();
 
       expect(result).toBe(reveal);
     });
@@ -159,8 +159,8 @@ describe('RosterController', () => {
     it('throws NotFoundException with { error: "NO_CHALLENGE" } when service returns null', async () => {
       mockRosterService.getReveal.mockResolvedValue(null);
 
-      await expect(controller.getReveal()).rejects.toThrow(NotFoundException);
-      await expect(controller.getReveal()).rejects.toMatchObject({
+      await expect(controller.getTodayReveal()).rejects.toThrow(NotFoundException);
+      await expect(controller.getTodayReveal()).rejects.toMatchObject({
         response: { error: 'NO_CHALLENGE' },
       });
     });
@@ -168,7 +168,7 @@ describe('RosterController', () => {
     it('delegates to rosterService.getReveal', async () => {
       mockRosterService.getReveal.mockResolvedValue({ players: [] });
 
-      await controller.getReveal();
+      await controller.getTodayReveal();
 
       expect(service.getReveal).toHaveBeenCalledTimes(1);
     });
@@ -196,7 +196,7 @@ describe('RosterController', () => {
 
       const result = await controller.guess(dto);
 
-      expect(service.guess).toHaveBeenCalledWith(dto);
+      expect(service.guess).toHaveBeenCalledWith(dto, expect.any(String));
       expect(result).toBe(response);
     });
 

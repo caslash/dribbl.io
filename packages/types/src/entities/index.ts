@@ -5,6 +5,5 @@ export * from './draft-context';
 export * from './game-difficulty';
 export * from './player.entity';
 export * from './pool.entity';
-export * from './profile';
 export * from './season.entity';
 export * from './team.entity';

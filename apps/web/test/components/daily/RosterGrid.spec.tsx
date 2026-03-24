@@ -18,11 +18,15 @@ vi.mock('framer-motion', () => ({
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
-const makePlayer = (id: number, name: string): NamedPlayer => ({
+const makePlayer = (id: number, name: string, index = id - 1): NamedPlayer => ({
   playerId: id,
   fullName: name,
   position: 'PG',
   jerseyNumber: String(id),
+  ptsPg: 20.0,
+  astPg: 5.0,
+  rebPg: 5.0,
+  index,
 });
 
 const defaultProps = {
@@ -47,7 +51,8 @@ describe('RosterGrid', () => {
     });
 
     it('reduces unrevealed count as players are named', () => {
-      const namedPlayers = [makePlayer(1, 'Player One'), makePlayer(2, 'Player Two')];
+      // Players occupy slots 0 and 1 by index, leaving 3 unrevealed.
+      const namedPlayers = [makePlayer(1, 'Player One', 0), makePlayer(2, 'Player Two', 1)];
 
       render(<RosterGrid {...defaultProps} namedPlayers={namedPlayers} />);
 
@@ -56,7 +61,9 @@ describe('RosterGrid', () => {
     });
 
     it('shows no unrevealed slots when all players are named', () => {
-      const namedPlayers = [1, 2, 3, 4, 5].map((id) => makePlayer(id, `Player ${id}`));
+      const namedPlayers = [0, 1, 2, 3, 4].map((idx) =>
+        makePlayer(idx + 1, `Player ${idx + 1}`, idx),
+      );
 
       render(<RosterGrid {...defaultProps} namedPlayers={namedPlayers} />);
 
@@ -70,16 +77,20 @@ describe('RosterGrid', () => {
       expect(slots).toHaveLength(3);
     });
 
-    it('hides unrevealed slots when complete is true', () => {
+    it('still renders unrevealed slots when complete is true and no missed players cover those slots', () => {
+      // The new slot-based rendering does not suppress unrevealed placeholders at game-over;
+      // only slots covered by a missedPlayer entry are replaced.
       render(
         <RosterGrid
           {...defaultProps}
           complete
-          namedPlayers={[makePlayer(1, 'Named Player')]}
+          namedPlayers={[makePlayer(1, 'Named Player', 0)]}
         />,
       );
 
-      expect(screen.queryAllByRole('listitem', { name: 'Unknown player' })).toHaveLength(0);
+      // Slots 1–4 have no named or missed player so they remain as placeholders.
+      const unknownSlots = screen.queryAllByRole('listitem', { name: 'Unknown player' });
+      expect(unknownSlots).toHaveLength(4);
     });
   });
 
@@ -87,7 +98,7 @@ describe('RosterGrid', () => {
 
   describe('named player cards', () => {
     it('renders a card for each named player', () => {
-      const namedPlayers = [makePlayer(1, 'Steph Curry'), makePlayer(2, 'Klay Thompson')];
+      const namedPlayers = [makePlayer(1, 'Steph Curry', 0), makePlayer(2, 'Klay Thompson', 1)];
 
       render(<RosterGrid {...defaultProps} namedPlayers={namedPlayers} />);
 
@@ -100,13 +111,13 @@ describe('RosterGrid', () => {
 
   describe('missed players', () => {
     it('renders missed player cards in complete state', () => {
-      const missed = [makePlayer(99, 'Draymond Green'), makePlayer(88, 'Andre Iguodala')];
+      const missed = [makePlayer(99, 'Draymond Green', 1), makePlayer(88, 'Andre Iguodala', 2)];
 
       render(
         <RosterGrid
           {...defaultProps}
           complete
-          namedPlayers={[makePlayer(1, 'Steph Curry')]}
+          namedPlayers={[makePlayer(1, 'Steph Curry', 0)]}
           missedPlayers={missed}
         />,
       );
@@ -116,7 +127,7 @@ describe('RosterGrid', () => {
     });
 
     it('does not render missed players when game is not complete', () => {
-      const missed = [makePlayer(99, 'Hidden Player')];
+      const missed = [makePlayer(99, 'Hidden Player', 1)];
 
       render(
         <RosterGrid
@@ -130,11 +141,12 @@ describe('RosterGrid', () => {
     });
 
     it('renders 0 missed players by default when missedPlayers prop is omitted', () => {
-      render(<RosterGrid {...defaultProps} complete namedPlayers={[makePlayer(1, 'Only Player')]} />);
+      // complete=true with 1 named player at slot 0 and no missedPlayers.
+      // Slots 1–4 render as unrevealed placeholders, not as missed cards.
+      render(<RosterGrid {...defaultProps} complete namedPlayers={[makePlayer(1, 'Only Player', 0)]} />);
 
-      // Only the named player card should be a listitem; no extra missed cards.
-      const listitems = screen.getAllByRole('listitem');
-      expect(listitems).toHaveLength(1);
+      const unknownSlots = screen.queryAllByRole('listitem', { name: 'Unknown player' });
+      expect(unknownSlots).toHaveLength(defaultProps.rosterSize - 1);
     });
   });
 

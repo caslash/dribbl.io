@@ -14,6 +14,9 @@ type RosterPlayer = {
   fullName: string;
   position: string | null;
   jerseyNumber: string | null;
+  ptsPg?: number | null;
+  astPg?: number | null;
+  rebPg?: number | null;
 };
 
 // ---------------------------------------------------------------------------
@@ -323,11 +326,15 @@ describe('RosterService', () => {
 
       expect(result).toEqual({
         correct: true,
+        index: 0,
         player: {
           playerId: 2544,
           fullName: 'LeBron James',
           position: 'F',
           jerseyNumber: '23',
+          ptsPg: undefined,
+          astPg: undefined,
+          rebPg: undefined,
         },
         namedIds: [2544],
         rosterSize: 1,

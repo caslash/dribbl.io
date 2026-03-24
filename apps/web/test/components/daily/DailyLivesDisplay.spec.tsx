@@ -110,7 +110,9 @@ describe('DailyLivesDisplay', () => {
         <DailyLivesDisplay lives={3} namedCount={0} rosterSize={14} />,
       );
 
-      const hiddenSpans = container.querySelectorAll('[aria-hidden="true"]');
+      // Each heart wrapper is a <span aria-hidden="true">. SVG icons from
+      // lucide-react also carry aria-hidden, so narrow to span elements only.
+      const hiddenSpans = container.querySelectorAll('span[aria-hidden="true"]');
       expect(hiddenSpans).toHaveLength(3);
     });
   });
