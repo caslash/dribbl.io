@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { CareerPathService } from '@/nba/careerpath/careerpath.service';
 import { createCareerPathMachine } from '@/nba/careerpath/machine/statemachine';
 import { PlayerService } from '@/nba/player/player.service';

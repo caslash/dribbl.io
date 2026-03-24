@@ -120,6 +120,30 @@ vi.mock('framer-motion', () => ({
 
 Add more `motion.*` keys as needed for each HTML element the component uses.
 
+## Mocking fetch for provider tests
+
+`DailyRosterProvider` fetches from `${BACKEND_URL}/api/daily/roster/today` on mount. Mock `globalThis.fetch` with `vi.spyOn`. Use `mockResolvedValueOnce` for the initial load response and subsequent calls in sequence. Build a helper:
+
+```ts
+function makeFetchSuccess(body: unknown, status = 200): Response {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    json: () => Promise.resolve(body),
+  } as unknown as Response;
+}
+```
+
+Always mock `@/config` to prevent the `VITE_BACKEND_URL must be set in production builds` throw:
+
+```ts
+vi.mock('@/config', () => ({ BACKEND_URL: 'http://test-api' }));
+```
+
+## localStorage helpers in provider tests
+
+`DailyRosterProvider` derives its storage key from today's date at the time `useState` initializes. In tests, seed `localStorage` before mounting using the same `YYYY-MM-DD` key format: `daily_roster_${date}`. Use `localStorage.clear()` in `afterEach` to prevent cross-test pollution.
+
 ## Duplicate-text pitfalls in DraftResults
 
 `DraftResults` renders a sidebar pick-count panel alongside the main table. Both render participant names and "(You)" labels. `getByText` will throw on these. Always use `getAllByText(...)` with a `length >= 1` assertion, or scope the query to the `table` element when asserting on table-specific content.

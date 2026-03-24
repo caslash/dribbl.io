@@ -23,7 +23,14 @@ All tokens live in `apps/web/src/index.css` under `@theme {}`. Dark mode via `ht
 - Primary (Court Blue): `bg-primary`, `text-primary`, `text-primary-text`
 - Accent (Arena Red): `bg-accent`, `text-accent`, `border-accent-border`
 - Highlight (Ball Orange): `bg-highlight`, `text-highlight`
+- Success/error/warning: no dedicated semantic tokens exist — use raw palette (e.g. `text-green-600`, `text-red-600`) but these are the *app's* custom palette, NOT Tailwind defaults. App red-600 = #7a2e2a (Arena Red/burgundy), NOT Tailwind red-600.
 - Note: `bg-secondary` and `bg-card` used in DraftResults.tsx are NOT defined in @theme — these are Tailwind defaults or undefined. Should use `bg-surface-raised` and `bg-surface-warm` from the token system instead.
+
+## Important palette nuance
+The app redefines Tailwind's color stops with its own palette. `red-600` = #7a2e2a (burgundy/Arena Red), `blue-600` = #2e5f82 (Court Blue), `blue-800` = #1a3d5c. These are used directly in components (e.g. Button uses `bg-red-600`, Badge uses `bg-blue-800`). When speccing or reviewing, treat these as semantic colors, not Tailwind defaults.
+
+## Success/error states in components
+RoundFeedback uses `bg-success-light`, `border-success`, `text-success` — but these tokens do NOT exist in index.css @theme. This is a known gap. Workaround in use is relying on Tailwind's built-in green/red if available, or the tokens resolve to undefined (no visible color). New game features should avoid these tokens until they are added to @theme.
 
 ## Component inventory (draft game)
 - `DraftResults.tsx` — basic scaffold only, needs full redesign

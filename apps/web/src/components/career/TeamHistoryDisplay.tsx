@@ -6,7 +6,7 @@ interface TeamHistoryDisplayProps {
 function TeamLogo({ teamId }: { teamId: number | string }) {
   return (
     <div className="flex justify-center p-4 bg-surface-warm rounded-md">
-      <img src={`/logos/${teamId}.svg`} height={100} width={100} />
+      <img src={`${import.meta.env.VITE_LOGO_SVG_PATH}/${teamId}.svg`} height={100} width={100} />
     </div>
   );
 }

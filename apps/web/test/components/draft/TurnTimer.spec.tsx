@@ -4,15 +4,22 @@ import { TurnTimer } from '@/components/draft/TurnTimer';
 
 // framer-motion is not compatible with jsdom.
 // Stub the motion primitive to a plain circle so tests don't fail on SVG animation APIs.
+//
+// `useAnimation` must return a stable object reference across renders. If the factory
+// returns a new object every call, the `ringControls` reference changes on every render,
+// causing the ring animation useEffect to fire continuously. Each fire calls
+// `start().mockResolvedValue(undefined)`, queuing microtasks that keep React busy and
+// prevent setInterval ticks from being observed in tests.
+const ringControls = { set: vi.fn(), start: vi.fn().mockResolvedValue(undefined) };
+
 vi.mock('framer-motion', () => ({
   motion: {
+    // Strip the `animate` prop — passing an object to a plain DOM <circle> causes
+    // React to suppress state updates during fake-timer advancement in jsdom.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    circle: (props: any) => <circle {...props} />,
+    circle: ({ animate: _animate, ...props }: any) => <circle {...props} />,
   },
-  useAnimation: () => ({
-    set: vi.fn(),
-    start: vi.fn().mockResolvedValue(undefined),
-  }),
+  useAnimation: () => ringControls,
 }));
 
 beforeEach(() => {
@@ -43,14 +50,7 @@ describe('TurnTimer', () => {
   });
 
   describe('countdown', () => {
-    // BUG: TurnTimer computes elapsed time using Date.now() inside a setInterval callback.
-    // In the jsdom + Vitest fake-timers environment, vi.advanceTimersByTime() does advance
-    // Date.now() correctly, but the resulting React state updates (setSecondsLeft) do not
-    // flush to the DOM even when wrapped in act(). The numeric countdown is therefore
-    // un-testable at the DOM level under the current TurnTimer implementation.
-    // The onExpire callback tests below confirm the expiry logic itself works correctly.
-
-    it.skip('decrements the displayed value as time advances (blocked by BUG above)', () => {
+    it('decrements the displayed value as time advances', () => {
       render(<TurnTimer durationSeconds={10} onExpire={vi.fn()} />);
 
       act(() => {
@@ -60,7 +60,7 @@ describe('TurnTimer', () => {
       expect(screen.getByText('7')).toBeInTheDocument();
     });
 
-    it.skip('shows 0 after the full duration has elapsed (blocked by BUG above)', () => {
+    it('shows 0 after the full duration has elapsed', () => {
       render(<TurnTimer durationSeconds={5} onExpire={vi.fn()} />);
 
       act(() => {
@@ -94,10 +94,7 @@ describe('TurnTimer', () => {
       expect(onExpire).toHaveBeenCalledOnce();
     });
 
-    // BUG: same DOM-flush issue — at 5s elapsed Date.now() is correct but seconds
-    // displayed never updates, so we cannot verify "5 seconds" threshold here.
-    // We verify the callback side only (above).
-    it.skip('does not call onExpire before the duration has elapsed (blocked by BUG above)', () => {
+    it('does not call onExpire before the duration has elapsed', () => {
       const onExpire = vi.fn();
       render(<TurnTimer durationSeconds={10} onExpire={onExpire} />);
 
@@ -110,10 +107,7 @@ describe('TurnTimer', () => {
   });
 
   describe('warning state', () => {
-    // BUG: the animate-pulse class is conditional on `secondsLeft <= 5`.
-    // Because setSecondsLeft does not flush to the DOM via fake timers, the warning
-    // class never appears in tests even when the real countdown would be in warning range.
-    it.skip('applies the animate-pulse class when 5 seconds or fewer remain (blocked by BUG above)', () => {
+    it('applies the animate-pulse class when 5 seconds or fewer remain', () => {
       const { container } = render(<TurnTimer durationSeconds={10} onExpire={vi.fn()} />);
 
       act(() => {

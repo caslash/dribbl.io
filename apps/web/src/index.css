@@ -73,6 +73,14 @@
   --color-chalk-900: #4a4438;
 
   /* ----------------------------------------------------------
+     Weathered Black
+     Logo typeface color. True charcoal — aged leather tone,
+     neither warm nor cool. Not pure black; slightly lifted
+     so it feels worn and tactile against the chalk surfaces.
+  ---------------------------------------------------------- */
+  --color-logo: #2a2926;
+
+  /* ----------------------------------------------------------
      Semantic tokens — map palette stops to roles.
      Reference these in components rather than raw stops.
   ---------------------------------------------------------- */

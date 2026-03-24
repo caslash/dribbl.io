@@ -20,6 +20,8 @@ src/
     ├── nba.module.ts
     ├── draft/            # Draft game mode (WebSocket + XState)
     ├── careerpath/       # Career Path game mode (WebSocket + XState)
+    ├── daily/            # Daily challenge games (REST)
+    │   └── roster/       # Daily Roster Challenge
     ├── pool/             # Pool management (REST)
     ├── player/           # Player data (REST)
     └── team/             # Team data (REST)

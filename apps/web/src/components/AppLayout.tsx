@@ -45,25 +45,20 @@ export function AppLayout() {
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     `text-sm font-medium transition-colors hover:text-red-600 ${
-      isActive
-        ? 'text-red-600'
-        : 'text-text-secondary'
+      isActive ? 'text-red-600' : 'text-text-secondary'
     }`;
 
   return (
     <div className="flex h-screen flex-col bg-background">
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
-          <Link
-            to="/"
-            className="font-serif text-xl font-bold tracking-tight text-primary-text"
-          >
+          <Link to="/" className="font-serif text-xl font-bold tracking-tight text-primary-text">
             dribbl.io
           </Link>
 
           <nav className="flex items-center gap-6">
-            <NavLink to="/" end className={navLinkClass}>
-              Home
+            <NavLink to="/daily" end className={navLinkClass}>
+              Daily
             </NavLink>
             <NavLink to="/career" className={navLinkClass}>
               Career Path
@@ -77,11 +72,7 @@ export function AppLayout() {
               aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
               className="rounded-md p-1.5 text-text-secondary transition-colors hover:bg-text-secondary/10"
             >
-              {isDark ? (
-                <Sun className="h-4 w-4" />
-              ) : (
-                <Moon className="h-4 w-4" />
-              )}
+              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
           </nav>
         </div>

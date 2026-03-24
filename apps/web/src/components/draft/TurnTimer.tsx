@@ -17,9 +17,10 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
  * Turns red and pulses in the last 5 seconds. Calls `onExpire` exactly once when
  * the timer reaches zero.
  *
- * Uses `motion` (framer-motion) for the ring animation and a `setInterval` for the
- * numeric display — these are kept in sync via `Date.now()` rather than relying on
- * interval precision.
+ * Uses `motion` (framer-motion) for the ring animation and a 1-second `setInterval`
+ * for the numeric display. The interval decrements a ref-backed counter so the
+ * countdown is fully controllable by fake timers in tests without any `Date.now()`
+ * dependency.
  *
  * @param durationSeconds - How long (in seconds) the timer runs.
  * @param onExpire - Callback fired when the timer hits zero.
@@ -29,13 +30,13 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
  */
 export function TurnTimer({ durationSeconds, onExpire }: TurnTimerProps) {
   const [secondsLeft, setSecondsLeft] = useState(durationSeconds);
-  const startTimeRef = useRef(Date.now());
+  const secondsLeftRef = useRef(durationSeconds);
   const expiredRef = useRef(false);
   const ringControls = useAnimation();
 
   // Animate the ring stroke from full to empty over the duration
   useEffect(() => {
-    startTimeRef.current = Date.now();
+    secondsLeftRef.current = durationSeconds;
     expiredRef.current = false;
     setSecondsLeft(durationSeconds);
 
@@ -49,16 +50,16 @@ export function TurnTimer({ durationSeconds, onExpire }: TurnTimerProps) {
   // Drive the numeric countdown with an interval
   useEffect(() => {
     const id = setInterval(() => {
-      const elapsed = (Date.now() - startTimeRef.current) / 1000;
-      const remaining = Math.max(0, durationSeconds - elapsed);
-      setSecondsLeft(Math.ceil(remaining));
+      const next = secondsLeftRef.current - 1;
+      secondsLeftRef.current = next;
+      setSecondsLeft(next);
 
-      if (remaining <= 0 && !expiredRef.current) {
+      if (next <= 0 && !expiredRef.current) {
         expiredRef.current = true;
         clearInterval(id);
         onExpire();
       }
-    }, 200);
+    }, 1000);
 
     return () => clearInterval(id);
   }, [durationSeconds, onExpire]);

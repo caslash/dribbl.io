@@ -97,6 +97,9 @@ export class Season {
   @Column({ type: 'float', nullable: true, name: 'ft_pct' })
   ftPct: number | null;
 
+  @Column({ type: 'text', nullable: true, name: 'jersey_number' })
+  jerseyNumber: string | null;
+
   @ManyToOne(() => Player, (player) => player.seasons)
   @JoinColumn({ name: 'player_id' })
   player: Player;

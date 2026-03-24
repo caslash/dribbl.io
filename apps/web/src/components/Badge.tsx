@@ -24,7 +24,7 @@ const sizeClasses: Record<BadgeSize, string> = {
 export function Badge({ label, size = 'md', className = '' }: BadgeProps) {
   return (
     <span
-      className={`inline-block rounded-full bg-blue-800 font-mono font-semibold tracking-widest text-white ${sizeClasses[size]} ${className}`}
+      className={`inline-block rounded-full bg-blue-800 font-mono font-semibold tracking-widest text-white size-fit ${sizeClasses[size]} ${className}`}
     >
       {label}
     </span>
