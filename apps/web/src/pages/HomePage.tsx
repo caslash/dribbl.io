@@ -24,6 +24,13 @@ const GAME_CARDS: GameCard[] = [
     href: '/draft',
     cta: 'Play Now',
   },
+  {
+    title: 'Daily Roster',
+    description:
+      'Name every player from a mystery NBA roster. One challenge per day — 3 lives, no second chances.',
+    href: '/daily',
+    cta: 'Play Today',
+  },
 ];
 
 /**

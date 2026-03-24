@@ -4,6 +4,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { AppLayout, ErrorBoundary } from '@/components';
 import { DraftProvider } from '@/providers/DraftProvider';
 import { CareerPathPage } from './pages/CareerPathPage';
+import { DailyRosterPage } from './pages/DailyRosterPage';
 import { DraftLobbyPage } from './pages/DraftLobbyPage';
 import { DraftRoomPage } from './pages/DraftRoomPage';
 import { HomePage } from './pages/HomePage';
@@ -28,6 +29,7 @@ export default function App() {
           <Route element={<AppLayout />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/career" element={<CareerPathPage />} />
+            <Route path="/daily" element={<DailyRosterPage />} />
             <Route element={<ErrorBoundary><DraftLayout /></ErrorBoundary>}>
               <Route path="/draft" element={<DraftLobbyPage />} />
               <Route path="/draft/:roomId" element={<DraftRoomPage />} />

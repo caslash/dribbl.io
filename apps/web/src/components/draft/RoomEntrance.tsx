@@ -1,7 +1,7 @@
 import { Button, Card, Input } from '@/components';
 import { useDraft } from '@/hooks/useDraft';
-import { useNavigate } from 'react-router';
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { toast } from 'react-toastify';
 
 /**
@@ -68,10 +68,10 @@ export function RoomEntrance() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
-      <h1 className="text-3xl font-bold mb-2 text-center">NBA All-Time Draft</h1>
-      <p className="text-muted-foreground mb-8 text-center">
-        Assemble your all-time roster with friends.
-      </p>
+      <div className="mb-8 text-center">
+        <h1 className="font-serif text-4xl font-bold text-primary-text">NBA All-Time Draft</h1>
+        <p className="mt-2 text-text-muted">Assemble your all-time roster with friends.</p>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
         {/* Create a room */}
@@ -79,7 +79,9 @@ export function RoomEntrance() {
           <h2 className="text-lg font-semibold mb-4">Create a Room</h2>
           <form onSubmit={handleCreate} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="create-name" className="text-sm font-medium">Your name</label>
+              <label htmlFor="create-name" className="text-sm font-medium">
+                Your name
+              </label>
               <Input
                 id="create-name"
                 placeholder="e.g. Jordan"
@@ -100,7 +102,9 @@ export function RoomEntrance() {
           <h2 className="text-lg font-semibold mb-4">Join a Room</h2>
           <form onSubmit={handleJoin} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="join-name" className="text-sm font-medium">Your name</label>
+              <label htmlFor="join-name" className="text-sm font-medium">
+                Your name
+              </label>
               <Input
                 id="join-name"
                 placeholder="e.g. Bird"
@@ -111,7 +115,9 @@ export function RoomEntrance() {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="join-code" className="text-sm font-medium">Room code</label>
+              <label htmlFor="join-code" className="text-sm font-medium">
+                Room code
+              </label>
               <Input
                 id="join-code"
                 placeholder="e.g. XYZ12"

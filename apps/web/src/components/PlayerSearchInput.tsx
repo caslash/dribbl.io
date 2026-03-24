@@ -42,6 +42,8 @@ export const PlayerSearchInput = forwardRef<HTMLInputElement, PlayerSearchInputP
   const [results, setResults] = useState<PlayerSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [openUpward, setOpenUpward] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Tracks whether the current query reflects a confirmed player selection
   const hasSelectionRef = useRef(false);
@@ -60,6 +62,11 @@ export const PlayerSearchInput = forwardRef<HTMLInputElement, PlayerSearchInputP
       if (!res.ok) throw new Error('Search failed');
       const data = (await res.json()) as PlayerSearchResult[];
       setResults(data);
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (rect) {
+        const spaceBelow = window.innerHeight - rect.bottom;
+        setOpenUpward(spaceBelow < 240 && rect.top > spaceBelow);
+      }
       setOpen(true);
     } catch {
       setResults([]);
@@ -93,7 +100,7 @@ export const PlayerSearchInput = forwardRef<HTMLInputElement, PlayerSearchInputP
   };
 
   return (
-    <Command shouldFilter={false} className="relative">
+    <Command shouldFilter={false} className="relative" ref={containerRef}>
       <div className="relative">
         <Command.Input
           ref={ref}
@@ -112,7 +119,7 @@ export const PlayerSearchInput = forwardRef<HTMLInputElement, PlayerSearchInputP
       </div>
 
       {open && (
-        <Command.List className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-border bg-surface-raised py-1 shadow-lg focus:outline-none">
+        <Command.List className={`absolute z-10 max-h-60 w-full overflow-auto rounded-md border border-border bg-surface-raised py-1 shadow-lg focus:outline-none ${openUpward ? 'bottom-full mb-1' : 'top-full mt-1'}`}>
           <Command.Empty className="px-3 py-2 text-sm text-text-muted">
             No players found
           </Command.Empty>

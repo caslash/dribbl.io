@@ -1,22 +1,24 @@
-import { Player, Team } from '@dribblio/types';
+import { CareerpathModule } from './careerpath/careerpath.module';
+import { DailyModule } from './daily/daily.module';
+import { DraftModule } from './draft/draft.module';
+import { PlayerModule } from './player/player.module';
+import { PoolModule } from './pool/pool.module';
+import { Team } from '@dribblio/types';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CareerpathModule } from './careerpath/careerpath.module';
-import { DraftModule } from './draft/draft.module';
-import { PlayerController } from './player/player.controller';
-import { PlayerService } from './player/player.service';
-import { PoolModule } from './pool/pool.module';
 import { TeamController } from './team/team.controller';
 import { TeamService } from './team/team.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Player, Team]),
+    TypeOrmModule.forFeature([Team]),
     DraftModule,
     CareerpathModule,
+    PlayerModule,
     PoolModule,
+    DailyModule,
   ],
-  controllers: [PlayerController, TeamController],
-  providers: [PlayerService, TeamService],
+  controllers: [TeamController],
+  providers: [TeamService],
 })
 export class NbaModule {}
