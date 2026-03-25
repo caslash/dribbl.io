@@ -1,3 +1,4 @@
+import { PageMeta } from '@/components/PageMeta';
 import { RoomEntrance } from '@/components/draft/RoomEntrance';
 import { useDraft } from '@/hooks/useDraft';
 import { useEffect } from 'react';
@@ -25,5 +26,14 @@ export const DraftLobbyPage = () => {
     }
   }, [state.roomId, navigate]);
 
-  return <RoomEntrance />;
+  return (
+    <>
+      <PageMeta
+        title="NBA All-Time Draft — dribbl.io"
+        description="Build your all-time NBA dream team. Create or join a multiplayer draft room and pick wisely."
+        canonicalPath="/draft"
+      />
+      <RoomEntrance />
+    </>
+  );
 };
