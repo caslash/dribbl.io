@@ -1,10 +1,13 @@
 import { Helmet } from 'react-helmet-async';
 
+const DEFAULT_OG_IMAGE = 'https://dribbl.io/images/og-default.png';
+
 interface PageMetaProps {
   title: string;
   description: string;
   canonicalPath: string;
   noIndex?: boolean;
+  image?: string;
 }
 
 /**
@@ -16,6 +19,7 @@ interface PageMetaProps {
  * @param description - The meta description and OG/Twitter description.
  * @param canonicalPath - The path portion of the canonical URL (e.g. `/career`).
  * @param noIndex - When true, adds `<meta name="robots" content="noindex, nofollow" />`.
+ * @param image - Absolute URL for `og:image` and `twitter:image`. Defaults to the site-wide social preview.
  *
  * @example
  * <PageMeta
@@ -24,7 +28,7 @@ interface PageMetaProps {
  *   canonicalPath="/career"
  * />
  */
-export function PageMeta({ title, description, canonicalPath, noIndex = false }: PageMetaProps) {
+export function PageMeta({ title, description, canonicalPath, noIndex = false, image = DEFAULT_OG_IMAGE }: PageMetaProps) {
   const canonicalUrl = `https://dribbl.io${canonicalPath}`;
 
   return (
@@ -36,8 +40,11 @@ export function PageMeta({ title, description, canonicalPath, noIndex = false }:
       <meta property="og:url" content={canonicalUrl} />
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
+      <meta property="og:image" content={image} />
+      <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
+      <meta name="twitter:image" content={image} />
     </Helmet>
   );
 }
