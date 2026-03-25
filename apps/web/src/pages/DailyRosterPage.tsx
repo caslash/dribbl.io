@@ -10,6 +10,7 @@ import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { PlayerSearchInput } from '@/components/PlayerSearchInput';
+import { BACKEND_URL } from '@/config';
 import { useDailyRoster } from '@/hooks/useDailyRoster';
 import type { NamedPlayer } from '@/providers/DailyRosterProvider';
 import { DailyRosterProvider } from '@/providers/DailyRosterProvider';
@@ -272,7 +273,7 @@ function DailyRosterContent() {
     if (!isComplete || !state.challengeDate) return;
 
     async function fetchReveal() {
-      const res = await fetch(`/api/daily/roster/${state.challengeDate}/reveal`);
+      const res = await fetch(`${BACKEND_URL}/api/daily/roster/${state.challengeDate}/reveal`);
       if (!res.ok) return;
       const data = (await res.json()) as {
         players: Array<{
