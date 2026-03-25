@@ -1,4 +1,11 @@
-import { DailyLivesDisplay, DailyResultPanel, PageMeta, RosterPlayerList, RosterTutorialModal, useRosterTutorial } from '@/components';
+import {
+  DailyLivesDisplay,
+  DailyResultPanel,
+  PageMeta,
+  RosterPlayerList,
+  RosterTutorialModal,
+  useRosterTutorial,
+} from '@/components';
 import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
@@ -280,9 +287,7 @@ function DailyRosterContent() {
       };
       const namedIds = new Set(state.namedPlayers.map((p) => p.playerId));
       setMissedPlayers(
-        data.players
-          .map((p, i) => ({ ...p, index: i }))
-          .filter((p) => !namedIds.has(p.playerId)),
+        data.players.map((p, i) => ({ ...p, index: i })).filter((p) => !namedIds.has(p.playerId)),
       );
     }
 
