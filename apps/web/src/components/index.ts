@@ -1,4 +1,5 @@
 export { AppLayout } from './AppLayout';
+export { PageMeta } from './PageMeta';
 export { ErrorBoundary } from './ErrorBoundary';
 export { Badge } from './Badge';
 export { Button } from './Button';

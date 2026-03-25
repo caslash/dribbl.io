@@ -1,4 +1,4 @@
-import { DailyLivesDisplay, DailyResultPanel, RosterPlayerList, RosterTutorialModal, useRosterTutorial } from '@/components';
+import { DailyLivesDisplay, DailyResultPanel, PageMeta, RosterPlayerList, RosterTutorialModal, useRosterTutorial } from '@/components';
 import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
@@ -452,6 +452,11 @@ export function DailyRosterPage() {
 
   return (
     <div className="flex flex-col h-full">
+      <PageMeta
+        title="Daily Roster — dribbl.io"
+        description="Name every player from today's mystery NBA roster. One daily challenge — 3 lives, no second chances."
+        canonicalPath="/daily"
+      />
       <RosterTutorialModal show={showTutorial} onDismiss={dismissTutorial} />
       <DateNav
         date={selectedDate}

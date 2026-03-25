@@ -1,3 +1,4 @@
+import { PageMeta } from '@/components/PageMeta';
 import { DraftBoard } from '@/components/draft/DraftBoard';
 import { DraftConfigPanel } from '@/components/draft/DraftConfigPanel';
 import { DraftResults } from '@/components/draft/DraftResults';
@@ -25,6 +26,12 @@ export const DraftRoomPage = () => {
 
   return (
     <div className="flex h-full">
+      <PageMeta
+        title="Draft Room — dribbl.io"
+        description="Live NBA All-Time Draft in progress. Join your friends and make your picks."
+        canonicalPath="/draft"
+        noIndex
+      />
       {phase !== 'entrance' && <RoomSidebar />}
 
       <main className="flex-1 overflow-hidden">
