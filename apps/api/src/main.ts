@@ -37,6 +37,10 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
 
+  app.use((req, res, next) => {
+    next();
+  });
+
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
@@ -66,6 +70,10 @@ async function bootstrap() {
   process.on('SIGINT', async () => {
     await app.close();
     process.exit(0);
+  });
+
+  app.use((res) => {
+    res.status(404).end();
   });
 }
 
