@@ -2,6 +2,7 @@ import {
   CareerPathConfig,
   GameOverScreen,
   GuessArea,
+  PageMeta,
   RoundFeedback,
   ScoreBoard,
   TeamHistoryDisplay,
@@ -50,6 +51,11 @@ function CareerPathContent() {
 export function CareerPathPage() {
   return (
     <CareerPathProvider>
+      <PageMeta
+        title="Career Path — dribbl.io"
+        description="Guess the NBA player from their career team history. How many can you get right in a row?"
+        canonicalPath="/career"
+      />
       <CareerPathContent />
     </CareerPathProvider>
   );
