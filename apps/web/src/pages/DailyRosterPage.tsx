@@ -448,7 +448,7 @@ export function DailyRosterPage() {
   const { showTutorial, dismissTutorial } = useRosterTutorial();
 
   useEffect(() => {
-    fetch('/api/daily/roster/earliest-date')
+    fetch(`${BACKEND_URL}/api/daily/roster/earliest-date`)
       .then((res) => res.json())
       .then((data: { date: string | null }) => setEarliestDate(data.date))
       .catch(() => {
