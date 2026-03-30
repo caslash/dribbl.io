@@ -67,13 +67,13 @@ export function RoomEntrance() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
+    <div className="mx-auto max-w-2xl px-4 py-12">
       <div className="mb-8 text-center">
         <h1 className="font-serif text-4xl font-bold text-primary-text">NBA All-Time Draft</h1>
         <p className="mt-2 text-text-muted">Assemble your all-time roster with friends.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Create a room */}
         <Card>
           <h2 className="text-lg font-semibold mb-4">Create a Room</h2>
