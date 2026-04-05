@@ -1,0 +1,122 @@
+@startuml database-schema
+!theme plain
+skinparam defaultFontSize 11
+
+title dribbl.io — Database Schema (PostgreSQL)
+
+entity "players" as players {
+  * player_id : bigint <<PK>>
+  --
+  full_name : text
+  first_name : text
+  last_name : text
+  position : text
+  is_active : boolean
+  greatest_75_flag : boolean
+  team_id : bigint <<FK>>
+  draft_year : smallint
+  draft_round : smallint
+  draft_number : smallint
+  from_year : smallint
+  to_year : smallint
+  height : text
+  weight_lbs : smallint
+  jersey_number : text
+  birthdate : date
+  school : text
+  country : text
+  updated_at : timestamptz
+}
+
+entity "teams" as teams {
+  * team_id : bigint <<PK>>
+  --
+  abbreviation : varchar(10)
+  nickname : text
+  city : text
+  full_name : text
+  state : text
+  year_founded : smallint
+}
+
+entity "seasons" as seasons {
+  * player_id : bigint <<PK, FK>>
+  * season_id : varchar(7) <<PK>>
+  * team_abbreviation : varchar(10) <<PK>>
+  * season_type : varchar <<PK>>
+  --
+  team_id : bigint <<FK, nullable>>
+  player_age : float
+  gp : int
+  gs : int
+  min_pg : float
+  pts_pg : float
+  ast_pg : float
+  reb_pg : float
+  oreb_pg : float
+  dreb_pg : float
+  stl_pg : float
+  blk_pg : float
+  tov_pg : float
+  pf_pg : float
+  fgm_pg : float
+  fga_pg : float
+  fg_pct : float
+  fg3m_pg : float
+  fg3a_pg : float
+  fg3_pct : float
+  ftm_pg : float
+  fta_pg : float
+  ft_pct : float
+  jersey_number : text
+}
+
+entity "accolades" as accolades {
+  * player_id : bigint <<PK, FK>>
+  * accolade_type : text <<PK>>
+  * year : smallint <<PK>>
+}
+
+entity "daily_challenges" as daily_challenges {
+  * id : uuid <<PK>>
+  --
+  game_type : text
+  challenge_date : date
+  team_id : bigint <<FK>>
+  season_id : varchar(7)
+  curated : boolean
+  created_at : timestamp
+}
+
+entity "pools" as pools {
+  * id : uuid <<PK>>
+  --
+  name : text
+  draft_mode : enum <<mvp|franchise|custom>>
+  visibility : enum <<public|private>>
+  entries : jsonb
+  created_by : text
+  created_at : timestamp
+}
+
+players }o--|| teams : "current team\n(team_id)"
+seasons }o--|| players : "belongs to\n(player_id)"
+seasons }o--o| teams : "played for\n(team_id, nullable)"
+accolades }o--|| players : "earned by\n(player_id)"
+daily_challenges }o--|| teams : "features\n(team_id)"
+
+note bottom of seasons
+  Composite PK prevents duplicate rows.
+  season_type = 'Regular Season' | 'Playoffs'
+  team_abbreviation = 'LAL', 'TOT' (trade-year aggregate), etc.
+  Career Path game filters to Regular Season only
+  and excludes TOT rows.
+end note
+
+note bottom of pools
+  entries stored as JSONB array.
+  api_user has INSERT/UPDATE/DELETE on pools.
+  All other tables are read-only to api_user.
+end note
+
+@enduml

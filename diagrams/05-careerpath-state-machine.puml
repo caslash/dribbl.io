@@ -1,0 +1,57 @@
+@startuml careerpath-state-machine
+!theme plain
+skinparam defaultFontSize 12
+
+title Career Path Game — XState v5 State Machine
+
+[*] --> waitingForGameStart
+
+waitingForGameStart : entry / connect socketActor
+waitingForGameStart --> waitingForGameStart : SAVE_CONFIG {config: {lives?, gameDifficulty}}\n/ emit NOTIFY_CONFIG_SAVED
+waitingForGameStart --> gameActive : START_GAME
+
+state gameActive {
+  [*] --> generatingRound
+
+  generatingRound : invoke generateRoundActor\n(async CTE query → historyKey)
+  generatingRound --> waitingForGuess : round generated\n/ emit NOTIFY_NEXT_ROUND {score, team_history, lives}
+
+  waitingForGuess : display team logo sequence to player
+  waitingForGuess --> processingGuess : USER_GUESS {guess: {guessId}}
+  waitingForGuess --> processingSkip : SKIP
+
+  processingGuess --> generatingRound : [historyKey match — correct]\n/ increment score\n/ emit NOTIFY_CORRECT_GUESS {validAnswers}
+  processingGuess --> waitingForGuess : [no match — wrong, lives remain]\n/ decrement lives\n/ emit NOTIFY_INCORRECT_GUESS {lives, score}
+  processingGuess --> [*] : [no match — no lives left]\n/ emit NOTIFY_GAME_OVER
+
+  processingSkip --> generatingRound : [infinite mode] / score reset to 0\n[lives mode, lives remain] / decrement lives\n/ emit NOTIFY_SKIP_ROUND {lives}
+  processingSkip --> [*] : [lives mode, no lives left]\n/ emit NOTIFY_GAME_OVER
+}
+
+gameActive --> closed : PLAYER_DISCONNECTED
+gameActive --> closed : game over (from nested [*])
+
+closed : <<final>>
+closed --> [*]
+
+note right of waitingForGameStart
+  Difficulty controls which players
+  are eligible for a round:
+  • firstAllNBA — smallest pool
+  • allNBA
+  • greatest75
+  • allPlayers — largest pool
+end note
+
+note right of generatingRound
+  generateRoundActor uses a CTE query
+  to compute career signature:
+  historyKey = "team1→team2→team3"
+  (Regular Season only, no TOT rows,
+  consecutive same-team stints collapsed)
+
+  All players sharing a historyKey are
+  valid co-answers for that round.
+end note
+
+@enduml

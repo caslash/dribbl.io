@@ -1,0 +1,90 @@
+@startuml backend-modules
+!theme plain
+skinparam componentStyle rectangle
+skinparam defaultFontSize 11
+skinparam packageStyle rectangle
+
+title dribbl.io — NestJS Backend Modules (apps/api)
+
+package "AppModule" {
+
+  package "HealthModule" {
+    [HealthController\nGET /api/health] as HC
+  }
+
+  package "NbaModule" {
+
+    package "DraftModule" {
+      [DraftGateway\n/draft namespace\nwildcard @SubscribeMessage] as DG
+      [DraftService\nMap<roomId, Actor>\nmax 50 rooms\nShortUniqueId room IDs] as DS
+      package "DraftMachine (XState v5)" as DM {
+        [socketActor\n(root, full session)] as SA1
+        [timerActor\n(fromCallback, per-turn)] as TA
+        [autoPickActor\n(on timer expiry)] as APA
+      }
+      DG --> DS : forwards events\nto room actor
+      DS --> DM : creates /\ndestroys machines
+    }
+
+    package "CareerPathModule" {
+      [CareerPathGateway\n/careerpath namespace\nwildcard @SubscribeMessage] as CPG
+      [CareerPathService\nMap<roomId, Actor>\nmax 200 rooms\nCTE career-signature queries] as CPS
+      package "CareerPathMachine (XState v5)" as CPM {
+        [socketActor\n(root, full session)] as SA2
+        [generateRoundActor\n(async round gen)] as GRA
+      }
+      CPG --> CPS : forwards events\nto room actor
+      CPS --> CPM : creates /\ndestroys machines
+    }
+
+    package "DailyModule" {
+      [DailyScheduleService\nchallenge lookup] as DSS
+      [DailyScheduleGeneratorService\nschedule generation] as DSGS
+      package "RosterModule" {
+        [RosterController\nGET|POST /api/daily/roster/*] as RC
+        [RosterService\nstateless guess validation\nno duplicate tracking server-side] as RS
+        RC --> RS
+        RS --> DSS
+      }
+    }
+
+    package "PoolModule" {
+      [PoolController\n/api/pools] as POC
+      [PoolService\npool generation + persistence\nSavedPool CRUD] as POS
+      [MvpPoolGenerator\nall MVP seasons] as MVPG
+      [FranchisePoolGenerator\none player per franchise] as FRANG
+      POC --> POS
+      POS --> MVPG
+      POS --> FRANG
+    }
+
+    package "PlayerModule" {
+      [PlayerController\nGET /api/players\n?search= · /active · /:id] as PLYC
+      [PlayerService\nrepository queries] as PLYS
+      PLYC --> PLYS
+    }
+
+    package "TeamModule" {
+      [TeamController\nGET /api/teams · /teams/:id] as TC
+      [TeamService] as TS
+      TC --> TS
+    }
+
+  }
+
+}
+
+note right of DM
+  Actors are automatically cleaned up
+  by XState on state transition.
+  timerActor only lives during
+  turnInProgress state.
+end note
+
+note right of CPM
+  generateRoundActor uses CTE SQL
+  to compute historyKey
+  (team1→team2→... sequence).
+end note
+
+@enduml

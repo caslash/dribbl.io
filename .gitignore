@@ -55,5 +55,4 @@ next-env.d.ts
 .turbo/
 /*.md
 !CLAUDE.md
-!ARCHITECTURE.md
 docs/

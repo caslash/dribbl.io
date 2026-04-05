@@ -1,0 +1,93 @@
+@startuml careerpath-sequence
+!theme plain
+skinparam defaultFontSize 11
+skinparam sequenceMessageAlign center
+
+title Career Path Game — Socket.io Event Flow (/careerpath namespace)
+
+participant "Client\n(CareerPathProvider)" as C
+participant "CareerPathGateway\n(/careerpath ns)" as G
+participant "XState\nCareerPathMachine" as M
+database "PostgreSQL" as DB
+
+== Room Creation ==
+
+C -> G : HTTP POST /careerpath/room
+G -> G : CareerPathService.createRoom()
+G --> C : {roomId}
+note right: one machine actor\nper player (single-player)
+
+C -> G : connect socket to /careerpath\nwith roomId query param
+
+== Game Configuration ==
+
+C -> G : SAVE_CONFIG {config: {lives: number|null, gameDifficulty}}
+G -> M : SAVE_CONFIG
+M --> C : NOTIFY_CONFIG_SAVED
+
+note over C, M
+  lives: null = infinite mode (score resets on skip)
+  lives: number = finite mode (game over when 0)
+
+  gameDifficulty:
+    firstAllNBA — most restrictive player pool
+    allNBA      — expanded pool
+    greatest75  — NBA 75th anniversary list
+    allPlayers  — all players in database
+end note
+
+== Game Start ==
+
+C -> G : START_GAME
+G -> M : START_GAME
+
+== Game Loop ==
+
+loop Each Round
+  M -> DB : CTE query — pick eligible player\nbased on gameDifficulty
+  DB --> M : player + career history
+  M -> M : computeCareerSignature()\n(collapse stints, exclude TOT,\nRegular Season only)
+  M --> C : NOTIFY_NEXT_ROUND\n{score, team_history: string[], lives: number|null}
+
+  note right: team_history e.g. ["CLE","MIA","CLE","LAL"]\nAll players sharing this historyKey\nare valid co-answers
+
+  alt correct guess
+    C -> G : USER_GUESS {guess: {guessId}}
+    G -> M : USER_GUESS
+    M -> M : check guessId.historyKey == round.historyKey
+    M --> C : NOTIFY_CORRECT_GUESS {validAnswers: Player[]}
+    note right: score += 1\nnext round auto-starts
+
+  else wrong guess — lives remain (or infinite mode)
+    C -> G : USER_GUESS {guess: {guessId}}
+    G -> M : USER_GUESS
+    M --> C : NOTIFY_INCORRECT_GUESS {lives, score}
+
+  else wrong guess — no lives left
+    C -> G : USER_GUESS {guess: {guessId}}
+    G -> M : USER_GUESS
+    M --> C : NOTIFY_GAME_OVER
+    note right: machine transitions\nto closed (final state)
+
+  else skip round
+    C -> G : SKIP
+    G -> M : SKIP
+    alt infinite mode
+      M --> C : NOTIFY_SKIP_ROUND {lives: null}
+      note right: score resets to 0
+    else lives mode — lives remain
+      M --> C : NOTIFY_SKIP_ROUND {lives}
+    else lives mode — no lives left
+      M --> C : NOTIFY_GAME_OVER
+    end
+  end
+end
+
+== Graceful Disconnect ==
+
+C -> G : PLAYER_DISCONNECTED
+G -> M : PLAYER_DISCONNECTED
+M -> M : transition to closed (final)
+G -> G : CareerPathService removes actor\nfrom rooms Map
+
+@enduml

@@ -1,0 +1,67 @@
+@startuml draft-state-machine
+!theme plain
+skinparam defaultFontSize 12
+
+title NBA All-Time Draft — XState v5 State Machine
+
+[*] --> lobby
+
+state lobby {
+  [*] --> waitingForPlayers
+  waitingForPlayers : entry / emit NOTIFY_PARTICIPANT_JOINED
+  waitingForPlayers --> configuring : ORGANIZER_CONFIGURE
+  configuring : entry / show config UI
+  configuring --> readyToStart : SAVE_CONFIG [minPlayers met]\n/ emit NOTIFY_CONFIG_SAVED + NOTIFY_READY_TO_START
+  configuring --> configuring : SAVE_CONFIG [minPlayers not met]\n/ emit NOTIFY_CONFIG_SAVED
+  readyToStart --> configuring : SAVE_CONFIG [reconfigure]
+}
+
+lobby --> draftActive : ORGANIZER_START_DRAFT\n/ finalize pool + compute turnOrder\n/ emit NOTIFY_DRAFT_STARTED
+
+state draftActive {
+  [*] --> turnInProgress
+  turnInProgress : entry / emit NOTIFY_TURN_ADVANCED\n{currentTurnIndex, participantId}
+  turnInProgress : invoke timerActor (per-turn countdown)
+  turnInProgress --> pickConfirmed : SUBMIT_PICK\n/ emit NOTIFY_PICK_CONFIRMED
+  turnInProgress --> autoPickResolved : TURN_TIMER_EXPIRED\n/ auto-pick actor resolves\n/ emit NOTIFY_PICK_CONFIRMED
+  pickConfirmed --> updatingPool : always
+  autoPickResolved --> updatingPool : always
+  updatingPool : entry / invalidate pool entries\n/ emit NOTIFY_POOL_UPDATED {invalidatedIds}
+  updatingPool --> checkingDraftEnd : always
+  checkingDraftEnd --> turnInProgress : [currentRound < maxRounds]
+  checkingDraftEnd --> [*] : [currentRound == maxRounds]
+}
+
+draftActive --> results : draft complete\n/ emit NOTIFY_DRAFT_COMPLETE {pickHistory}
+
+state results {
+  [*] --> generatingGraphics
+  generatingGraphics : generate per-participant team graphic\nand draft order graphic
+  generatingGraphics --> displayingResults : graphics ready
+}
+
+results --> closed : all participants leave / ROOM_CLOSED
+lobby --> closed : ROOM_CLOSED\nPARTICIPANT_DISCONNECTED
+draftActive --> closed : ROOM_CLOSED\nall participants disconnect
+
+closed : <<final>>
+closed --> [*]
+
+note right of draftActive
+  Turn order is pre-expanded into a flat
+  participantId[] array by DraftService.
+  currentTurnIndex is the source of truth.
+
+  Snake order: [A, B, C, C, B, A, A, B, C, ...]
+  Linear order: [A, B, C, A, B, C, A, B, C, ...]
+end note
+
+note right of lobby
+  Pool types (PoolGenerator interface):
+  • mvp — all MVP seasons
+  • franchise — one player per franchise
+  • manual — organizer hand-picks (scaffolded)
+  • nlq — natural language query (scaffolded)
+end note
+
+@enduml

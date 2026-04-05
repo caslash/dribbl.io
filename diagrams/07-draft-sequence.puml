@@ -1,0 +1,89 @@
+@startuml draft-sequence
+!theme plain
+skinparam defaultFontSize 11
+skinparam sequenceMessageAlign center
+
+title NBA All-Time Draft — Socket.io Event Flow (/draft namespace)
+
+participant "Client\n(DraftProvider)" as C
+participant "DraftGateway\n(Socket.io /draft)" as G
+participant "DraftService" as S
+participant "XState\nDraftMachine" as M
+database "PostgreSQL" as DB
+
+== Room Creation ==
+
+C -> G : CREATE_ROOM (or HTTP POST)
+G -> S : createRoom()
+S -> M : spawn new DraftMachine actor
+M --> C : ROOM_CREATED {roomId}
+
+== Participant Join ==
+
+C -> G : PARTICIPANT_JOINED {participant}
+G -> S : forward to room actor
+S -> M : PARTICIPANT_JOINED
+M --> C : NOTIFY_PARTICIPANT_JOINED {participant, participants}
+
+== Pool Configuration ==
+
+C -> G : ORGANIZER_CONFIGURE
+G -> M : ORGANIZER_CONFIGURE
+M --> C : (transitions to configuring state)
+
+C -> G : SAVE_CONFIG {config, pool}
+G -> S : generate pool preview
+S -> DB : query pool entries (MVP/Franchise)
+DB --> S : pool data
+S -> M : SAVE_CONFIG
+M --> C : NOTIFY_CONFIG_SAVED {config, pool}
+
+alt min players met
+  M --> C : NOTIFY_READY_TO_START
+end
+
+== Draft Start ==
+
+C -> G : ORGANIZER_START_DRAFT
+G -> S : finalizePool() + computeTurnOrder()
+S -> DB : finalize pool entries
+DB --> S : final pool
+S -> M : ORGANIZER_START_DRAFT {pool, turnOrder}
+M --> C : NOTIFY_DRAFT_STARTED {pool, turnOrder}
+
+== Turn Loop ==
+
+loop Each Round (maxRounds iterations)
+  M --> C : NOTIFY_TURN_ADVANCED {currentTurnIndex, currentRound, participantId}
+
+  alt participant picks within timer
+    C -> G : SUBMIT_PICK {pickRecord: {participantId, entryId, round}}
+    G -> M : SUBMIT_PICK
+    M --> C : NOTIFY_PICK_CONFIRMED {pickRecord}
+    M --> C : NOTIFY_POOL_UPDATED {invalidatedIds}
+
+  else timer expires (auto-pick)
+    M -> M : TURN_TIMER_EXPIRED
+    note right: timerActor fires after\nconfigured duration (ms)
+    M --> C : NOTIFY_PICK_CONFIRMED {pickRecord}
+    M --> C : NOTIFY_POOL_UPDATED {invalidatedIds}
+  end
+end
+
+== Draft Complete ==
+
+M --> C : NOTIFY_DRAFT_COMPLETE {pickHistory}
+note right: server generates\nper-participant team graphics\nand draft order graphic
+
+== Disconnect ==
+
+C -> G : PARTICIPANT_DISCONNECTED {participantId}
+G -> M : PARTICIPANT_DISCONNECTED
+M --> C : NOTIFY_PARTICIPANT_DISCONNECTED {participantId}
+
+alt all participants disconnected
+  M -> M : transition to closed (final)
+  S -> S : remove actor from rooms Map
+end
+
+@enduml

@@ -1,0 +1,48 @@
+@startuml system-overview
+!theme plain
+skinparam componentStyle rectangle
+skinparam defaultFontSize 12
+skinparam ArrowFontSize 11
+
+title dribbl.io — System Overview
+
+node "Browser\n(apps/web · Port 3000)" as Browser {
+  component "Vite + React\nReact Router · Socket.io Client\nFramer Motion · Tailwind CSS" as WebApp
+}
+
+node "NestJS API\n(apps/api · Port 3001)" as Server {
+  component "REST Controllers\nThrottlerModule · ValidationPipe" as REST
+  component "Socket.io Gateways\n/draft  ·  /careerpath" as WS
+  component "XState v5 Machines\nDraftMachine · CareerPathMachine" as XSM
+  REST -[hidden]down- WS
+  WS -[hidden]down- XSM
+}
+
+database "PostgreSQL" as DB {
+  storage "players · teams · seasons\naccolades · daily_challenges · pools"
+}
+
+package "@dribblio/types\n(packages/types)" as Types {
+  component "Entities · Events · DTOs\nShared TypeScript types" as SharedTypes
+}
+
+package "apps/db\n(Python 3.10+)" as Scraper {
+  component "stats.nba.com scraper\nmain.py data pipeline" as Pipeline
+}
+
+WebApp --> REST : HTTP  /api/*
+WebApp <--> WS : WebSocket\nSocket.io
+REST --> DB : TypeORM
+WS --> DB : TypeORM
+Pipeline --> DB : writes player/\nteam data
+
+SharedTypes ..> WebApp : imported by
+SharedTypes ..> Server : imported by
+
+note bottom of Types
+  Critical rule: never import
+  TypeORM or NestJS types into
+  packages/ or apps/cli
+end note
+
+@enduml

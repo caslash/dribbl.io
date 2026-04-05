@@ -1,0 +1,103 @@
+@startuml frontend-components
+!theme plain
+skinparam componentStyle rectangle
+skinparam defaultFontSize 11
+skinparam packageStyle rectangle
+
+title dribbl.io — Frontend Architecture (apps/web)
+
+package "App Shell (AppLayout + React Router)" {
+
+  package "Pages" {
+    [HomePage\n/\ngame mode selection] as HP
+    [CareerPathPage\n/career\nconfig → playing → game-over] as CPPage
+    [DraftLobbyPage\n/draft\ncreate / join room] as DLPage
+    [DraftRoomPage\n/draft/:roomId\nentrance → lobby → configuring\n→ pool-preview → drafting → results] as DRPage
+    [DailyRosterPage\n/daily\nloading → playing → complete] as DARPage
+  }
+
+  package "Context Providers" {
+    [CareerPathProvider\nSocket.io /careerpath\nuseReducer state\nfeedback buffering] as CPPROV
+    [DraftProvider\nSocket.io /draft\nuseReducer state\nphase + roomId + participants\n+ pool + turnOrder + pickHistory] as DPROV
+    [DailyRosterProvider\nREST /api/daily/roster\nlocalStorage persistence\nnamedPlayers + lives + completion] as DRPROV
+  }
+
+  package "Draft Components\n(components/draft/)" {
+    [RoomEntrance] as RE
+    [RoomSidebar\nroom code + participants] as RSB
+    [DraftConfigPanel\nMVP/Franchise · snake/linear\nrounds · timer] as DCP
+    [PoolPreview\npool grid before draft] as PP
+    [DraftBoard\nOnTheClockCard · MyPickCard\nUpcomingPickCard · TurnTimer\nPickAnnouncementModal\nPickConfirmModal] as DB
+    [DraftResults\npick history + team rosters] as DRS
+    [DraftTimeline\npick order visualization] as DT
+  }
+
+  package "Career Path Components\n(components/career/)" {
+    [CareerPathConfig\ndifficulty + lives picker] as CPC
+    [TeamHistoryDisplay\nteam logo sequence] as THD
+    [GuessArea\nPlayerSearchInput autocomplete] as GA
+    [RoundFeedback\ncorrect/wrong + valid answers] as RF
+    [ScoreBoard\nscore + lives] as SB
+    [GameOverScreen\nfinal score] as GOS
+  }
+
+  package "Daily Roster Components\n(components/daily/)" {
+    [RosterPlayerList\nplayer grid] as RPL
+    [PlayerSearchInput\nautocomplete] as PSI
+    [DailyLivesDisplay] as DLD
+    [DailyResultPanel\nresults summary] as DRPANEL
+    [RosterTutorialModal\ngame rules] as RTM
+  }
+
+  package "Shared Components\n(components/)" {
+    [AppLayout\nnav bar + footer + ErrorBoundary] as AL
+    [Button · Card · Input · Badge] as UI
+    [PageMeta\nSEO head tags] as PM
+  }
+
+}
+
+CPPage --> CPPROV : wrapped in
+DLPage --> DPROV : wrapped in
+DRPage --> DPROV : wrapped in
+DARPage --> DRPROV : wrapped in
+
+DPROV --> RE
+DPROV --> RSB
+DPROV --> DCP
+DPROV --> PP
+DPROV --> DB
+DPROV --> DRS
+DPROV --> DT
+
+CPPROV --> CPC
+CPPROV --> THD
+CPPROV --> GA
+CPPROV --> RF
+CPPROV --> SB
+CPPROV --> GOS
+
+DRPROV --> RPL
+DRPROV --> PSI
+DRPROV --> DLD
+DRPROV --> DRPANEL
+DRPROV --> RTM
+
+note bottom of DPROV
+  Hooks: useDraft.ts wraps useDraftContext()
+  and exposes isMyTurn + currentTurnParticipant
+end note
+
+note bottom of CPPROV
+  Hooks: useCareerPath.ts
+  Buffers pending rounds while
+  feedback modal is visible
+end note
+
+note bottom of DRPROV
+  Hooks: useDailyRoster.ts
+  submitGuess returns:
+  'correct' | 'wrong' | 'duplicate'
+end note
+
+@enduml
