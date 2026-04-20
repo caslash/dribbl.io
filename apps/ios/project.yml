@@ -1,0 +1,78 @@
+name: dribblio
+options:
+  bundleIdPrefix: io.dribbl
+  deploymentTarget:
+    iOS: "26.0"
+  defaultConfig: Debug
+  xcodeVersion: "26.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "26.0"
+    TARGETED_DEVICE_FAMILY: "1"
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+
+configs:
+  Debug: debug
+  Release: release
+
+configFiles:
+  Debug: Configs/Debug.xcconfig
+  Release: Configs/Release.xcconfig
+
+packages:
+  SocketIO:
+    url: https://github.com/socketio/socket.io-client-swift
+    from: 16.1.0
+
+targets:
+  dribblio:
+    type: application
+    platform: iOS
+    deploymentTarget: "26.0"
+    sources:
+      - dribblio
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.dribbl.app
+        INFOPLIST_FILE: dribblio/Info.plist
+        TARGETED_DEVICE_FAMILY: "1"
+        BACKEND_URL_VALUE: ""
+      configs:
+        Debug:
+          BACKEND_URL_VALUE: "http://localhost:3001"
+        Release:
+          BACKEND_URL_VALUE: "https://api.dribbl.io"
+    dependencies:
+      - package: SocketIO
+        product: SocketIO
+    info:
+      path: dribblio/Info.plist
+      properties:
+        CFBundleDisplayName: dribbl.io
+        UILaunchScreen:
+          UIColorName: ""
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        BACKEND_URL: "$(BACKEND_URL_VALUE)"
+    scheme:
+      testTargets:
+        - dribblio-tests
+
+  dribblio-tests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "26.0"
+    sources:
+      - dribblio-tests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.dribbl.app.tests
+        TARGETED_DEVICE_FAMILY: "1"
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: dribblio

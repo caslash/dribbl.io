@@ -1,0 +1,784 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		01CE6CCC4B52F84420D3DAF3 /* RosterHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35D5BC415017CC3524E3D54A /* RosterHeaderView.swift */; };
+		05DBB1D40544E92897907D94 /* StatPillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 050050C0FCD31F9E010E8208 /* StatPillView.swift */; };
+		0A069E4C9BF4C2A552BB36A3 /* DraftViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1652A41727CBB4CDB5675088 /* DraftViewModelTests.swift */; };
+		0EDEBDA63AE7DF8897FC59A5 /* TeamHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A60F7C51BB96C3DA1B2A485 /* TeamHistoryView.swift */; };
+		12BFBEAF22255E2C6088BDBB /* driBBLIOApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FD0D1FFCBBBC8DE6FB3F1A2 /* driBBLIOApp.swift */; };
+		1479830401F0AA4CC27CF86E /* DailyRosterViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0BCD91505837E02C23FA780 /* DailyRosterViewModel.swift */; };
+		14AB5A5D17EF151A6693DE6F /* DailyRosterCompleteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCA968B66CCF9E21142A971 /* DailyRosterCompleteView.swift */; };
+		27DDD70A1B24C339B2AF69CE /* ParticipantListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBB4686B8461C7FA285C3E71 /* ParticipantListView.swift */; };
+		27EA92C1BF04AB7AEEAC0D8C /* DraftConfigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 086996252ED558D0E09B9388 /* DraftConfigView.swift */; };
+		2BE8F33852A9872C49A9A64A /* driBBLIOTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E800815BA06FBD7D9591089 /* driBBLIOTests.swift */; };
+		30C9BC7092B34143FD37ECEA /* MockAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2B146FF8C80955CF674DF4D /* MockAPIClient.swift */; };
+		34186B8DB88AF6040ACEABC8 /* CareerPathModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F4E000315B71C7034C80234 /* CareerPathModels.swift */; };
+		35D4DBB0FE68C523691B0636 /* DraftEntranceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCB056B807E1CE084C6D39BF /* DraftEntranceView.swift */; };
+		36C5CF97A685236E087FB39E /* LoadingSkeletonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85F45A657F242CCF50A9482C /* LoadingSkeletonView.swift */; };
+		426EEDE92A23FAFFA9FC8111 /* DailyRosterPlayingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34528136F6E3644DAE7A83D5 /* DailyRosterPlayingView.swift */; };
+		4586FE1933A478F201BBCE15 /* DailyLivesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBA7BA87EE7665BF7F2A3030 /* DailyLivesView.swift */; };
+		471FAA57E1BC59270A15FCE4 /* DraftModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7438F4661FE2742805585BC9 /* DraftModels.swift */; };
+		4FA844CE1CEAB5BA74706CC5 /* CareerPathView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CCA7C4063D22B3646C2FD28 /* CareerPathView.swift */; };
+		52F3EE5C35BB4B2FEEE34368 /* DailyResultPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845CF3A804791DD612A81C9F /* DailyResultPanelView.swift */; };
+		54045A08B2B5049CBC646720 /* PickConfirmSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B32F1552FBDE006F28CEC3 /* PickConfirmSheet.swift */; };
+		56BD58598F170F0C92F44AF5 /* NetworkError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B1D4366154957EC844C1E18 /* NetworkError.swift */; };
+		5AAABEA0C94FE3C47F690A07 /* TurnTimerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36604471EF4FE89BC443B22A /* TurnTimerView.swift */; };
+		6368CFE77E5E64907F2FDB2D /* CareerPathViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05EED49DC9D24B5A945D5715 /* CareerPathViewModelTests.swift */; };
+		67A070E311F40E79543EE78F /* DailyRosterContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40D305BA2CF44FAFE1DB8F85 /* DailyRosterContentView.swift */; };
+		6814FDCA5F34B97CAEA2F226 /* PlayerHeadshotView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69BE18113277324A3FC32CB7 /* PlayerHeadshotView.swift */; };
+		6C61E73FC40B0EFBB1B04B80 /* DraftRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFEBB3C09CB47EB2C6BA7C6D /* DraftRootView.swift */; };
+		6D6535A418D01091756189A6 /* DraftResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA35B4D980242DE2F1B9CF76 /* DraftResultsView.swift */; };
+		73E425FDE08248758B512A0F /* DraftLobbyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E189B548DB57430052A9B797 /* DraftLobbyView.swift */; };
+		75953CA2160A329702C05039 /* MockSocketClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D43B70EA80AB6E2C1C80E63D /* MockSocketClient.swift */; };
+		7A351412C27DE7FEAC7A49B3 /* UserDefaultsKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF696EFFB728B20B2C6D5D7A /* UserDefaultsKeys.swift */; };
+		7DF0F6986CF198D1E87908A3 /* GlassCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 578CE5C0D725880E70A11434 /* GlassCard.swift */; };
+		807AD265D7D85CDD846E6633 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DDD3E5FC4FAF3B79A23714D /* HomeView.swift */; };
+		80ED725C512140E90160769B /* DateHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DF136803BFE89FEB23FF479 /* DateHelpers.swift */; };
+		8307C1E812AC02DD62D11E30 /* CareerPathGameOverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90AB854A048C8C8F5F71A1A2 /* CareerPathGameOverView.swift */; };
+		83403D4CA44CE6029F4E3E1E /* Bundle+BackendURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3CACDB1A662ADAF9B7BC7B9 /* Bundle+BackendURL.swift */; };
+		8ABE1AF254C929A96A32D9EB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 77D3202C657226472C28DDB7 /* Assets.xcassets */; };
+		8C0041F7F2CA6009C523A4B3 /* CareerPathPlayingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1726878732BCAFD940DAD415 /* CareerPathPlayingView.swift */; };
+		8D45A440B0C301E7805BC7BE /* PlayerSearchField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 911D0E5B53010E50A1004DD4 /* PlayerSearchField.swift */; };
+		8EFFDD514F673BB6EF3E6BEE /* PoolEntryRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ACF81C5C982E6CAE5FA2C63 /* PoolEntryRowView.swift */; };
+		9875987BD15FE8AE74E26D67 /* DailyRosterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21D5D89FC9E4C272B321304 /* DailyRosterView.swift */; };
+		98D646FB5A3E12A3CB04123B /* RosterPlayerRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E092CA1F73B40DC1EDC6EF0 /* RosterPlayerRowView.swift */; };
+		A852F0693A7C93F13BDF0255 /* DraftViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C679E8A2AE9A09DA7B3A90F0 /* DraftViewModel.swift */; };
+		AACC54156546EE15FE8554D3 /* RosterProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8FC99327E113C568E8DCC0A /* RosterProgressView.swift */; };
+		AD4450C208F77D422E2A18B3 /* CareerPathConfigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7BA675F9EFCF9E3D026315 /* CareerPathConfigView.swift */; };
+		BAA2CB4111108592B1E52940 /* PickAnnouncementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11AC94EA41710DC45D58E1C5 /* PickAnnouncementView.swift */; };
+		BAB01CDE3A1DA0E344C22748 /* DraftBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E963ACDC0813BBEB8931350B /* DraftBoardView.swift */; };
+		BCEFCAE35F0E8C2FB6AD8713 /* RoomInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54BB7CB9E800DA8C32FA8F89 /* RoomInfoView.swift */; };
+		C1AD7B30E53D7FB3D86BE255 /* ScoreBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2829757F44C74817BAB7688 /* ScoreBoardView.swift */; };
+		C3CB87AF8063C8983FC835C2 /* SocketClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20CE402D0BF514E9A078B8F1 /* SocketClient.swift */; };
+		C5F2A94AB0D2AAC1CBC5B847 /* PoolPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 063772AE120A8A55F8CE329E /* PoolPreviewView.swift */; };
+		C5F84D90AF8998DDF6E07A13 /* SocketIO in Frameworks */ = {isa = PBXBuildFile; productRef = 225EC57C1A842E3F96EB7E1F /* SocketIO */; };
+		CB22647210DE823E469A0E25 /* RoundFeedbackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F0B40BFB09DB70F2ABE031 /* RoundFeedbackView.swift */; };
+		D00BE2E0A633058ED4DFC10D /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E5FB5E0CC8EB1B1326B309B /* APIClient.swift */; };
+		D33CE47C973E154299293E41 /* GuessAreaView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F771AD24EF5FD515C22C81B3 /* GuessAreaView.swift */; };
+		D403045D0FDF70DAA58F0E96 /* DraftTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 642575EAF0176BF6372BF292 /* DraftTimelineView.swift */; };
+		D552BFB0D1F5A41BFA1319EE /* OnTheClockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89823FEB40D5DC1617E3150F /* OnTheClockView.swift */; };
+		D758E7D55E87D18533155451 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 412065F75B508954096ABE6D /* ContentView.swift */; };
+		DA8E2792A07072DC6A68B8C6 /* CareerPathViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B42B73D4CF2DA122B5289155 /* CareerPathViewModel.swift */; };
+		E138BB26DA1AE00985D54B92 /* RosterPlayerRowPlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D4F84B872FEAADD47FFE59 /* RosterPlayerRowPlaceholder.swift */; };
+		E7E56BDD2297A235A24375F1 /* MyPickCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9167A55426DFF1205BE34BB7 /* MyPickCardView.swift */; };
+		EB13356229D829158104970A /* DailyRosterModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8203B85FAD2BB1972E927D1D /* DailyRosterModels.swift */; };
+		F31D8A1A3EAB0D58AD9AEA6D /* PlayerModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99D02FA726D5247D8E6A757 /* PlayerModels.swift */; };
+		F91F406382C4BBDF518212D1 /* DailyRosterViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C141819F3B21EE7AAB3D778B /* DailyRosterViewModelTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		02404253C5B35EEB07064A76 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AB02B051D50EFF4FFFF9CFD4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4155BCF32DB65F57EC8FA9F1;
+			remoteInfo = dribblio;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		050050C0FCD31F9E010E8208 /* StatPillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatPillView.swift; sourceTree = "<group>"; };
+		05EED49DC9D24B5A945D5715 /* CareerPathViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CareerPathViewModelTests.swift; sourceTree = "<group>"; };
+		063772AE120A8A55F8CE329E /* PoolPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoolPreviewView.swift; sourceTree = "<group>"; };
+		086996252ED558D0E09B9388 /* DraftConfigView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftConfigView.swift; sourceTree = "<group>"; };
+		08B2D08CA4B40EF9319A975B /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
+		11AC94EA41710DC45D58E1C5 /* PickAnnouncementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickAnnouncementView.swift; sourceTree = "<group>"; };
+		126F80AD1774B7FE9E82676F /* dribblio.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = dribblio.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1652A41727CBB4CDB5675088 /* DraftViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftViewModelTests.swift; sourceTree = "<group>"; };
+		1726878732BCAFD940DAD415 /* CareerPathPlayingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CareerPathPlayingView.swift; sourceTree = "<group>"; };
+		1F4E000315B71C7034C80234 /* CareerPathModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CareerPathModels.swift; sourceTree = "<group>"; };
+		1FD0D1FFCBBBC8DE6FB3F1A2 /* driBBLIOApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = driBBLIOApp.swift; sourceTree = "<group>"; };
+		20CE402D0BF514E9A078B8F1 /* SocketClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketClient.swift; sourceTree = "<group>"; };
+		293292BB631A6EE99E3F36EA /* dribblio-tests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = "dribblio-tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2BCA968B66CCF9E21142A971 /* DailyRosterCompleteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyRosterCompleteView.swift; sourceTree = "<group>"; };
+		34528136F6E3644DAE7A83D5 /* DailyRosterPlayingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyRosterPlayingView.swift; sourceTree = "<group>"; };
+		35D5BC415017CC3524E3D54A /* RosterHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RosterHeaderView.swift; sourceTree = "<group>"; };
+		36604471EF4FE89BC443B22A /* TurnTimerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TurnTimerView.swift; sourceTree = "<group>"; };
+		40D305BA2CF44FAFE1DB8F85 /* DailyRosterContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyRosterContentView.swift; sourceTree = "<group>"; };
+		412065F75B508954096ABE6D /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		54BB7CB9E800DA8C32FA8F89 /* RoomInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomInfoView.swift; sourceTree = "<group>"; };
+		578CE5C0D725880E70A11434 /* GlassCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassCard.swift; sourceTree = "<group>"; };
+		5B7BA675F9EFCF9E3D026315 /* CareerPathConfigView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CareerPathConfigView.swift; sourceTree = "<group>"; };
+		5DDD3E5FC4FAF3B79A23714D /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		5DF136803BFE89FEB23FF479 /* DateHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateHelpers.swift; sourceTree = "<group>"; };
+		5E800815BA06FBD7D9591089 /* driBBLIOTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = driBBLIOTests.swift; sourceTree = "<group>"; };
+		642575EAF0176BF6372BF292 /* DraftTimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftTimelineView.swift; sourceTree = "<group>"; };
+		69BE18113277324A3FC32CB7 /* PlayerHeadshotView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerHeadshotView.swift; sourceTree = "<group>"; };
+		6B1D4366154957EC844C1E18 /* NetworkError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkError.swift; sourceTree = "<group>"; };
+		6CCA7C4063D22B3646C2FD28 /* CareerPathView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CareerPathView.swift; sourceTree = "<group>"; };
+		7438F4661FE2742805585BC9 /* DraftModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftModels.swift; sourceTree = "<group>"; };
+		77D3202C657226472C28DDB7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		7ACF81C5C982E6CAE5FA2C63 /* PoolEntryRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoolEntryRowView.swift; sourceTree = "<group>"; };
+		7E092CA1F73B40DC1EDC6EF0 /* RosterPlayerRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RosterPlayerRowView.swift; sourceTree = "<group>"; };
+		7E5FB5E0CC8EB1B1326B309B /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		81B32F1552FBDE006F28CEC3 /* PickConfirmSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickConfirmSheet.swift; sourceTree = "<group>"; };
+		8203B85FAD2BB1972E927D1D /* DailyRosterModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyRosterModels.swift; sourceTree = "<group>"; };
+		845CF3A804791DD612A81C9F /* DailyResultPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyResultPanelView.swift; sourceTree = "<group>"; };
+		85F45A657F242CCF50A9482C /* LoadingSkeletonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingSkeletonView.swift; sourceTree = "<group>"; };
+		89823FEB40D5DC1617E3150F /* OnTheClockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnTheClockView.swift; sourceTree = "<group>"; };
+		8A60F7C51BB96C3DA1B2A485 /* TeamHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamHistoryView.swift; sourceTree = "<group>"; };
+		904B95C09B14ED0F4EE36592 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
+		90AB854A048C8C8F5F71A1A2 /* CareerPathGameOverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CareerPathGameOverView.swift; sourceTree = "<group>"; };
+		911D0E5B53010E50A1004DD4 /* PlayerSearchField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSearchField.swift; sourceTree = "<group>"; };
+		9167A55426DFF1205BE34BB7 /* MyPickCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPickCardView.swift; sourceTree = "<group>"; };
+		A21D5D89FC9E4C272B321304 /* DailyRosterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyRosterView.swift; sourceTree = "<group>"; };
+		A99D02FA726D5247D8E6A757 /* PlayerModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerModels.swift; sourceTree = "<group>"; };
+		AF696EFFB728B20B2C6D5D7A /* UserDefaultsKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsKeys.swift; sourceTree = "<group>"; };
+		B2D4F84B872FEAADD47FFE59 /* RosterPlayerRowPlaceholder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RosterPlayerRowPlaceholder.swift; sourceTree = "<group>"; };
+		B2F0B40BFB09DB70F2ABE031 /* RoundFeedbackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundFeedbackView.swift; sourceTree = "<group>"; };
+		B42B73D4CF2DA122B5289155 /* CareerPathViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CareerPathViewModel.swift; sourceTree = "<group>"; };
+		C0BCD91505837E02C23FA780 /* DailyRosterViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyRosterViewModel.swift; sourceTree = "<group>"; };
+		C141819F3B21EE7AAB3D778B /* DailyRosterViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyRosterViewModelTests.swift; sourceTree = "<group>"; };
+		C679E8A2AE9A09DA7B3A90F0 /* DraftViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftViewModel.swift; sourceTree = "<group>"; };
+		C8FC99327E113C568E8DCC0A /* RosterProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RosterProgressView.swift; sourceTree = "<group>"; };
+		CA35B4D980242DE2F1B9CF76 /* DraftResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftResultsView.swift; sourceTree = "<group>"; };
+		CFEBB3C09CB47EB2C6BA7C6D /* DraftRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftRootView.swift; sourceTree = "<group>"; };
+		D43B70EA80AB6E2C1C80E63D /* MockSocketClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockSocketClient.swift; sourceTree = "<group>"; };
+		E189B548DB57430052A9B797 /* DraftLobbyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftLobbyView.swift; sourceTree = "<group>"; };
+		E3CACDB1A662ADAF9B7BC7B9 /* Bundle+BackendURL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bundle+BackendURL.swift"; sourceTree = "<group>"; };
+		E963ACDC0813BBEB8931350B /* DraftBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftBoardView.swift; sourceTree = "<group>"; };
+		EBA7BA87EE7665BF7F2A3030 /* DailyLivesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyLivesView.swift; sourceTree = "<group>"; };
+		ECBA864C0D50D096D496244F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		F2829757F44C74817BAB7688 /* ScoreBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreBoardView.swift; sourceTree = "<group>"; };
+		F2B146FF8C80955CF674DF4D /* MockAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockAPIClient.swift; sourceTree = "<group>"; };
+		F771AD24EF5FD515C22C81B3 /* GuessAreaView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuessAreaView.swift; sourceTree = "<group>"; };
+		FBB4686B8461C7FA285C3E71 /* ParticipantListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParticipantListView.swift; sourceTree = "<group>"; };
+		FCB056B807E1CE084C6D39BF /* DraftEntranceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftEntranceView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		7FD2BAD6BD7FA8D0FBBBAF91 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C5F84D90AF8998DDF6E07A13 /* SocketIO in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		09614124CCF503860EAEB5CE /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				293292BB631A6EE99E3F36EA /* dribblio-tests.xctest */,
+				126F80AD1774B7FE9E82676F /* dribblio.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		3B088E7E6CA2F4F0A7AF7FEE /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				B42B73D4CF2DA122B5289155 /* CareerPathViewModel.swift */,
+				C0BCD91505837E02C23FA780 /* DailyRosterViewModel.swift */,
+				C679E8A2AE9A09DA7B3A90F0 /* DraftViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		3BD665FB1FEB6760C13D921D /* Configs */ = {
+			isa = PBXGroup;
+			children = (
+				904B95C09B14ED0F4EE36592 /* Debug.xcconfig */,
+				08B2D08CA4B40EF9319A975B /* Release.xcconfig */,
+			);
+			path = Configs;
+			sourceTree = "<group>";
+		};
+		4FA6946B4B50F1F66D1241D0 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				578CE5C0D725880E70A11434 /* GlassCard.swift */,
+				85F45A657F242CCF50A9482C /* LoadingSkeletonView.swift */,
+				69BE18113277324A3FC32CB7 /* PlayerHeadshotView.swift */,
+				911D0E5B53010E50A1004DD4 /* PlayerSearchField.swift */,
+				050050C0FCD31F9E010E8208 /* StatPillView.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		68FAB0C2642A8A3F657D1C42 /* dribblio */ = {
+			isa = PBXGroup;
+			children = (
+				77D3202C657226472C28DDB7 /* Assets.xcassets */,
+				1FD0D1FFCBBBC8DE6FB3F1A2 /* driBBLIOApp.swift */,
+				ECBA864C0D50D096D496244F /* Info.plist */,
+				FD8FE1D113DE54D8111D1EA6 /* Models */,
+				DBC9D773A4884BC79A15F6BC /* Networking */,
+				D444CDB1E12BB62EBBFC2FEB /* Utilities */,
+				3B088E7E6CA2F4F0A7AF7FEE /* ViewModels */,
+				BDE17E5D94724F9F5C49C3A6 /* Views */,
+			);
+			path = dribblio;
+			sourceTree = "<group>";
+		};
+		7722A53F512629CC643F2AB4 /* Draft */ = {
+			isa = PBXGroup;
+			children = (
+				E963ACDC0813BBEB8931350B /* DraftBoardView.swift */,
+				086996252ED558D0E09B9388 /* DraftConfigView.swift */,
+				FCB056B807E1CE084C6D39BF /* DraftEntranceView.swift */,
+				E189B548DB57430052A9B797 /* DraftLobbyView.swift */,
+				CA35B4D980242DE2F1B9CF76 /* DraftResultsView.swift */,
+				CFEBB3C09CB47EB2C6BA7C6D /* DraftRootView.swift */,
+				642575EAF0176BF6372BF292 /* DraftTimelineView.swift */,
+				9167A55426DFF1205BE34BB7 /* MyPickCardView.swift */,
+				89823FEB40D5DC1617E3150F /* OnTheClockView.swift */,
+				FBB4686B8461C7FA285C3E71 /* ParticipantListView.swift */,
+				11AC94EA41710DC45D58E1C5 /* PickAnnouncementView.swift */,
+				81B32F1552FBDE006F28CEC3 /* PickConfirmSheet.swift */,
+				7ACF81C5C982E6CAE5FA2C63 /* PoolEntryRowView.swift */,
+				063772AE120A8A55F8CE329E /* PoolPreviewView.swift */,
+				54BB7CB9E800DA8C32FA8F89 /* RoomInfoView.swift */,
+				36604471EF4FE89BC443B22A /* TurnTimerView.swift */,
+			);
+			path = Draft;
+			sourceTree = "<group>";
+		};
+		8D9D3810367470BDE1245012 /* Mocks */ = {
+			isa = PBXGroup;
+			children = (
+				F2B146FF8C80955CF674DF4D /* MockAPIClient.swift */,
+				D43B70EA80AB6E2C1C80E63D /* MockSocketClient.swift */,
+			);
+			path = Mocks;
+			sourceTree = "<group>";
+		};
+		A518E30782A9B7EFF99A1BAE /* CareerPath */ = {
+			isa = PBXGroup;
+			children = (
+				5B7BA675F9EFCF9E3D026315 /* CareerPathConfigView.swift */,
+				90AB854A048C8C8F5F71A1A2 /* CareerPathGameOverView.swift */,
+				1726878732BCAFD940DAD415 /* CareerPathPlayingView.swift */,
+				6CCA7C4063D22B3646C2FD28 /* CareerPathView.swift */,
+				F771AD24EF5FD515C22C81B3 /* GuessAreaView.swift */,
+				B2F0B40BFB09DB70F2ABE031 /* RoundFeedbackView.swift */,
+				F2829757F44C74817BAB7688 /* ScoreBoardView.swift */,
+				8A60F7C51BB96C3DA1B2A485 /* TeamHistoryView.swift */,
+			);
+			path = CareerPath;
+			sourceTree = "<group>";
+		};
+		A68F439250EA10DF916A9B61 /* dribblio-tests */ = {
+			isa = PBXGroup;
+			children = (
+				05EED49DC9D24B5A945D5715 /* CareerPathViewModelTests.swift */,
+				C141819F3B21EE7AAB3D778B /* DailyRosterViewModelTests.swift */,
+				1652A41727CBB4CDB5675088 /* DraftViewModelTests.swift */,
+				5E800815BA06FBD7D9591089 /* driBBLIOTests.swift */,
+				8D9D3810367470BDE1245012 /* Mocks */,
+			);
+			path = "dribblio-tests";
+			sourceTree = "<group>";
+		};
+		B21603092B8CC0490B437EC9 /* DailyRoster */ = {
+			isa = PBXGroup;
+			children = (
+				EBA7BA87EE7665BF7F2A3030 /* DailyLivesView.swift */,
+				845CF3A804791DD612A81C9F /* DailyResultPanelView.swift */,
+				2BCA968B66CCF9E21142A971 /* DailyRosterCompleteView.swift */,
+				40D305BA2CF44FAFE1DB8F85 /* DailyRosterContentView.swift */,
+				34528136F6E3644DAE7A83D5 /* DailyRosterPlayingView.swift */,
+				A21D5D89FC9E4C272B321304 /* DailyRosterView.swift */,
+				35D5BC415017CC3524E3D54A /* RosterHeaderView.swift */,
+				B2D4F84B872FEAADD47FFE59 /* RosterPlayerRowPlaceholder.swift */,
+				7E092CA1F73B40DC1EDC6EF0 /* RosterPlayerRowView.swift */,
+				C8FC99327E113C568E8DCC0A /* RosterProgressView.swift */,
+			);
+			path = DailyRoster;
+			sourceTree = "<group>";
+		};
+		BDE17E5D94724F9F5C49C3A6 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				A518E30782A9B7EFF99A1BAE /* CareerPath */,
+				B21603092B8CC0490B437EC9 /* DailyRoster */,
+				7722A53F512629CC643F2AB4 /* Draft */,
+				D64E2E844E46ABBE2D236CEC /* Root */,
+				4FA6946B4B50F1F66D1241D0 /* Shared */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		BEE8D5205DE7BF3F9207A802 = {
+			isa = PBXGroup;
+			children = (
+				3BD665FB1FEB6760C13D921D /* Configs */,
+				68FAB0C2642A8A3F657D1C42 /* dribblio */,
+				A68F439250EA10DF916A9B61 /* dribblio-tests */,
+				09614124CCF503860EAEB5CE /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D444CDB1E12BB62EBBFC2FEB /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				E3CACDB1A662ADAF9B7BC7B9 /* Bundle+BackendURL.swift */,
+				5DF136803BFE89FEB23FF479 /* DateHelpers.swift */,
+				AF696EFFB728B20B2C6D5D7A /* UserDefaultsKeys.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		D64E2E844E46ABBE2D236CEC /* Root */ = {
+			isa = PBXGroup;
+			children = (
+				412065F75B508954096ABE6D /* ContentView.swift */,
+				5DDD3E5FC4FAF3B79A23714D /* HomeView.swift */,
+			);
+			path = Root;
+			sourceTree = "<group>";
+		};
+		DBC9D773A4884BC79A15F6BC /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				7E5FB5E0CC8EB1B1326B309B /* APIClient.swift */,
+				6B1D4366154957EC844C1E18 /* NetworkError.swift */,
+				20CE402D0BF514E9A078B8F1 /* SocketClient.swift */,
+			);
+			path = Networking;
+			sourceTree = "<group>";
+		};
+		FD8FE1D113DE54D8111D1EA6 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				1F4E000315B71C7034C80234 /* CareerPathModels.swift */,
+				8203B85FAD2BB1972E927D1D /* DailyRosterModels.swift */,
+				7438F4661FE2742805585BC9 /* DraftModels.swift */,
+				A99D02FA726D5247D8E6A757 /* PlayerModels.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		05B1FB8075F7B08F14430289 /* dribblio-tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 41E3CB635F4757835EFA5023 /* Build configuration list for PBXNativeTarget "dribblio-tests" */;
+			buildPhases = (
+				9FAA606136D0FCA54D06452D /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DF2633B0E13CFA18CD39B8F2 /* PBXTargetDependency */,
+			);
+			name = "dribblio-tests";
+			packageProductDependencies = (
+			);
+			productName = "dribblio-tests";
+			productReference = 293292BB631A6EE99E3F36EA /* dribblio-tests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		4155BCF32DB65F57EC8FA9F1 /* dribblio */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0E84FFED76020074B4677CEE /* Build configuration list for PBXNativeTarget "dribblio" */;
+			buildPhases = (
+				451EBAFC7E90CAB3A75A9578 /* Sources */,
+				D39A6D5DB962869E1AAE05BD /* Resources */,
+				7FD2BAD6BD7FA8D0FBBBAF91 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = dribblio;
+			packageProductDependencies = (
+				225EC57C1A842E3F96EB7E1F /* SocketIO */,
+			);
+			productName = dribblio;
+			productReference = 126F80AD1774B7FE9E82676F /* dribblio.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AB02B051D50EFF4FFFF9CFD4 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = 78724B3388C6B1FFE370843B /* Build configuration list for PBXProject "dribblio" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = BEE8D5205DE7BF3F9207A802;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				82CD4CB4088F7F61139700F4 /* XCRemoteSwiftPackageReference "socket.io-client-swift" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 09614124CCF503860EAEB5CE /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				4155BCF32DB65F57EC8FA9F1 /* dribblio */,
+				05B1FB8075F7B08F14430289 /* dribblio-tests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		D39A6D5DB962869E1AAE05BD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8ABE1AF254C929A96A32D9EB /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		451EBAFC7E90CAB3A75A9578 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D00BE2E0A633058ED4DFC10D /* APIClient.swift in Sources */,
+				83403D4CA44CE6029F4E3E1E /* Bundle+BackendURL.swift in Sources */,
+				AD4450C208F77D422E2A18B3 /* CareerPathConfigView.swift in Sources */,
+				8307C1E812AC02DD62D11E30 /* CareerPathGameOverView.swift in Sources */,
+				34186B8DB88AF6040ACEABC8 /* CareerPathModels.swift in Sources */,
+				8C0041F7F2CA6009C523A4B3 /* CareerPathPlayingView.swift in Sources */,
+				4FA844CE1CEAB5BA74706CC5 /* CareerPathView.swift in Sources */,
+				DA8E2792A07072DC6A68B8C6 /* CareerPathViewModel.swift in Sources */,
+				D758E7D55E87D18533155451 /* ContentView.swift in Sources */,
+				4586FE1933A478F201BBCE15 /* DailyLivesView.swift in Sources */,
+				52F3EE5C35BB4B2FEEE34368 /* DailyResultPanelView.swift in Sources */,
+				14AB5A5D17EF151A6693DE6F /* DailyRosterCompleteView.swift in Sources */,
+				67A070E311F40E79543EE78F /* DailyRosterContentView.swift in Sources */,
+				EB13356229D829158104970A /* DailyRosterModels.swift in Sources */,
+				426EEDE92A23FAFFA9FC8111 /* DailyRosterPlayingView.swift in Sources */,
+				9875987BD15FE8AE74E26D67 /* DailyRosterView.swift in Sources */,
+				1479830401F0AA4CC27CF86E /* DailyRosterViewModel.swift in Sources */,
+				80ED725C512140E90160769B /* DateHelpers.swift in Sources */,
+				BAB01CDE3A1DA0E344C22748 /* DraftBoardView.swift in Sources */,
+				27EA92C1BF04AB7AEEAC0D8C /* DraftConfigView.swift in Sources */,
+				35D4DBB0FE68C523691B0636 /* DraftEntranceView.swift in Sources */,
+				73E425FDE08248758B512A0F /* DraftLobbyView.swift in Sources */,
+				471FAA57E1BC59270A15FCE4 /* DraftModels.swift in Sources */,
+				6D6535A418D01091756189A6 /* DraftResultsView.swift in Sources */,
+				6C61E73FC40B0EFBB1B04B80 /* DraftRootView.swift in Sources */,
+				D403045D0FDF70DAA58F0E96 /* DraftTimelineView.swift in Sources */,
+				A852F0693A7C93F13BDF0255 /* DraftViewModel.swift in Sources */,
+				7DF0F6986CF198D1E87908A3 /* GlassCard.swift in Sources */,
+				D33CE47C973E154299293E41 /* GuessAreaView.swift in Sources */,
+				807AD265D7D85CDD846E6633 /* HomeView.swift in Sources */,
+				36C5CF97A685236E087FB39E /* LoadingSkeletonView.swift in Sources */,
+				E7E56BDD2297A235A24375F1 /* MyPickCardView.swift in Sources */,
+				56BD58598F170F0C92F44AF5 /* NetworkError.swift in Sources */,
+				D552BFB0D1F5A41BFA1319EE /* OnTheClockView.swift in Sources */,
+				27DDD70A1B24C339B2AF69CE /* ParticipantListView.swift in Sources */,
+				BAA2CB4111108592B1E52940 /* PickAnnouncementView.swift in Sources */,
+				54045A08B2B5049CBC646720 /* PickConfirmSheet.swift in Sources */,
+				6814FDCA5F34B97CAEA2F226 /* PlayerHeadshotView.swift in Sources */,
+				F31D8A1A3EAB0D58AD9AEA6D /* PlayerModels.swift in Sources */,
+				8D45A440B0C301E7805BC7BE /* PlayerSearchField.swift in Sources */,
+				8EFFDD514F673BB6EF3E6BEE /* PoolEntryRowView.swift in Sources */,
+				C5F2A94AB0D2AAC1CBC5B847 /* PoolPreviewView.swift in Sources */,
+				BCEFCAE35F0E8C2FB6AD8713 /* RoomInfoView.swift in Sources */,
+				01CE6CCC4B52F84420D3DAF3 /* RosterHeaderView.swift in Sources */,
+				E138BB26DA1AE00985D54B92 /* RosterPlayerRowPlaceholder.swift in Sources */,
+				98D646FB5A3E12A3CB04123B /* RosterPlayerRowView.swift in Sources */,
+				AACC54156546EE15FE8554D3 /* RosterProgressView.swift in Sources */,
+				CB22647210DE823E469A0E25 /* RoundFeedbackView.swift in Sources */,
+				C1AD7B30E53D7FB3D86BE255 /* ScoreBoardView.swift in Sources */,
+				C3CB87AF8063C8983FC835C2 /* SocketClient.swift in Sources */,
+				05DBB1D40544E92897907D94 /* StatPillView.swift in Sources */,
+				0EDEBDA63AE7DF8897FC59A5 /* TeamHistoryView.swift in Sources */,
+				5AAABEA0C94FE3C47F690A07 /* TurnTimerView.swift in Sources */,
+				7A351412C27DE7FEAC7A49B3 /* UserDefaultsKeys.swift in Sources */,
+				12BFBEAF22255E2C6088BDBB /* driBBLIOApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9FAA606136D0FCA54D06452D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6368CFE77E5E64907F2FDB2D /* CareerPathViewModelTests.swift in Sources */,
+				F91F406382C4BBDF518212D1 /* DailyRosterViewModelTests.swift in Sources */,
+				0A069E4C9BF4C2A552BB36A3 /* DraftViewModelTests.swift in Sources */,
+				30C9BC7092B34143FD37ECEA /* MockAPIClient.swift in Sources */,
+				75953CA2160A329702C05039 /* MockSocketClient.swift in Sources */,
+				2BE8F33852A9872C49A9A64A /* driBBLIOTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		DF2633B0E13CFA18CD39B8F2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4155BCF32DB65F57EC8FA9F1 /* dribblio */;
+			targetProxy = 02404253C5B35EEB07064A76 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		199EAB671C2A3182706A74ED /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 904B95C09B14ED0F4EE36592 /* Debug.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		2880D7312469F3F98ADF0247 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				BACKEND_URL_VALUE = "http://localhost:3001";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = dribblio/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.dribbl.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		5E6938E0C13A726EFBB5C141 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				BACKEND_URL_VALUE = "https://api.dribbl.io";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = dribblio/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.dribbl.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		91330819D7E98856DD06FF94 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.dribbl.app.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/dribblio.app/dribblio";
+			};
+			name = Debug;
+		};
+		A2F44A03C4A33CCB1227A4CF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.dribbl.app.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/dribblio.app/dribblio";
+			};
+			name = Release;
+		};
+		DC3E33374EBD8B2DE1D9DEE7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 08B2D08CA4B40EF9319A975B /* Release.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0E84FFED76020074B4677CEE /* Build configuration list for PBXNativeTarget "dribblio" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2880D7312469F3F98ADF0247 /* Debug */,
+				5E6938E0C13A726EFBB5C141 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		41E3CB635F4757835EFA5023 /* Build configuration list for PBXNativeTarget "dribblio-tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				91330819D7E98856DD06FF94 /* Debug */,
+				A2F44A03C4A33CCB1227A4CF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		78724B3388C6B1FFE370843B /* Build configuration list for PBXProject "dribblio" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				199EAB671C2A3182706A74ED /* Debug */,
+				DC3E33374EBD8B2DE1D9DEE7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		82CD4CB4088F7F61139700F4 /* XCRemoteSwiftPackageReference "socket.io-client-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/socketio/socket.io-client-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 16.1.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		225EC57C1A842E3F96EB7E1F /* SocketIO */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 82CD4CB4088F7F61139700F4 /* XCRemoteSwiftPackageReference "socket.io-client-swift" */;
+			productName = SocketIO;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = AB02B051D50EFF4FFFF9CFD4 /* Project object */;
+}
