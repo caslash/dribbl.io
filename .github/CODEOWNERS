@@ -1,0 +1,4 @@
+# Default owner for everything in this repo.
+# Required-review-from-code-owners on the `main` ruleset means every PR
+# into main must be approved by @caslash.
+* @caslash
