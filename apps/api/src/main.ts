@@ -2,8 +2,8 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import * as dotenv from 'dotenv';
 import * as express from 'express';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
-import { WsExceptionFilter } from './filters/ws-exception.filter';
 
 dotenv.config();
 
@@ -37,14 +37,13 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
 
-  app.use((req, res, next) => {
-    next();
-  });
-
+  app.use(helmet());
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
-  app.useGlobalFilters(new WsExceptionFilter());
+  // WsExceptionFilter is applied per-gateway (see *.gateway.ts), not globally —
+  // a global @Catch() filter would swallow HTTP 404s and log every unmatched
+  // route (e.g. bot scans for /.env, /.git/config) as an errored WS exception.
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   app.setGlobalPrefix('/api');
 
@@ -70,10 +69,6 @@ async function bootstrap() {
   process.on('SIGINT', async () => {
     await app.close();
     process.exit(0);
-  });
-
-  app.use((res) => {
-    res.status(404).end();
   });
 }
 

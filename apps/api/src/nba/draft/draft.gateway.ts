@@ -7,7 +7,8 @@ import {
   SubmitPickEvent,
 } from '@dribblio/types';
 import { createRateLimiter } from '@/nba/shared/rate-limiter';
-import { Logger } from '@nestjs/common';
+import { WsExceptionFilter } from '@/filters/ws-exception.filter';
+import { Logger, UseFilters } from '@nestjs/common';
 import { SkipThrottle } from '@nestjs/throttler';
 import {
   ConnectedSocket,
@@ -22,6 +23,7 @@ import {
 import { Server, Socket } from 'socket.io';
 
 @SkipThrottle()
+@UseFilters(new WsExceptionFilter())
 @WebSocketGateway({
   namespace: '/draft',
   cors: {

@@ -19,6 +19,14 @@ export class WsExceptionFilter extends BaseWsExceptionFilter {
   private readonly logger = new Logger(WsExceptionFilter.name);
 
   catch(exception: unknown, host: ArgumentsHost): void {
+    // Only handle WebSocket contexts. If this filter is ever reached from an
+    // HTTP context, defer to Nest's default handling instead of logging a
+    // spurious "socket undefined" error and emitting to a non-existent socket.
+    if (host.getType() !== 'ws') {
+      super.catch(exception, host);
+      return;
+    }
+
     const socket = host.switchToWs().getClient<Socket>();
 
     const message =
