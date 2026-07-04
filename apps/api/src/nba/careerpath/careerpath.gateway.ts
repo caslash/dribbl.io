@@ -1,6 +1,7 @@
 import { CareerPathService } from '@/nba/careerpath/careerpath.service';
 import { CareerPathEvent } from '@dribblio/types';
 import { createRateLimiter } from '@/nba/shared/rate-limiter';
+import { WsExceptionFilter } from '@/filters/ws-exception.filter';
 import {
   ConnectedSocket,
   MessageBody,
@@ -11,11 +12,12 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Logger } from '@nestjs/common';
+import { Logger, UseFilters } from '@nestjs/common';
 import { SkipThrottle } from '@nestjs/throttler';
 import { Server, Socket } from 'socket.io';
 
 @SkipThrottle()
+@UseFilters(new WsExceptionFilter())
 @WebSocketGateway({
   namespace: '/careerpath',
   cors: {
